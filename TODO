@@ -1,0 +1,11 @@
+Data:
+    ☐ Make dataset json file
+    ☐ Make dataset py class
+
+Experiments:
+    ☐ Baseline
+    ☐ pseudo-Xray Pretrain, Xray finetune
+        ☐ pseudo-Xray: CT scout/localizer
+        ☐ pseudo-Xray: transformed CT 
+    ☐ pseudo-Xray Pretrain: teacher full CT + student Xray
+    ☐ Domain adaptation
