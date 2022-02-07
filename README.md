@@ -7,7 +7,7 @@ Lung Cancer Risk Prediction
 You can load our pretrained model trained on the NLST dataset, and score a given DICOM serie as follows:
 
 ```python
-from sybil import Serie, Sybil
+from sybilx import Serie, Sybil
 
 # Load a trained model
 model = Sybil.load("sybil_base")

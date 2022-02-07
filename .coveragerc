@@ -1,12 +1,12 @@
 # .coveragerc to control coverage.py
 [run]
 branch = True
-source = sybil
+source = sybilx
 # omit = bad_file.py
 
 [paths]
 source =
-    sybil/
+    sybilx/
     */site-packages/
 
 [report]
