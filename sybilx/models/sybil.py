@@ -1,3 +1,4 @@
+import torch
 import torch.nn as nn
 import torchvision
 from sybilx.models.cumulative_probability_layer import Cumulative_Probability_Layer
@@ -70,3 +71,33 @@ class RiskFactorPredictor(SybilNet):
 
     def get_loss_functions(self):
         return ["risk_factor_loss"]
+
+
+class SybilNetMOE(SybilNet):
+    def __init__(self, args):
+        super(SybilNetMOE, self).__init__(args)
+
+        self.prob_of_failure_layer = nn.ModuleList(
+            [
+                Cumulative_Probability_Layer(
+                    args.hidden_dim, args, max_followup=args.max_followup
+                )
+                for _ in range(args.num_experts)
+            ]
+        )
+        self.moe_attention = nn.Linear(args.hidden_dim, args.num_experts)
+
+    def aggregate_and_classify(self, x):
+        pool_output = self.pool(x)
+
+        pool_output["hidden"] = self.relu(pool_output["hidden"])
+        pool_output["hidden"] = self.dropout(pool_output["hidden"])
+        pool_output["logit"] = self.fc(pool_output["hidden"])
+
+        for i, risk_layer in enumerate(self.prob_of_failure_layer):
+            pool_output["logit_{}".format(i)] = risk_layer(pool_output["hidden"])
+
+        pool_output["moe_weight"] = torch.softmax(
+            self.moe_attention(pool_output["hidden"]), dim=-1
+        )
+        return pool_output
