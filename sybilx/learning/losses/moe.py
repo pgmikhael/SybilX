@@ -7,7 +7,7 @@ import pdb
 
 
 @register_object("moe_survival", "loss")
-def get_cross_entropy_loss(model_output, batch, model, args):
+def get_mixture_of_experts_loss(model_output, batch, model, args):
     logging_dict, predictions = OrderedDict(), OrderedDict()
     losses, probs = [], []
     for i in range(args.num_experts):
