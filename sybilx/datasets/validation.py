@@ -5,7 +5,7 @@ import warnings
 import json, csv
 import traceback
 from collections import Counter
-from sybilx.augmentations import get_augmentations
+from sybilx.utils.augmentations import get_augmentations
 from tqdm import tqdm
 from sybilx.serie import Serie
 from sybilx.datasets.utils import order_slices, METAFILE_NOTFOUND_ERR, LOAD_FAIL_MSG

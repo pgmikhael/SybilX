@@ -9,7 +9,7 @@ sys.path.append(dirname(dirname(dirname(realpath(__file__)))))
 
 from sybilx.parsing import parse_args
 from scripts.plcom2012.plcom2012 import PLCOm2012
-from sybilx.utils.helpers import get_dataset
+from sybilx.utils.augmentations import get_dataset
 import sybilx.utils.loading as loaders
 
 

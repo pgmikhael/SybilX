@@ -3,6 +3,7 @@ import hashlib
 import collections.abc as container_abcs
 import re
 from typing import Literal
+from sybilx.utils.registry import get_object
 import torch
 from torch.utils import data
 
@@ -178,10 +179,9 @@ def get_sample_loader(split_group: Literal["train", "dev", "test"], args: Namesp
     NotImplementedError
         img_file_type must be one of "dicom" or "png"
     """
-    augmentations = get_augmentations(split_group, args)
-    if args.img_file_type == "dicom":
-        return DicomLoader(args.cache_path, augmentations, args)
-    elif args.img_file_type == "png":
-        return OpenCVLoader(args.cache_path, augmentations, args)
-    else:
-        raise NotImplementedError
+    if split_group == 'test':
+        augmentations = get_augmentations(args.test_rawinput_augmentations, args.test_tnsr_augmentations, args)
+    else
+        augmentations = get_augmentations(args.train_rawinput_augmentations, args.train_tnsr_augmentations, args)
+    return get_object(args.input_loader_name, "input_loader")(args.cache_path, augmentations, args)
+

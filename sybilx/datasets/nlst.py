@@ -3,6 +3,7 @@ from posixpath import split
 import traceback, warnings
 import pickle, json
 import numpy as np
+from sybilx import augmentations
 from tqdm import tqdm
 from collections import Counter
 import torch
@@ -16,7 +17,7 @@ from sybilx.datasets.utils import (
     METAFILE_NOTFOUND_ERR,
     LOAD_FAIL_MSG,
 )
-
+from sybilx.utils.registry import register_object
 from sybilx.datasets.nlst_risk_factors import NLSTRiskFactorVectorizer
 
 METADATA_FILENAME = {"google_test": "NLST/full_nlst_google.json"}
@@ -60,6 +61,7 @@ EDUCAT_LEVEL = {
 }
 
 
+@register_object("nlst", "dataset")
 class NLST_Survival_Dataset(data.Dataset):
     def __init__(self, args, split_group):
         """
@@ -621,6 +623,7 @@ class NLST_Survival_Dataset(data.Dataset):
             warnings.warn(LOAD_FAIL_MSG.format(sample["paths"], traceback.print_exc()))
 
 
+@register_object("nlst_plco", "dataset")
 class NLST_for_PLCO(NLST_Survival_Dataset):
     """
     Dataset for risk factor-based risk model
@@ -674,6 +677,7 @@ class NLST_for_PLCO(NLST_Survival_Dataset):
         return sample
 
 
+@register_object("nlst_risk_factors", "dataset")
 class NLST_Risk_Factor_Task(NLST_Survival_Dataset):
     """
     Dataset for risk factor-based risk model

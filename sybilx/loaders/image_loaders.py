@@ -1,4 +1,5 @@
 from sybilx.loaders.abstract_loader import abstract_loader
+from sybilx.utils.registry import register_object
 import cv2
 import torch
 import pydicom
@@ -8,6 +9,7 @@ import numpy as np
 LOADING_ERROR = "LOADING ERROR! {}"
 
 
+@register_object("cv_loader", "input_loader")
 class OpenCVLoader(abstract_loader):
     def configure_path(self, path, additional, sample):
         return path
@@ -23,6 +25,7 @@ class OpenCVLoader(abstract_loader):
         return ".png"
 
 
+@register_object("dicom_loader", "input_loader")
 class DicomLoader(abstract_loader):
     def __init__(self, cache_path, augmentations, args):
         super(DicomLoader, self).__init__(cache_path, augmentations, args)

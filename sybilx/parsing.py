@@ -11,7 +11,7 @@ POSS_VAL_NOT_LIST = (
 )
 
 
-def parse_augmentations(raw_augmentations):
+def parse_augmentations(augmentations):
     """
     Parse the list of augmentations, given by configuration, into a list of
     tuple of the augmentations name and a dictionary containing additional args.
@@ -22,8 +22,10 @@ def parse_augmentations(raw_augmentations):
     :returns: list of parsed augmentations [list of (name,additional_args)]
 
     """
-    augmentations = []
-    for t in raw_augmentations:
+    raw_transformers = augmentations
+
+    transformers = []
+    for t in raw_transformers:
         arguments = t.split("/")
         name = arguments[0]
         if name == "":
@@ -37,12 +39,60 @@ def parse_augmentations(raw_augmentations):
                 val = splited[1] if len(splited) > 1 else None
                 if var == "":
                     raise Exception(EMPTY_NAME_ERR)
+                try:
+                    kwargs[var] = float(val)
+                except ValueError:
+                    kwargs[var] = val
 
-                kwargs[var] = val
+        transformers.append((name, kwargs))
 
-        augmentations.append((name, kwargs))
+    return transformers
 
-    return augmentations
+
+def prepare_training_config_for_eval(train_config):
+    """Convert training config to an eval config for testing.
+
+    Parameters
+    ----------
+    train_config: dict
+         config with the following structure:
+              {
+                   "train_config": ,   # path to train config
+                   "log_dir": ,        # log directory used by dispatcher during training
+                   "eval_args": {}     # test set-specific arguments beyond default
+              }
+
+    Returns
+    -------
+    experiments: list
+    flags: list
+    experiment_axies: list
+    """
+
+    train_args = json.load(open(train_config["train_config"], "r"))
+
+    experiments, _, _ = parse_dispatcher_config(train_args)
+    stem_names = [md5(e) for e in experiments]
+    eval_args = copy.deepcopy(train_args)
+    eval_args["grid_search_space"].update(train_config["eval_args"])
+
+    # reset defaults
+    eval_args["grid_search_space"]["train"] = [False]
+    eval_args["grid_search_space"]["test"] = [True]
+    eval_args["grid_search_space"]["from_checkpoint"] = [True]
+    eval_args["grid_search_space"]["gpus"] = [1]
+    eval_args["grid_search_space"]["comet_tags"][0] += " eval"
+    eval_args["available_gpus"] = train_config["available_gpus"]
+    eval_args["script"] = train_config["script"]
+
+    experiments, flags, experiment_axies = parse_dispatcher_config(eval_args)
+
+    for (idx, e), s in zip(enumerate(experiments), stem_names):
+        experiments[idx] += " --checkpointed_path {}".format(
+            os.path.join(train_config["log_dir"], "{}.args".format(s))
+        )
+
+    return experiments, flags, experiment_axies
 
 
 def parse_dispatcher_config(config):
@@ -52,51 +102,85 @@ def parse_dispatcher_config(config):
     :config - experiment_config
 
     returns: jobs - a list of flag strings, each of which encapsulates one job.
-        *Example: --train --cuda --dropout=0.1 ...
+         *Example: --train --cuda --dropout=0.1 ...
     returns: experiment_axies - axies that the grid search is searching over
     """
-    jobs = [""]
+
+    grid_search_spaces = config["grid_search_space"]
+    paired_search_spaces = config.get("paired_search_space", [])
+    flags = []
+    arguments = []
     experiment_axies = []
-    search_spaces = config["search_space"]
 
-    # Support a list of search spaces, convert to length one list for backward compatiblity
-    if not isinstance(search_spaces, list):
-        search_spaces = [search_spaces]
+    # add anything outside search space as fixed
+    fixed_args = ""
+    for arg in config:
+        if arg not in [
+            "script",
+            "grid_search_space",
+            "paired_search_space",
+            "available_gpus",
+        ]:
+            if type(config[arg]) is bool:
+                if config[arg]:
+                    fixed_args += "--{} ".format(str(arg))
+                else:
+                    continue
+            else:
+                fixed_args += "--{} {} ".format(arg, config[arg])
 
-    for search_space in search_spaces:
-        # Go through the tree of possible jobs and enumerate into a list of jobs
-        for ind, flag in enumerate(search_space):
-            possible_values = search_space[flag]
-            if len(possible_values) > 1:
-                experiment_axies.append(flag)
-
-            children = []
-            if len(possible_values) == 0 or type(possible_values) is not list:
-                raise Exception(POSS_VAL_NOT_LIST.format(flag, possible_values))
-            for value in possible_values:
-                for parent_job in jobs:
-                    if type(value) is bool:
-                        if value:
-                            new_job_str = "{} --{}".format(parent_job, flag)
-                        else:
-                            new_job_str = parent_job
-                    elif type(value) is list:
-                        val_list_str = " ".join([str(v) for v in value])
-                        new_job_str = "{} --{} {}".format(
-                            parent_job, flag, val_list_str
-                        )
+    # add paired combo of search space
+    paired_args_list = [""]
+    if len(paired_search_spaces) > 0:
+        paired_args_list = []
+        paired_keys = list(paired_search_spaces.keys())
+        paired_vals = list(paired_search_spaces.values())
+        flags.extend(paired_keys)
+        for paired_combo in zip(*paired_vals):
+            paired_args = ""
+            for i, flg_value in enumerate(paired_combo):
+                if type(flg_value) is bool:
+                    if flg_value:
+                        paired_args += "--{} ".format(str(paired_keys[i]))
                     else:
-                        new_job_str = "{} --{} {}".format(parent_job, flag, value)
-                    children.append(new_job_str)
-            jobs = children
+                        continue
+                else:
+                    paired_args += "--{} {} ".format(
+                        str(paired_keys[i]), str(flg_value)
+                    )
+            paired_args_list.append(paired_args)
 
-    return jobs, experiment_axies
+    # add every combo of search space
+    product_flags = []
+    for key, value in grid_search_spaces.items():
+        flags.append(key)
+        product_flags.append(key)
+        arguments.append(value)
+        if len(value) > 1:
+            experiment_axies.append(key)
+
+    experiments = []
+    exps_combs = list(itertools.product(*arguments))
+
+    for tpl in exps_combs:
+        exp = ""
+        for idx, flg in enumerate(product_flags):
+            if type(tpl[idx]) is bool:
+                if tpl[idx]:
+                    exp += "--{} ".format(str(flg))
+                else:
+                    continue
+            else:
+                exp += "--{} {} ".format(str(flg), str(tpl[idx]))
+        exp += fixed_args
+        for paired_args in paired_args_list:
+            experiments.append(exp + paired_args)
+
+    return experiments, flags, experiment_axies
 
 
 def parse_args(args_strings=None):
-    parser = argparse.ArgumentParser(
-        description="Sandstone research repo. Support Mammograms, CT Scans, Thermal Imaging, Cell Imaging and Chemistry."
-    )
+    parser = argparse.ArgumentParser(description="Sybil research repo.")
     # setup
     parser.add_argument(
         "--train",
@@ -133,7 +217,14 @@ def parse_args(args_strings=None):
     parser.add_argument(
         "--dataset",
         default="nlst",
-        choices=["sybil", "nlst", "nlst_risk_factors", "nlst_for_plco", "mgh", "nlst_mgh"],
+        choices=[
+            "sybil",
+            "nlst",
+            "nlst_risk_factors",
+            "nlst_for_plco",
+            "mgh",
+            "nlst_mgh",
+        ],
         help="Name of dataset from dataset factory to use [default: nlst]",
     )
     parser.add_argument(
@@ -222,6 +313,39 @@ def parse_args(args_strings=None):
         "--max_followup", type=int, default=6, help="Max followup to predict over"
     )
 
+    # augmentations
+    parser.add_argument(
+        "--fix_multi_image_augmentation_seed",
+        action="store_true",
+        default=False,
+        help="whether to use same seed for augmentations in the multi-input setting",
+    )
+    parser.add_argument(
+        "--train_rawinput_augmentations",
+        nargs="*",
+        default=[],
+        help='List of image-transformations to use. Usage: "--train_rawinput_augmentations trans1/arg1=5/arg2=2 trans2 trans3/arg4=val"',
+    )
+    parser.add_argument(
+        "--train_tnsr_augmentations",
+        nargs="*",
+        default=[],
+        help='List of image-transformations to use. Usage: "--train_tnsr_augmentations trans1/arg1=5/arg2=2 trans2 trans3/arg4=val"',
+    )
+    parser.add_argument(
+        "--test_rawinput_augmentations",
+        nargs="*",
+        default=[],
+        help="List of image-transformations to use for the dev and test dataset",
+    )
+    parser.add_argument(
+        "--test_tnsr_augmentations",
+        nargs="*",
+        default=[],
+        help="List of image-transformations to use for the dev and test dataset",
+    )
+    parser.add_argument("--num_chan", type=int, default=3)
+
     # risk factors
     parser.add_argument(
         "--use_risk_factors",
@@ -239,7 +363,7 @@ def parse_args(args_strings=None):
     # handling CT slices
     parser.add_argument(
         "--use_all_images",
-        action='store_true',
+        action="store_true",
         default=False,
         help="Whether to use all slices as input. In which case, the num_images arg is used to interpolate volumes to constant depth",
     )
@@ -302,7 +426,7 @@ def parse_args(args_strings=None):
         default=1,
         help="Weight of loss for predicting volume attention scores",
     )
-    
+
     # regularization
     parser.add_argument(
         "--primary_loss_lambda",
@@ -317,6 +441,31 @@ def parse_args(args_strings=None):
         help="Lambda to weigh the adversary loss.",
     )
 
+    # loader
+    parser.add_argument(
+        "--input_loader_name",
+        type=str,
+        default="default_image_loader",
+        help="input loader",
+    )
+    parser.add_argument(
+        "--lightning_model_name", type=str, default="vgg", help="Name of DNN"
+    )
+    parser.add_argument(
+        "--base_model", type=str, default="vgg", help="Name of parent model"
+    )
+
+    # losses and metrics
+    parser.add_argument(
+        "--loss_fns", type=str, nargs="*", default=[], help="Name of loss"
+    )
+    parser.add_argument(
+        "--eval_loss_fns", type=str, nargs="*", default=None, help="Name of loss"
+    )
+    parser.add_argument(
+        "--metrics", type=str, nargs="*", default=[], help="Name of performance metric"
+    )
+
     # learning
     parser.add_argument(
         "--batch_size",
@@ -325,7 +474,7 @@ def parse_args(args_strings=None):
         help="Batch size for training [default: 128]",
     )
     parser.add_argument(
-        "--init_lr",
+        "--lr",
         type=float,
         default=0.001,
         help="Initial learning rate [default: 0.001]",
@@ -363,6 +512,21 @@ def parse_args(args_strings=None):
 
     # schedule
     parser.add_argument(
+        "--scheduler", type=str, default="reduce_on_plateau", help="Name of scheduler"
+    )
+    parser.add_argument(
+        "--cosine_annealing_period",
+        type=int,
+        default=10,
+        help="length of period of lr cosine anneal",
+    )
+    parser.add_argument(
+        "--cosine_annealing_period_scaling",
+        type=int,
+        default=2,
+        help="how much to multiply each period in successive annealing",
+    )
+    parser.add_argument(
         "--patience",
         type=int,
         default=5,
@@ -391,6 +555,13 @@ def parse_args(args_strings=None):
 
     parser.add_argument(
         "--save_dir", type=str, default="snapshot", help="Where to dump the model"
+    )
+
+    parser.add_argument(
+        "--from_checkpoint",
+        action="store_true",
+        default=False,
+        help="Whether loading a model from a saved checkpoint",
     )
 
     parser.add_argument(
@@ -451,13 +622,30 @@ def parse_args(args_strings=None):
         help="Cache full image locally as well as cachable transforms",
     )
 
+    # logger
+    parser.add_argument(
+        "--logger", type=str, default="comet", help="List of tags for comet logger"
+    )
+
+    # comet
+    parser.add_argument(
+        "--comet_tags", nargs="*", default=[], help="List of tags for comet logger"
+    )
+    parser.add_argument("--project_name", default="CancerCures", help="Comet project")
+    parser.add_argument("--workspace", default="pgmikhael", help="Comet workspace")
+    parser.add_argument(
+        "--log_gen_image",
+        action="store_true",
+        default=False,
+        help="Whether to log sample generated image to comet",
+    )
+
     # run
     parser = Trainer.add_argparse_args(parser)
     if args_strings is None:
         args = parser.parse_args()
     else:
         args = parser.parse_args(args_strings)
-    args.lr = args.init_lr
 
     if (isinstance(args.gpus, str) and len(args.gpus.split(",")) > 1) or (
         isinstance(args.gpus, int) and args.gpus > 1
@@ -472,5 +660,14 @@ def parse_args(args_strings=None):
 
     # learning initial state
     args.step_indx = 1
+
+    args.train_rawinput_augmentations = parse_augmentations(
+        args.train_rawinput_augmentations
+    )
+    args.train_tnsr_augmentations = parse_augmentations(args.train_tnsr_augmentations)
+    args.test_rawinput_augmentations = parse_augmentations(
+        args.test_rawinput_augmentations
+    )
+    args.test_tnsr_augmentations = parse_augmentations(args.test_tnsr_augmentations)
 
     return args

@@ -1,118 +1,67 @@
+from typing import Dict
+from modules.utils.shared import register_object
 from collections import OrderedDict
-from sklearn.metrics import (
-    accuracy_score,
-    precision_score,
-    recall_score,
-    f1_score,
-    roc_auc_score,
-    precision_recall_curve,
-    auc,
-    average_precision_score,
-)
 import numpy as np
 from lifelines.utils.btree import _BTree
-from lifelines import KaplanMeierFitter
+import pdb
+from torchmetrics.functional import (
+    auroc,
+    precision_recall_curve,
+    auc,
+    average_precision,
+)
 import warnings
 
-EPSILON = 1e-6
-BINARY_CLASSIF_THRESHOLD = 0.5
 
+@register_object("survival", "metric")
+class SurvivalMetric(object):
+    def __init__(self, args) -> None:
+        super().__init__()
 
-def get_classification_metrics(logging_dict, args):
-    stats_dict = OrderedDict()
+    @property
+    def metric_keys(self):
+        return ["probs", "preds", "golds", "cenosrs"]
 
-    golds = np.array(logging_dict["golds"]).reshape(-1)
-    probs = np.array(logging_dict["probs"])
-    preds = probs.argmax(axis=-1).reshape(-1)
-    probs = probs.reshape((-1, probs.shape[-1]))
+    def __call__(self, logging_dict, args) -> Dict:
+        """
+        Computes standard classification metrics
 
-    stats_dict["accuracy"] = accuracy_score(y_true=golds, y_pred=preds)
+        Args:
+            logging_dict: dictionary obtained from computing loss and model outputs
+                * should contain the keys ['probs', 'preds', 'golds']
+            args: argparser Namespace
 
-    if (args.num_classes == 2) and not (
-        np.unique(golds)[-1] > 1 or np.unique(preds)[-1] > 1
-    ):
-        stats_dict["precision"] = precision_score(y_true=golds, y_pred=preds)
-        stats_dict["recall"] = recall_score(y_true=golds, y_pred=preds)
-        stats_dict["f1"] = f1_score(y_true=golds, y_pred=preds)
-        num_pos = golds.sum()
-        if num_pos > 0 and num_pos < len(golds):
-            stats_dict["auc"] = roc_auc_score(golds, probs[:, -1], average="samples")
-            stats_dict["ap_score"] = average_precision_score(
-                golds, probs[:, -1], average="samples"
+        Returns:
+            stats_dict (dict): contains (where applicable) values for accuracy, confusion matrix, precision, recall, f1, precision-recall auc, roc auc
+
+        Note:
+            In multiclass setting (>2), accuracy, and micro-f1, micro-recall, micro-precision are equivalent
+            Macro: calculates metric per class then averages
+        """
+
+        stats_dict = {}
+
+        censor_times, probs, golds = (
+            logging_dict["censors"],
+            logging_dict["probs"],
+            logging_dict["golds"],
+        )
+        for followup in range(args.max_followup):
+            min_followup_if_neg = followup + 1
+            roc_auc, ap_score, pr_auc = compute_auc_at_followup(
+                probs, censor_times, golds, followup
             )
-            precision, recall, _ = precision_recall_curve(golds, probs[:, -1])
-            stats_dict["prauc"] = auc(recall, precision)
+            stats_dict["{}_year_auc".format(min_followup_if_neg)] = roc_auc
+            stats_dict["{}_year_apscore".format(min_followup_if_neg)] = ap_score
+            stats_dict["{}_year_prauc".format(min_followup_if_neg)] = pr_auc
 
-    return stats_dict
-
-
-def get_survival_metrics(logging_dict, args):
-    stats_dict = {}
-
-    censor_times, probs, golds = (
-        logging_dict["censors"],
-        logging_dict["probs"],
-        logging_dict["golds"],
-    )
-    for followup in range(args.max_followup):
-        min_followup_if_neg = followup + 1
-        roc_auc, ap_score, pr_auc = compute_auc_at_followup(
-            probs, censor_times, golds, followup
-        )
-        stats_dict["{}_year_auc".format(min_followup_if_neg)] = roc_auc
-        stats_dict["{}_year_apscore".format(min_followup_if_neg)] = ap_score
-        stats_dict["{}_year_prauc".format(min_followup_if_neg)] = pr_auc
-
-    if np.array(golds).sum() > 0:
-        stats_dict["c_index"] = concordance_index(
-            logging_dict["censors"], probs, golds, args.censoring_distribution
-        )
-    else:
-        stats_dict["c_index"] = -1.0
-    return stats_dict
-
-
-def get_alignment_metrics(logging_dict, args):
-    stats_dict = OrderedDict()
-
-    golds = np.array(logging_dict['discrim_golds']).reshape(-1)
-    probs = np.array(logging_dict['discrim_probs'])
-    preds = probs.argmax(axis=-1).reshape(-1)
-    probs = probs.reshape( (-1, probs.shape[-1]))
-
-    stats_dict['discrim_accuracy'] = accuracy_score(y_true=golds, y_pred=preds)
-    stats_dict['discrim_precision'] = precision_score(y_true=golds, y_pred=preds)
-    stats_dict['discrim_recall'] = recall_score(y_true=golds, y_pred=preds)
-    stats_dict['discrim_f1'] = f1_score(y_true=golds, y_pred=preds)
-    num_pos = golds.sum()
-    if num_pos > 0 and num_pos < len(golds):
-        try:
-            stats_dict['discrim_auc'] = roc_auc_score(golds, probs[:,-1], average='samples')
-            stats_dict['discrim_ap_score'] = average_precision_score(golds, probs[:,-1], average='samples')
-            precision, recall, _ = precision_recall_curve(golds, probs[:,-1])
-            stats_dict['discrim_prauc'] = auc(recall, precision)
-        except Exception as e:
-            print(e)
-
-    return stats_dict
-
-def get_risk_metrics(logging_dict, args):
-    stats_dict = {}
-    censor_times, probs, golds = (
-        logging_dict["censors"],
-        logging_dict["probs"],
-        logging_dict["golds"],
-    )
-    for followup in range(args.max_followup):
-        min_followup_if_neg = followup + 1
-        roc_auc, ap_score, pr_auc = compute_auc_at_followup(
-            probs, censor_times, golds, followup, fup_lower_bound=0
-        )
-        stats_dict["{}_year_risk_auc".format(min_followup_if_neg)] = roc_auc
-        stats_dict["{}_year_risk_apscore".format(min_followup_if_neg)] = ap_score
-        stats_dict["{}_year_risk_prauc".format(min_followup_if_neg)] = pr_auc
-
-    return stats_dict
+        if np.array(golds).sum() > 0:
+            stats_dict["c_index"] = concordance_index(
+                logging_dict["censors"], probs, golds, args.censoring_distribution
+            )
+        else:
+            stats_dict["c_index"] = -1.0
+        return stats_dict
 
 
 def compute_auc_at_followup(probs, censor_times, golds, followup, fup_lower_bound=-1):
@@ -134,11 +83,12 @@ def compute_auc_at_followup(probs, censor_times, golds, followup, fup_lower_boun
             golds_for_eval.append(label)
 
     try:
-        roc_auc = roc_auc_score(golds_for_eval, probs_for_eval, average="samples")
-        ap_score = average_precision_score(
-            golds_for_eval, probs_for_eval, average="samples"
+        roc_auc = auroc(
+            probs_for_eval, golds_for_eval, num_classes=2, average="samples"
         )
-        precision, recall, _ = precision_recall_curve(golds_for_eval, probs_for_eval)
+
+        ap_score = average_precision(probs_for_eval, golds_for_eval, average="samples")
+        precision, recall, _ = precision_recall_curve(probs_for_eval, golds_for_eval)
         pr_auc = auc(recall, precision)
     except Exception as e:
         warnings.warn("Failed to calculate AUC because {}".format(e))
@@ -146,20 +96,6 @@ def compute_auc_at_followup(probs, censor_times, golds, followup, fup_lower_boun
         ap_score = -1.0
         pr_auc = -1.0
     return roc_auc, ap_score, pr_auc
-
-
-def get_censoring_dist(train_dataset):
-    _dataset = train_dataset.dataset
-    times, event_observed = (
-        [d["time_at_event"] for d in _dataset],
-        [d["y"] for d in _dataset],
-    )
-    all_observed_times = set(times)
-    kmf = KaplanMeierFitter()
-    kmf.fit(times, event_observed)
-
-    censoring_dist = {str(time): kmf.predict(time) for time in all_observed_times}
-    return censoring_dist
 
 
 def concordance_index(
