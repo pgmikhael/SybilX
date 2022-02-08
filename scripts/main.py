@@ -15,6 +15,7 @@ from sybilx.parsing import parse_args
 from sybilx.utils.registry import get_object
 from sybilx.datasets.utils import get_censoring_dist
 import sybilx.utils.loading as loaders
+from sybilx.utils.callbacks import set_callbacks
 
 
 def cli_main(args):
@@ -84,16 +85,7 @@ def cli_main(args):
         trainer.logger.experiment.log_parameters(args)
 
     # add callbacks
-    if not args.turn_off_checkpointing:
-        checkpoint_callback = ModelCheckpoint(
-            monitor=args.monitor,
-            dirpath=os.path.join(args.model_save_dir, args.experiment_name),
-            mode="min" if "loss" in args.monitor else "max",
-            filename="{}".format(args.experiment_name) + "{epoch}",
-            every_n_epochs=1,
-        )
-        trainer.callbacks.append(checkpoint_callback)
-    trainer.callbacks.append(LearningRateMonitor(logging_interval="step"))
+    trainer.callbacks = set_callbacks(trainer, args)
 
     if args.train:
         log.info("\nTraining Phase...")

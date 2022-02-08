@@ -545,6 +545,15 @@ def parse_args(args_strings=None):
         help="Criterion based on which model is saved [default: c_index]",
     )
 
+    # Callbacks
+    parser.add_argument(
+        "--callback_names",
+        type=str,
+        nargs="*",
+        default=["checkpointer", "lr_monitor"],
+        help="Lightning callbacks",
+    )
+
     # model checkpointing
     parser.add_argument(
         "--turn_off_checkpointing",
