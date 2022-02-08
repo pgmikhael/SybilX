@@ -545,13 +545,41 @@ def parse_args(args_strings=None):
         help="Criterion based on which model is saved [default: c_index]",
     )
 
-    # Callbacks
+    # callbacks
     parser.add_argument(
         "--callback_names",
         type=str,
         nargs="*",
         default=["checkpointer", "lr_monitor"],
         help="Lightning callbacks",
+    )
+
+    # stochastic weight averaging
+    parser.add_argument(
+        "--swa_epoch",
+        type=str,
+        default="0.8",
+        help="when to start swa",
+    )
+
+    parser.add_argument(
+        "--swa_lr",
+        type=float,
+        default=None,
+        help="lr for swa. None will use existing lr",
+    )
+    parser.add_argument(
+        "--swa_annealing_epochs",
+        type=int,
+        default=10,
+        help="number of epochs in the annealing phase",
+    )
+    parser.add_argument(
+        "--swa_annealing_strategy",
+        type=str,
+        choices=["cos", "linear"],
+        default="cos",
+        help="lr annealing strategy",
     )
 
     # model checkpointing
