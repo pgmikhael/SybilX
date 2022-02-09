@@ -6,7 +6,7 @@ from typing import Literal
 from sybilx.utils.registry import get_object
 import torch
 from torch.utils import data
-
+import hashlib
 from sybilx.utils.sampler import DistributedWeightedSampler
 from sybilx.augmentations import get_augmentations
 from sybilx.loaders.image_loaders import OpenCVLoader, DicomLoader
@@ -185,3 +185,8 @@ def get_sample_loader(split_group: Literal["train", "dev", "test"], args: Namesp
         augmentations = get_augmentations(args.train_rawinput_augmentations, args.train_tnsr_augmentations, args)
     return get_object(args.input_loader_name, "input_loader")(args.cache_path, augmentations, args)
 
+def md5(key):
+    """
+    returns a hashed with md5 string of the key
+    """
+    return hashlib.md5(key.encode()).hexdigest()
