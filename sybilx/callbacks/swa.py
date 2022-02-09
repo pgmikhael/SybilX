@@ -1,4 +1,4 @@
-from modules.utils.shared import register_object
+from sybilx.utils.registry import register_object
 from pytorch_lightning.callbacks import StochasticWeightAveraging
 
 
