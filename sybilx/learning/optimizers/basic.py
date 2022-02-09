@@ -1,6 +1,6 @@
 import torch 
 from torch import optim
-from modules.utils.shared import register_object
+from sybilx.utils.registry import register_object
 
 @register_object("sgd", 'optimizer')
 class SGD(optim.SGD):

@@ -4,7 +4,7 @@ import sys
 import os.path
 import warnings
 from sybilx.datasets.utils import get_scaled_annotation_mask, IMG_PAD_TOKEN
-from sybilx.augmentations import ComposeAug
+from sybilx.augmentations.basic import ComposeAug
 import numpy as np
 from abc import ABCMeta, abstractmethod
 import hashlib
