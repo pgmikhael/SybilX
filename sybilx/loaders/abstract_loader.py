@@ -7,7 +7,7 @@ from sybilx.datasets.utils import get_scaled_annotation_mask, IMG_PAD_TOKEN
 from sybilx.augmentations import ComposeAug
 import numpy as np
 from abc import ABCMeta, abstractmethod
-from sybilx.utils.loading import md5
+from sybilx.utils.registry import md5
 
 CACHED_FILES_EXT = ".png"
 DEFAULT_CACHE_DIR = "default/"
