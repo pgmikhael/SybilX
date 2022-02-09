@@ -7,7 +7,7 @@ from sybilx.datasets.utils import get_scaled_annotation_mask, IMG_PAD_TOKEN
 from sybilx.augmentations.basic import ComposeAug
 import numpy as np
 from abc import ABCMeta, abstractmethod
-import hashlib
+from sybilx.utils.loading import md5
 
 CACHED_FILES_EXT = ".png"
 DEFAULT_CACHE_DIR = "default/"
@@ -15,13 +15,6 @@ DEFAULT_CACHE_DIR = "default/"
 CORUPTED_FILE_ERR = (
     "WARNING! Error processing file from cache - removed file from cache. Error: {}"
 )
-
-
-def md5(key):
-    """
-    returns a hashed with md5 string of the key
-    """
-    return hashlib.md5(key.encode()).hexdigest()
 
 
 def split_augmentations_by_cache(augmentations):

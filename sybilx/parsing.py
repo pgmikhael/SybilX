@@ -3,6 +3,7 @@ import torch
 import os
 import pwd
 from pytorch_lightning import Trainer
+from sybilx.utils.loading import md5
 
 EMPTY_NAME_ERR = 'Name of augmentation or one of its arguments cant be empty\n\
                   Use "name/arg1=value/arg2=value" format'

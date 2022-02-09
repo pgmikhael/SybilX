@@ -1,5 +1,5 @@
 from typing import Dict
-from modules.utils.shared import register_object
+from sybilx.utils.registry import register_object
 from collections import OrderedDict
 import numpy as np
 from lifelines.utils.btree import _BTree

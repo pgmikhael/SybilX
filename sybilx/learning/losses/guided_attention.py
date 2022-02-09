@@ -1,4 +1,4 @@
-from modules.utils.shared import register_object
+from sybilx.utils.registry import register_object
 import torch
 import torch.nn.functional as F
 import torch.nn as nn
