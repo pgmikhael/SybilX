@@ -176,7 +176,9 @@
     ],
     "cache_path": [
       "/storage/nlst_cache"
-    ]
+    ],
+    "snapshot": ["/Mounts/rbg-storage1/logs/lung_ct/sybil_mgh_finetunev1.p"],
+    "from_checkpoint": [true]
   },
   "available_gpus": [
     "0,1,2,3,4,5,6,7"

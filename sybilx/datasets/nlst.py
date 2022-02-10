@@ -618,7 +618,7 @@ class NLST_Survival_Dataset(data.Dataset):
 
             return item
         except Exception:
-            warnings.warn(LOAD_FAIL_MSG.format(sample["paths"], traceback.print_exc()))
+            warnings.warn(LOAD_FAIL_MSG.format(sample["exam"], traceback.print_exc()))
 
 
 @register_object("nlst_plco", "dataset")

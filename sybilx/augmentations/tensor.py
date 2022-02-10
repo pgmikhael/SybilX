@@ -114,9 +114,9 @@ class Force_Num_Chan_Tensor_2d(Abstract_augmentation):
 
     def __call__(self, input_dict, sample=None):
         img = input_dict["input"]
-        mask = input_dict("mask", None)
+        mask = input_dict.get("mask", None)
         if mask is not None:
-            mask = mask.unsqueeze(0)
+            input_dict['mask'] = mask.unsqueeze(0)
 
         num_dims = len(img.shape)
         if num_dims == 2:

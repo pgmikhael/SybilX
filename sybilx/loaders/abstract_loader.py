@@ -170,7 +170,7 @@ class abstract_loader:
         )
         if input_path == self.pad_token:
             shape = (self.args.num_chan, self.args.img_size[0], self.args.img_size[1])
-            input_dict["image"] = torch.zeros(*shape)
+            input_dict["input"] = torch.zeros(*shape)
             input_dict["mask"] = (
                 torch.from_numpy(input_dict["mask"]).unsqueeze(0)
                 if self.args.use_annotations
@@ -193,7 +193,7 @@ class abstract_loader:
             )
             if self.cache.exists(input_path, base_key):
                 try:
-                    input_dict = self.cache.get(input_path, base_key)
+                    input_dict['input'] = self.cache.get(input_path, base_key)
                     if self.apply_augmentations:
                         input_dict = apply_augmentations_and_cache(
                             input_dict,
@@ -212,7 +212,7 @@ class abstract_loader:
                     warnings.warn(CORUPTED_FILE_ERR.format(sys.exc_info()[0]))
                     self.cache.rem(input_path, key)
         all_augmentations = self.split_augmentations[-1][1]
-        input_dict = self.load_input(input_path, sample)
+        input_dict['input'] = self.load_input(input_path, sample)
         if self.apply_augmentations:
             input_dict = apply_augmentations_and_cache(
                 input_dict,
@@ -231,7 +231,7 @@ class abstract_loader:
         If cache is used - transformed images will be loaded if available,
         and saved to cache if not.
         """
-
+        out_dict = {}
         if self.args.fix_seed_for_multi_image_augmentations:
             sample["seed"] = np.random.randint(0, 2**32 - 1)
 
@@ -245,10 +245,10 @@ class abstract_loader:
         images = [i["input"] for i in input_dicts]
         masks = [i["mask"] for i in input_dicts]
 
-        images = self.reshape_images(images)
-        masks = self.reshape_images(masks) if self.args.use_annotations else None
+        out_dict['input'] = self.reshape_images(images)
+        out_dict['mask'] = self.reshape_images(masks) if self.args.use_annotations else None
 
-        return images, masks
+        return out_dict
 
     def reshape_images(self, images):
         images = [im.unsqueeze(0) for im in images]
