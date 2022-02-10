@@ -3,6 +3,7 @@ import torch
 import os
 import pwd
 from pytorch_lightning import Trainer
+import itertools
 from sybilx.utils.registry import md5
 
 EMPTY_NAME_ERR = 'Name of augmentation or one of its arguments cant be empty\n\
@@ -228,6 +229,7 @@ def parse_args(args_strings=None):
         ],
         help="Name of dataset from dataset factory to use [default: nlst]",
     )
+    parser.add_argument('--class_bal', action='store_true', default=False, help = 'class balance')
     parser.add_argument(
         "--img_size",
         type=int,
@@ -345,7 +347,6 @@ def parse_args(args_strings=None):
         default=[],
         help="List of image-transformations to use for the dev and test dataset",
     )
-    parser.add_argument("--num_chan", type=int, default=3)
 
     # risk factors
     parser.add_argument(
@@ -450,7 +451,7 @@ def parse_args(args_strings=None):
         help="input loader",
     )
     parser.add_argument(
-        "--lightning_model_name", type=str, default="vgg", help="Name of DNN"
+        "--lightning_name", type=str, default="vgg", help="Name of DNN"
     )
     parser.add_argument(
         "--base_model", type=str, default="vgg", help="Name of parent model"
@@ -555,6 +556,8 @@ def parse_args(args_strings=None):
         help="Lightning callbacks",
     )
 
+    parser.add_argument('--monitor', type=str, default='val_auc', help="Name of metric to use to decide when to save model")
+
     # stochastic weight averaging
     parser.add_argument(
         "--swa_epoch",
@@ -648,6 +651,7 @@ def parse_args(args_strings=None):
         default="logs/test.args",
         help="Where to save the result logs",
     )
+    parser.add_argument('--experiment_name', type = str, help = 'defined either automatically by dispatcher.py or time in main.py. Keep without default')
 
     # cache
     parser.add_argument(
@@ -662,7 +666,7 @@ def parse_args(args_strings=None):
 
     # logger
     parser.add_argument(
-        "--logger", type=str, default="comet", help="List of tags for comet logger"
+        "--logger_name", type=str, default="comet", help="List of tags for comet logger"
     )
 
     # comet

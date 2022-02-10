@@ -1,5 +1,5 @@
 {
-  "script": "main.py",
+  "script": "main",
   "grid_search_space": {
     "batch_size": [
       3
@@ -12,9 +12,6 @@
     ],
     "dataset": [
       "nlst"
-    ],
-    "survival_analysis_setup": [
-      true
     ],
     "max_followup": [
       6
@@ -44,10 +41,7 @@
       87.1849
     ],
     "img_size": [
-      [
-        256,
-        256
-      ]
+      "256 256"
     ],
     "limit_train_batches": [
       0.1
@@ -58,7 +52,7 @@
     "lr": [
       3e-5
     ],
-    "model_name": [
+    "base_model": [
       "sybil"
     ],
     "multi_image": [
@@ -149,14 +143,10 @@
       "force_num_chan_2d normalize_2d"
     ],
     "test_image_augmentations": [
-      [
         "scale_2d"
-      ]
     ],
     "test_tensor_augmentations": [
-      [
         "force_num_chan_2d normalize_2d"
-      ]
     ],
     "fix_seed_for_multi_image_augmentations": [
       true
@@ -188,7 +178,7 @@
       0
     ],
     "profiler": [
-      true
+      "simple"
     ],
     "gpus": [
       8
