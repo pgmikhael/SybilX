@@ -153,7 +153,7 @@ class abstract_loader:
     def apply_augmentations(self):
         return True
 
-    def get_image(self, path, additional, sample):
+    def get_image(self, path, sample):
         """
         Returns a transformed image by its absolute path.
         If cache is used - transformed image will be loaded if available,
