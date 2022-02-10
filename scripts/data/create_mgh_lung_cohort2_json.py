@@ -30,22 +30,6 @@ SERIES_DICOMKEYS = [
     "ImageType",
 ]
 
-# keys to extract from the metadata csv
-EXAM_METAKEYS = [
-    "patient_ID",
-    "bridge_uid",
-    "patient_IDs used in cohort 1",
-    "LR Score",
-    "indication",
-    "Smoking Status",
-    "Year Since Last Smoked",
-    "Smoking Cessation Guidance Provided",
-    "Packs Years",
-    "gender",
-    "age",
-]
-SERIES_METAKEYS = []
-
 
 def extract_from_dict(dictionary, keys, replace_missing_with=None):
     """Creates a new dict containing only the given keys."""
@@ -76,6 +60,11 @@ parser.add_argument(
     default="/Mounts/rbg-storage1/datasets/MGH_Lung_Fintelmann/meta012022/mgh_screening_metadata.json",
 )
 parser.add_argument(
+    "--cohort1_path",
+    type=str,
+    default="/Mounts/rbg-storage1/datasets/MGH_Lung_Fintelmann/mgh_metadata.json",
+)
+parser.add_argument(
     "--output_json_path",
     type=str,
     default="/Mounts/rbg-storage1/datasets/MGH_Lung_Fintelmann/mgh_lung_cancer_cohort2.json",
@@ -83,7 +72,7 @@ parser.add_argument(
 parser.add_argument(
     "--metadata_csv_path",
     type=str,
-    default="/Mounts/rbg-storage1/datasets/MGH_Lung_Fintelmann/meta122021/MIT_LDCT_key_sheet_anonymized_updated_with_days_before_cancer_dx.csv",
+    default="/Mounts/rbg-storage1/datasets/MGH_Lung_Fintelmann/meta012022/MIT_LDCT_key_sheet_anonymized_updated_with_days_before_cancer_dx.csv",
 )
 parser.add_argument(
     "--png_path_replace_pattern",
@@ -91,7 +80,11 @@ parser.add_argument(
     nargs=2,
     default=["MIT_Lung_Cancer_Screening", "screening_pngs"],
 )
-parser.add_argument("--error_json_path", type=str, default=None)
+parser.add_argument(
+    "--error_json_path",
+    type=str,
+    default="/Mounts/rbg-storage1/datasets/MGH_Lung_Fintelmann/meta012022/error.log",
+)
 
 
 def log_error(errors, category, **args):
@@ -101,7 +94,6 @@ def log_error(errors, category, **args):
             category, ", ".join([key + "=" + args[key] for key in args.keys()])
         )
     )
-
     if category in errors:
         errors[category].append(error_dict)
     else:
@@ -109,7 +101,12 @@ def log_error(errors, category, **args):
 
 
 if __name__ == "__main__":
+    np.random.seed(2022)
+
     args = parser.parse_args()
+
+    cohort1_data = json.load(open(args.cohort1_path, "r"))
+    cohort1_pids = {d["pid"]: True for d in cohort1_data}
 
     errors = {}
 
@@ -117,14 +114,6 @@ if __name__ == "__main__":
         args.png_path_replace_pattern[0],
         args.png_path_replace_pattern[1],
     )
-
-    # Dataset json, create new or update existing
-    if os.path.exists(args.output_json_path):
-        json_dataset = json.load(open(args.output_json_path, "r"))
-        pid_list = [d["pid"] for d in json_dataset]
-    else:
-        json_dataset, pid_list = [], []
-    processed_len = len(pid_list)
 
     patient_metadata = pd.read_csv(args.metadata_csv_path)
     # patient_metadata.fillna(-1, inplace = True)
@@ -137,6 +126,7 @@ if __name__ == "__main__":
     # source_json = ijson.items(open(args.source_json_path, 'rb'), prefix='item') # streaming - slower, but skips initial wait which is better for debugging
     print("Took", time.time() - start, "seconds")
 
+    json_dataset, pid_list = [], []
     for row_dict in tqdm(
         source_json, desc="Processing metadata from {}".format(args.source_json_path)
     ):
@@ -146,8 +136,6 @@ if __name__ == "__main__":
         if filename.startswith("."):
             log_error(errors, "Skipped file starting with '.'", filename=filename)
             continue
-
-        dcm_keys = row_dict["dicom_metadata"].keys()
 
         path = (
             row_dict["dicom_path"]
@@ -200,37 +188,14 @@ if __name__ == "__main__":
                 studyuid=study_instance_uid,
                 path=path,
             )
-        exam_meta = exam_meta_rows.iloc[0]
 
-        series_ids = exam_meta[
-            [
-                "1st Downloaded Series Instance UID",
-                "2nd Downloaded Series Description",
-                "3rd Downloaded Series Instance UID",
-                "4th Downloaded Series Instance UID",
-            ]
-        ].tolist()
+        exam_dict = exam_meta_rows.iloc[0].to_dict()
 
-        has_series_meta_row = series_id in series_ids
-        if not has_series_meta_row:
-            log_error(
-                errors,
-                "No rows with given studyuid and seriesuid found in metadata CSV!",
-                studyuid=study_instance_uid,
-                seriesuid=series_id,
-                path=path,
+        exam_dict.update(
+            extract_from_dict(
+                row_dict["dicom_metadata"], EXAM_DICOMKEYS, replace_missing_with=-1
             )
-            continue
-
-        series_id_download_index = series_ids.index(series_id)
-
-        # select specific columns
-        exam_meta_rows = exam_meta_rows.loc[:, EXAM_METAKEYS]
-
-        exam_dict = extract_from_dict(
-            row_dict["dicom_metadata"], EXAM_DICOMKEYS, replace_missing_with=-1
         )
-        exam_dict.update(extract_from_series(exam_meta_rows.iloc[0], EXAM_METAKEYS))
 
         pid = exam_dict["bridge_uid"]
 
@@ -243,8 +208,7 @@ if __name__ == "__main__":
             "paths": [path],
             "slice_location": [slice_location],
             "image_posn": [image_posn],
-            "series_data": series_dict
-            #'slice_number': # filled in by post-processing step
+            "series_data": series_dict,
         }
 
         if pid in pid_list:
@@ -292,27 +256,11 @@ if __name__ == "__main__":
                 "accessions": [exam_dict],
                 "pid": pid,
                 "split": np.random.choice(["train", "dev", "test"], p=SPLIT_PROBS),
+                "in_cohort1": cohort1_pids.get(pid, False),
             }
 
             json_dataset.append(pt_dict)
             pid_list.append(pid)
-
-    for pt_idx, pt_dict in tqdm(enumerate(json_dataset), desc="Post-Processing"):
-        cancer_cohort_yes_no = []
-        diff_days = []
-        diff_days_diagnosis = []
-        for exam_idx, exam_dict in enumerate(pt_dict["accessions"]):
-            for series_id in json_dataset[pt_idx]["accessions"][exam_idx][
-                "image_series"
-            ].keys():
-                # calculate slice numbering
-                slice_locations = json_dataset[pt_idx]["accessions"][exam_idx][
-                    "image_series"
-                ][series_id]["slice_location"]
-                # TODO: should maybe be sorted in reverse direction instead
-                json_dataset[pt_idx]["accessions"][exam_idx]["image_series"][series_id][
-                    "slice_number"
-                ] = np.argsort(slice_locations).tolist()
 
     json.dump(json_dataset, open(args.output_json_path, "w"))
     print("Saved output json to ", args.output_json_path)
