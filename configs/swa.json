@@ -1,5 +1,5 @@
 {
-  "script": "main.py",
+  "script": "main",
   "grid_search_space": {
     "batch_size": [
       3
@@ -41,10 +41,7 @@
       87.1849
     ],
     "img_size": [
-      [
-        256,
-        256
-      ]
+      "256 256"
     ],
     "limit_train_batches": [
       0.1
@@ -115,7 +112,7 @@
     "train_tnsr_augmentations": [
       "force_num_chan_2d normalize_2d"
     ],
-    "test_rawinput_augmentations": [
+    "test_image_augmentations": [
       "scale_2d"
     ],
     "test_tensor_augmentations": [
@@ -151,7 +148,7 @@
       0
     ],
     "profiler": [
-      true
+      "simple"
     ],
     "gpus": [
       8

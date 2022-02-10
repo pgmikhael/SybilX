@@ -6,7 +6,7 @@ from sybilx.utils.registry import get_object
 import torch
 from torch.utils import data
 from sybilx.utils.sampler import DistributedWeightedSampler
-from sybilx.augmentations import get_augmentations
+from sybilx.utils.augmentations import get_augmentations
 from sybilx.loaders.image_loaders import OpenCVLoader, DicomLoader
 
 string_classes = (str, bytes)
@@ -179,6 +179,6 @@ def get_sample_loader(split_group: Literal["train", "dev", "test"], args: Namesp
     """
     if split_group == 'test':
         augmentations = get_augmentations(args.test_rawinput_augmentations, args.test_tnsr_augmentations, args)
-    else
+    else:
         augmentations = get_augmentations(args.train_rawinput_augmentations, args.train_tnsr_augmentations, args)
     return get_object(args.input_loader_name, "input_loader")(args.cache_path, augmentations, args)

@@ -6,6 +6,7 @@ import os
 import sys
 import time
 import git
+import comet_ml
 import pytorch_lightning as pl
 from pytorch_lightning import _logger as log
 from pytorch_lightning.callbacks import ModelCheckpoint, LearningRateMonitor
@@ -31,7 +32,7 @@ def cli_main(args):
     args.global_rank = trainer.global_rank
     args.local_rank = trainer.local_rank
 
-    if args.logger == "comet":
+    if args.logger_name == "comet":
         tb_logger = pl.loggers.CometLogger(
             api_key=os.environ.get("COMET_API_KEY"),
             project_name=args.project_name,
@@ -76,9 +77,9 @@ def cli_main(args):
         )
         model.args = args
     else:
-        model = get_object(args.lightning_model_name, "lightning")(args)
+        model = get_object(args.lightning_name, "lightning")(args)
 
-    if args.logger == "comet":
+    if args.logger_name == "comet":
         # log to comet
         trainer.logger.experiment.set_model_graph(model)
         trainer.logger.experiment.add_tags(args.comet_tags)

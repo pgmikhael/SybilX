@@ -1,6 +1,6 @@
 import os
-from modules.utils.shared import  register_object
-from pytorch_lightning.callbacks import ModelCheckpoint, LearningRateMonitor, RichModelSummary
+from sybilx.utils.registry import  register_object
+from pytorch_lightning.callbacks import ModelCheckpoint, LearningRateMonitor
 
 # TODO: add args for various callbacks -- currently hardcoded
 
@@ -20,11 +20,4 @@ class LRMonitor(LearningRateMonitor):
     def __init__(self, args) -> None:
         super().__init__(
             logging_interval='step'
-            )
-
-@register_object('rich_model_summary', 'callback')
-class ModelSummary(RichModelSummary):
-    def __init__(self, args) -> None:
-        super().__init__(
-            max_depth=1
             )

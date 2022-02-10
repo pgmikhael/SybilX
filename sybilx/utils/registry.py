@@ -30,6 +30,7 @@ def get_object(object_name, object_type):
 def register_object(object_name, object_type):
     def decorator(obj):
         REGISTRIES["{}_REGISTRY".format(object_type.upper())][object_name] = obj
+        obj.name = object_name
         return obj
 
     return decorator
