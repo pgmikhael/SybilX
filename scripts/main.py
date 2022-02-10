@@ -9,7 +9,6 @@ import git
 import comet_ml
 import pytorch_lightning as pl
 from pytorch_lightning import _logger as log
-from pytorch_lightning.callbacks import ModelCheckpoint, LearningRateMonitor
 
 sys.path.append(os.path.dirname(os.path.dirname(os.path.realpath(__file__))))
 from sybilx.parsing import parse_args

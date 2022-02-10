@@ -9,7 +9,7 @@ class Checkpoint(ModelCheckpoint):
     def __init__(self, args) -> None:
         super().__init__(        
             monitor=args.monitor,
-            dirpath= os.path.join(args.model_save_dir, args.experiment_name),
+            dirpath= os.path.join(args.save_dir, args.experiment_name),
             mode='min' if 'loss' in args.monitor else 'max',
             filename= '{}'.format(args.experiment_name) + '{epoch}',
             every_n_epochs =1
