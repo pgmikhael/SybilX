@@ -121,6 +121,9 @@
     "fix_seed_for_multi_image_augmentations": [
       true
     ],
+    "callback_names": [
+      "checkpointer lr_monitor swa"
+    ],
     "swa_epoch": [
       0.0
     ],

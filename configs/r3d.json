@@ -1,5 +1,6 @@
 {
-  "search_space": {
+  "script": "main",
+  "grid_search_space": {
     "batch_size": [
       3
     ],
@@ -10,19 +11,16 @@
       16
     ],
     "dataset": [
-      "nlst_google_full_future"
-    ],
-    "survival_analysis_setup": [
-      true
+      "nlst"
     ],
     "max_followup": [
       6
     ],
     "input_loader_name": [
-      "default_image_loader"
+      "cv_loader"
     ],
     "lightning_name": [
-      "ct_imaging"
+      "base"
     ],
     "weight_decay": [
       1e-2
@@ -43,13 +41,10 @@
       87.1849
     ],
     "img_size": [
-      [
-        256,
-        256
-      ]
+      "256 256"
     ],
     "limit_train_batches": [
-      0.5
+      0.1
     ],
     "limit_val_batches": [
       1.0
@@ -57,11 +52,8 @@
     "lr": [
       3e-5
     ],
-    "model_name": [
-      "r3d"
-    ],
-    "multi_image": [
-      true
+    "base_model": [
+      "sybil"
     ],
     "use_only_thin_cuts_for_ct": [
       true
@@ -72,25 +64,10 @@
     "min_num_images": [
       0
     ],
-    "pool_name": [
-      "MultiPool_Pool"
-    ],
-    "image_pool_name": [
-      "Simple_AttentionPool_MultiImg"
-    ],
-    "volume_pool": [
-      "Simple_AttentionPool"
-    ],
-    "multipool_pools": [
-      "MultiImg_TwoStepPool MultiImg_TwoStepPool/volume_pool_name=Conv1d_AttnPool/conv_pool_kernel_size=11/image_pool_name=PerFrameMaxPool GlobalMaxPool"
-    ],
     "region_annotations_filepath": [
       "/Mounts/rbg-storage1/datasets/NLST/annotations_122020.json"
     ],
-    "use_region_annotations": [
-      true
-    ],
-    "use_volume_annotations": [
+    "use_annotations": [
       true
     ],
     "annotation_loss_lambda": [
@@ -102,32 +79,20 @@
     "volume_attention_loss_lambda": [
       1.0
     ],
-    "predict_volume_attentions": [
-      true
-    ],
-    "predict_image_attentions": [
-      true
-    ],
     "num_chan": [
       3
     ],
     "tuning_metric": [
-      "MultiPool_Pool_c_index"
+      "c_index"
     ],
     "num_workers": [
       3
-    ],
-    "objective": [
-      "cross_entropy"
     ],
     "optimizer": [
       "adam"
     ],
     "patience": [
       5
-    ],
-    "pretrained_on_imagenet": [
-      true
     ],
     "train": [
       true
@@ -138,30 +103,20 @@
     "test": [
       false
     ],
-    "padding_method": [
-      "two_tailed"
-    ],
-    "truncation_method": [
-      "evenly"
-    ],
     "class_bal": [
       true
     ],
-    "image_augmentations": [
-      "scale_2d rotate_range/min=-20/max=20"
+    "train_rawinput_augmentations": [
+      "scale_2d rotate_range/deg=20"
     ],
-    "tensor_augmentations": [
+    "train_tnsr_augmentations": [
       "force_num_chan_2d normalize_2d"
     ],
     "test_image_augmentations": [
-      [
-        "scale_2d"
-      ]
+      "scale_2d"
     ],
     "test_tensor_augmentations": [
-      [
-        "force_num_chan_2d normalize_2d"
-      ]
+      "force_num_chan_2d normalize_2d"
     ],
     "fix_seed_for_multi_image_augmentations": [
       true
@@ -173,13 +128,13 @@
       "nlst-cancer"
     ],
     "comet_tags": [
-      "debug"
+      "sybil"
     ],
     "num_sanity_val_steps": [
       0
     ],
     "profiler": [
-      true
+      "simple"
     ],
     "gpus": [
       8
@@ -193,14 +148,14 @@
     "dropout": [
       0.1
     ],
-    "metadata_dir": [
-      "/Mounts/rbg-storage1/datasets/"
+    "dataset_file_path": [
+      "/Mounts/rbg-storage1/datasets/NLST/full_nlst_google.json"
     ],
     "save_dir": [
       "/Mounts/rbg-storage1/snapshots/lung_ct"
     ],
     "img_dir": [
-      "/data/rsg/mammogram/NLST/nlst-ct-png"
+      "/Mounts/rbg-storage1/datasets/NLST/nlst-ct-png"
     ],
     "cache_path": [
       "/storage/nlst_cache"
