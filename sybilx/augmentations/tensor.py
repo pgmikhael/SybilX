@@ -22,11 +22,21 @@ class Normalize_Tensor_2d(Abstract_augmentation):
             torch.Tensor(channel_means), torch.Tensor(channel_stds)
         )
 
+        self.permute = args.img_file_type in [
+            "png",
+        ]
+
     def __call__(self, input_dict, sample=None):
         img = input_dict["input"]
         if len(img.size()) == 2:
             img = img.unsqueeze(0)
-        input_dict["input"] = self.transform(img)
+
+        if self.permute:
+            img = img.permute(2, 0, 1)
+            input_dict["input"] = self.transform(img).permute(1, 2, 0)
+        else:
+            input_dict["input"] = self.transform(img)
+
         return input_dict
 
 
@@ -104,6 +114,10 @@ class Force_Num_Chan_Tensor_2d(Abstract_augmentation):
 
     def __call__(self, input_dict, sample=None):
         img = input_dict["input"]
+        mask = input_dict("mask", None)
+        if mask is not None:
+            mask = mask.unsqueeze(0)
+
         num_dims = len(img.shape)
         if num_dims == 2:
             img = img.unsqueeze(0)

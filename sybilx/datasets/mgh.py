@@ -126,7 +126,7 @@ class MGH_Dataset(NLST_Survival_Dataset):
                             3, dtype=np.int
                         ),  # has to be int, while cancer_location has to be float
                         "num_original_slices": len(series_dict["paths"]),
-                        "additionals": [],
+                        "annotations": [],
                     }
 
                     if not self.args.use_all_images:
@@ -147,7 +147,7 @@ class MGH_Dataset(NLST_Survival_Dataset):
                         sample["volume_annotations"] = np.array(
                             [0 for _ in sample["paths"]]
                         )
-                        sample["additionals"] = [
+                        sample["annotations"] = [
                             {"image_annotations": None} for path in sample["paths"]
                         ]
                         sample["annotation_areas"] = get_scaled_annotation_area(

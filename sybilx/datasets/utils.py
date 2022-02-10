@@ -119,7 +119,7 @@ def get_scaled_annotation_area(sample, args):
         return np.array([ 0  for _ in sample['paths'] ])
     """
     areas = []
-    for additional in sample["additionals"]:
+    for additional in sample["annotations"]:
         mask = get_scaled_annotation_mask(additional, args, scale_annotation=False)
         areas.append(mask.sum() / (mask.shape[0] * mask.shape[1]))
     return np.array(areas)
