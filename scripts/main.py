@@ -70,7 +70,7 @@ def cli_main(args):
 
     if args.from_checkpoint:
         snargs = Namespace(**pickle.load(open(args.snapshot, "rb")))
-        model = get_object(snargs.lightning_model_name, "lightning")(snargs)
+        model = get_object(snargs.lightning_name, "lightning")(snargs)
         model = model.load_from_checkpoint(
             checkpoint_path=snargs.model_path, strict=not args.relax_checkpoint_matching
         )

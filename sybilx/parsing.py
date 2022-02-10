@@ -605,6 +605,8 @@ def parse_args(args_strings=None):
         help="Whether loading a model from a saved checkpoint",
     )
 
+    parser.add_argument('--relax_checkpoint_matching', action='store_true', default=False, help = "Do not enforce that the keys in checkpoint_path match the keys returned by this module’s state dict")
+    
     parser.add_argument(
         "--snapshot",
         type=str,

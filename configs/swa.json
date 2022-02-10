@@ -82,6 +82,8 @@
     "num_chan": [
       3
     ],
+    "loss_fns": ["cross_entropy survival guided_attention"],
+    "metrics": ["classification survival"],
     "tuning_metric": [
       "c_index"
     ],
@@ -112,10 +114,10 @@
     "train_tnsr_augmentations": [
       "force_num_chan_2d normalize_2d"
     ],
-    "test_image_augmentations": [
+    "test_rawinput_augmentations": [
       "scale_2d"
     ],
-    "test_tensor_augmentations": [
+    "test_tnsr_augmentations": [
       "force_num_chan_2d normalize_2d"
     ],
     "fix_seed_for_multi_image_augmentations": [
