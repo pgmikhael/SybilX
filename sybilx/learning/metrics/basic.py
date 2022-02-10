@@ -11,6 +11,7 @@ from torchmetrics.functional import (
     confusion_matrix,
     f1,
     precision_recall_curve,
+    average_precision,
 )
 import torch
 import copy
@@ -180,4 +181,32 @@ class Ordinal_Classification(BaseClassification):
             except:
                 pass
 
+        return stats_dict
+
+
+@register_object("survival_classification", "metric")
+class Survival_Classification(BaseClassification):
+    def __call__(self, logging_dict, args):
+        stats_dict = OrderedDict()
+
+        golds = np.array(logging_dict["golds"]).reshape(-1)
+        probs = np.array(logging_dict["probs"])
+        preds = probs.argmax(axis=-1).reshape(-1)
+        probs = probs.reshape((-1, probs.shape[-1]))[:, -1]
+
+        stats_dict["accuracy"] = accuracy(golds, preds)
+
+        if (args.num_classes == 2) and not (
+            np.unique(golds)[-1] > 1 or np.unique(preds)[-1] > 1
+        ):
+            stats_dict["precision"], stats_dict["recall"] = precision_recall(
+                probs, golds
+            )
+            stats_dict["f1"] = f1(probs, golds)
+            num_pos = golds.sum()
+            if num_pos > 0 and num_pos < len(golds):
+                stats_dict["auc"] = auroc(probs, golds, pos_label=1)
+                stats_dict["ap_score"] = average_precision(probs, golds)
+                precision, recall, _ = precision_recall_curve(probs, golds)
+                stats_dict["prauc"] = auc(recall, precision)
         return stats_dict
