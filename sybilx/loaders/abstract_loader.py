@@ -1,3 +1,4 @@
+from __future__ import annotations
 import torch
 import os
 import sys
@@ -8,6 +9,7 @@ from sybilx.augmentations.basic import ComposeAug
 import numpy as np
 from abc import ABCMeta, abstractmethod
 from sybilx.utils.registry import md5
+import copy
 
 CACHED_FILES_EXT = ".png"
 DEFAULT_CACHE_DIR = "default/"
@@ -234,7 +236,12 @@ class abstract_loader:
             sample["seed"] = np.random.randint(0, 2**32 - 1)
 
         # get images for multi image input
-        input_dicts = [self.get_image(path, sample) for path in paths]
+        s = copy.deepcopy(sample)
+        input_dicts = []
+        for e, path in enumerate(paths):
+            s["annotations"] = sample["annotations"][e]
+            input_dicts.append(self.get_image(path, s))
+
         images = [i["input"] for i in input_dicts]
         masks = [i["mask"] for i in input_dicts]
 
