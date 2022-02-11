@@ -467,6 +467,7 @@ def parse_args(args_strings=None):
     parser.add_argument(
         "--metrics", type=str, nargs="*", default=[], help="Name of performance metric"
     )
+    parser.add_argument('--store_classwise_metrics', action='store_true', default = False, help = 'Whether to log metrics per class or just log average across classes')
 
     # learning
     parser.add_argument(

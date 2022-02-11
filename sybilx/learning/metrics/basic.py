@@ -189,8 +189,8 @@ class Survival_Classification(BaseClassification):
     def __call__(self, logging_dict, args):
         stats_dict = OrderedDict()
 
-        golds = np.array(logging_dict["golds"]).reshape(-1)
-        probs = np.array(logging_dict["probs"])
+        golds = logging_dict["golds"].reshape(-1)
+        probs = logging_dict["probs"]
         preds = probs.argmax(axis=-1).reshape(-1)
         probs = probs.reshape((-1, probs.shape[-1]))[:, -1]
 

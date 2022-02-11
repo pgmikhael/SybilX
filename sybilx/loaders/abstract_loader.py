@@ -212,7 +212,7 @@ class abstract_loader:
                     warnings.warn(CORUPTED_FILE_ERR.format(sys.exc_info()[0]))
                     self.cache.rem(input_path, key)
         all_augmentations = self.split_augmentations[-1][1]
-        input_dict['input'] = self.load_input(input_path, sample)
+        input_dict = self.load_input(input_path, sample)
         if self.apply_augmentations:
             input_dict = apply_augmentations_and_cache(
                 input_dict,

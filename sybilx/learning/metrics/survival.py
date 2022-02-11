@@ -55,9 +55,9 @@ class SurvivalMetric(object):
             stats_dict["{}_year_apscore".format(min_followup_if_neg)] = ap_score
             stats_dict["{}_year_prauc".format(min_followup_if_neg)] = pr_auc
 
-        if np.array(golds).sum() > 0:
+        if golds.sum() > 0:
             stats_dict["c_index"] = concordance_index(
-                logging_dict["censors"], probs, golds, args.censoring_distribution
+                logging_dict["censors"].cpu().numpy(), probs.cpu().numpy(), golds.cpu().numpy(), args.censoring_distribution
             )
         else:
             stats_dict["c_index"] = -1.0

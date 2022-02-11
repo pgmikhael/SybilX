@@ -143,7 +143,8 @@ if __name__ == "__main__":
             .replace(".dcm", ".png")
         )
 
-        assert os.path.exists(path), f"Could not find path {path}!"
+        if not os.path.exists(path):
+            continue 
 
         if not row_dict["dicom_metadata"].get("SeriesInstanceUID", False):
             log_error(
