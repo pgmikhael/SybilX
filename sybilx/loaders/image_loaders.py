@@ -5,6 +5,7 @@ import torch
 import pydicom
 from pydicom.pixel_data_handlers.util import apply_modality_lut
 import numpy as np
+from sybilx.datasets.utils import get_scaled_annotation_mask, IMG_PAD_TOKEN
 
 LOADING_ERROR = "LOADING ERROR! {}"
 
@@ -19,6 +20,38 @@ class OpenCVLoader(abstract_loader):
         loads as grayscale image
         """
         return {"input": cv2.imread(path, 0)}
+
+    @property
+    def cached_extension(self):
+        return ".png"
+
+
+@register_object("ct_loader", "input_loader")
+class CTLoader(abstract_loader):
+    def configure_path(self, path, sample):
+        return path
+
+    def load_input(self, path, sample):
+        """
+        loads as grayscale image
+        """
+        mask = (
+            get_scaled_annotation_mask(sample["annotations"], self.args)
+            if self.args.use_annotations
+            else None
+        )
+        if path == self.pad_token:
+            shape = (self.args.num_chan, self.args.img_size[0], self.args.img_size[1])
+            x = torch.zeros(*shape)
+            mask = (
+                torch.from_numpy(mask * 0).unsqueeze(0)
+                if self.args.use_annotations
+                else None
+            )
+        else:
+            x = cv2.imread(path, 0)
+
+        return {"input": x, "mask": mask}
 
     @property
     def cached_extension(self):

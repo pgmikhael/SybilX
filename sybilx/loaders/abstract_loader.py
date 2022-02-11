@@ -163,20 +163,9 @@ class abstract_loader:
         """
         input_dict = {}
         input_path = self.configure_path(path, sample)
-        input_dict["mask"] = (
-            get_scaled_annotation_mask(sample["annotations"], self.args)
-            if self.args.use_annotations
-            else None
-        )
+
         if input_path == self.pad_token:
-            shape = (self.args.num_chan, self.args.img_size[0], self.args.img_size[1])
-            input_dict["input"] = torch.zeros(*shape)
-            input_dict["mask"] = (
-                torch.from_numpy(input_dict["mask"]).unsqueeze(0)
-                if self.args.use_annotations
-                else None
-            )
-            return input_dict
+            return self.load_input(input_path, sample)
 
         if not self.use_cache:
             input_dict = self.load_input(input_path, sample)
@@ -193,7 +182,7 @@ class abstract_loader:
             )
             if self.cache.exists(input_path, base_key):
                 try:
-                    input_dict['input'] = self.cache.get(input_path, base_key)
+                    input_dict["input"] = self.cache.get(input_path, base_key)
                     if self.apply_augmentations:
                         input_dict = apply_augmentations_and_cache(
                             input_dict,
@@ -245,8 +234,10 @@ class abstract_loader:
         images = [i["input"] for i in input_dicts]
         masks = [i["mask"] for i in input_dicts]
 
-        out_dict['input'] = self.reshape_images(images)
-        out_dict['mask'] = self.reshape_images(masks) if self.args.use_annotations else None
+        out_dict["input"] = self.reshape_images(images)
+        out_dict["mask"] = (
+            self.reshape_images(masks) if self.args.use_annotations else None
+        )
 
         return out_dict
 

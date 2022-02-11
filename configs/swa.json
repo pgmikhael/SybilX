@@ -17,7 +17,7 @@
       6
     ],
     "input_loader_name": [
-      "cv_loader"
+      "ct_loader"
     ],
     "lightning_name": [
       "base"
