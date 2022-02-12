@@ -55,6 +55,7 @@ class Base(pl.LightningModule):
             "mse",
             "mae",
             "r2",
+            "c_index"
         ]
 
     @property

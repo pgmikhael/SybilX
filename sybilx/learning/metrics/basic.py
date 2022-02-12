@@ -191,7 +191,7 @@ class Survival_Classification(BaseClassification):
 
         golds = logging_dict["golds"].reshape(-1)
         probs = logging_dict["probs"]
-        preds = probs.argmax(axis=-1).reshape(-1)
+        preds = probs[:,-1].reshape(-1) > 0.5
         probs = probs.reshape((-1, probs.shape[-1]))[:, -1]
 
         stats_dict["accuracy"] = accuracy(golds, preds)
