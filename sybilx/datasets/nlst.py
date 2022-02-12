@@ -100,8 +100,7 @@ class NLST_Survival_Dataset(data.Dataset):
 
         print(self.get_summary_statement(self.dataset, split_group))
 
-        dist_key = "y"
-        label_dist = [d[dist_key] for d in self.dataset]
+        label_dist = [d[args.class_bal_key] for d in self.dataset]
         label_counts = Counter(label_dist)
         weight_per_label = 1.0 / len(label_counts)
         label_weights = {
@@ -110,7 +109,7 @@ class NLST_Survival_Dataset(data.Dataset):
 
         print("Class counts are: {}".format(label_counts))
         print("Label weights are {}".format(label_weights))
-        self.weights = [label_weights[d[dist_key]] for d in self.dataset]
+        self.weights = [label_weights[d[args.class_bal_key]] for d in self.dataset]
 
     def create_dataset(self, split_group):
         """

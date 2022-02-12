@@ -233,6 +233,12 @@ def parse_args(args_strings=None):
         "--class_bal", action="store_true", default=False, help="class balance"
     )
     parser.add_argument(
+        "--class_bal_key",
+        type=str,
+        default="y",
+        help="dataset key to use for class balancing",
+    )
+    parser.add_argument(
         "--img_size",
         type=int,
         nargs="+",

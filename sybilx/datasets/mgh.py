@@ -77,6 +77,11 @@ class MGH_Dataset(NLST_Survival_Dataset):
                     if self.is_localizer(series_data):
                         continue
 
+                    # remove where slice location doesn't change (different axis):
+                    zaxes = [s[-1] for s in slice_locations]
+                    if len(set(zaxes)) < 2:
+                        continue
+
                     # check if restricting to specific slice thicknesses
                     if (self.args.slice_thickness_filter is not None) and (
                         (slice_thickness not in self.args.slice_thickness_filter)
