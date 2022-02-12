@@ -43,11 +43,6 @@ parser.add_argument(
     type=str,
     default="/Mounts/rbg-storage1/datasets/NLST/Shetty_et_al(Google)/TEST_41591_2019_447_MOESM5_ESM.xlsx",
 )
-parser.add_argument(
-    "--annotations_file_path",
-    type=str,
-    default="/Mounts/rbg-storage1/datasets/NLST/full_nlst_google.json",
-)
 
 
 if __name__ == "__main__":
