@@ -86,7 +86,7 @@
       "survival guided_attention"
     ],
     "metrics": [
-      "survival_classification survival"
+      "survival"
     ],
     "monitor": [
       "val_c_index"
