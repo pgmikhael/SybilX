@@ -166,14 +166,17 @@ class abstract_loader:
 
         if input_path == self.pad_token:
             return self.load_input(input_path, sample)
-
+         
         if not self.use_cache:
             input_dict = self.load_input(input_path, sample)
             # hidden loaders typically do not use augmentation
             if self.apply_augmentations:
                 input_dict = self.composed_all_augmentations(input_dict, sample)
             return input_dict
-
+        
+        if self.args.use_annotations: 
+            input_dict['mask'] = get_scaled_annotation_mask(sample["annotations"], self.args)
+        
         for key, post_augmentations in self.split_augmentations:
             base_key = (
                 DEFAULT_CACHE_DIR + key
