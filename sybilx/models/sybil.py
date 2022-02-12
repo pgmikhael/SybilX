@@ -26,7 +26,7 @@ class SybilNet(nn.Module):
             self.hidden_dim, args, max_followup=args.max_followup
         )
 
-    def forward(self, x):
+    def forward(self, x, batch = None):
         output = {}
         x = self.image_encoder(x)
         pool_output = self.aggregate_and_classify(x)

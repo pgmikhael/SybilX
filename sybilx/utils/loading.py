@@ -1,14 +1,12 @@
 from argparse import Namespace
-import hashlib
 import collections.abc as container_abcs
 import re
 from typing import Literal
 from sybilx.utils.registry import get_object
 import torch
 from torch.utils import data
-
 from sybilx.utils.sampler import DistributedWeightedSampler
-from sybilx.augmentations import get_augmentations
+from sybilx.utils.augmentations import get_augmentations
 from sybilx.loaders.image_loaders import OpenCVLoader, DicomLoader
 
 string_classes = (str, bytes)
@@ -91,18 +89,31 @@ def get_train_dataset_loader(args, train_data):
     train_data_loader: iterator that returns batches
     dev_data_loader: iterator that returns batches
     """
-    if args.accelerator == "ddp":
-        sampler = DistributedWeightedSampler(
-            train_data,
-            weights=train_data.weights,
-            replacement=True,
-            rank=args.global_rank,
-            num_replicas=args.world_size,
-        )
+    if args.class_bal:
+        if args.accelerator == "ddp":
+            sampler = DistributedWeightedSampler(
+                train_data,
+                weights=train_data.weights,
+                replacement=True,
+                rank=args.global_rank,
+                num_replicas=args.world_size,
+            )
+        else:
+            sampler = data.sampler.WeightedRandomSampler(
+                weights=train_data.weights,
+                num_samples=len(train_data),
+                replacement=True,
+            )
     else:
-        sampler = data.sampler.WeightedRandomSampler(
-            weights=train_data.weights, num_samples=len(train_data), replacement=True
-        )
+        if args.accelerator == "ddp":
+            sampler = torch.utils.data.distributed.DistributedSampler(
+                train_data,
+                shuffle=True,
+                rank=args.global_rank,
+                num_replicas=args.world_size,
+            )
+        else:
+            sampler = data.sampler.RandomSampler(train_data)
 
     train_data_loader = data.DataLoader(
         train_data,
@@ -179,9 +190,14 @@ def get_sample_loader(split_group: Literal["train", "dev", "test"], args: Namesp
     NotImplementedError
         img_file_type must be one of "dicom" or "png"
     """
-    if split_group == 'test':
-        augmentations = get_augmentations(args.test_rawinput_augmentations, args.test_tnsr_augmentations, args)
-    else
-        augmentations = get_augmentations(args.train_rawinput_augmentations, args.train_tnsr_augmentations, args)
-    return get_object(args.input_loader_name, "input_loader")(args.cache_path, augmentations, args)
-
+    if split_group == "test":
+        augmentations = get_augmentations(
+            args.test_rawinput_augmentations, args.test_tnsr_augmentations, args
+        )
+    else:
+        augmentations = get_augmentations(
+            args.train_rawinput_augmentations, args.train_tnsr_augmentations, args
+        )
+    return get_object(args.input_loader_name, "input_loader")(
+        args.cache_path, augmentations, args
+    )

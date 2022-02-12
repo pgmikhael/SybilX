@@ -18,7 +18,11 @@ class Scale_2d(Abstract_augmentation):
         self.transform = A.Resize(height, width)
 
     def __call__(self, input_dict, sample=None):
-        input_dict["input"] = self.transform(image=input_dict["input"])["image"]
+        out = self.transform(
+            image=input_dict["input"], mask=input_dict.get("mask", None)
+        )
+        input_dict["input"] = out["image"]
+        input_dict["mask"] = out["mask"]
         return input_dict
 
 
@@ -307,7 +311,11 @@ class Rotate_Range(Abstract_augmentation):
     def __call__(self, input_dict, sample=None):
         if "seed" in sample:
             self.set_seed(sample["seed"])
-        input_dict["input"] = self.transform(image=input_dict["input"])["image"]
+        out = self.transform(
+            image=input_dict["input"], mask=input_dict.get("mask", None)
+        )
+        input_dict["input"] = out["image"]
+        input_dict["mask"] = out["mask"]
         return input_dict
 
 
@@ -326,39 +334,4 @@ class Grayscale(Abstract_augmentation):
 
     def __call__(self, input_dict, sample=None):
         input_dict["input"] = self.transform(image=input_dict["input"])["image"]
-        return input_dict
-
-
-@register_object("fixed_center_crop", "augmentation")
-class FixedCenterCrop(Abstract_augmentation):
-    """
-    Crop image according to height and width defined as args and a center coordinate defined by sample
-    """
-
-    def __init__(self, args, kwargs):
-        super(FixedCenterCrop, self).__init__()
-        kwargs_len = len(kwargs.keys())
-        assert kwargs_len >= 2
-        size = (int(kwargs["h"]), int(kwargs["w"]))
-        self.set_cachable(*size)
-        self.height = int(kwargs["h"]) // 2
-        self.width = int(kwargs["w"]) // 2
-
-    def __call__(self, input_dict, sample=None):
-        assert (
-            "coordinates" in sample
-        ), "COORDINATES KEY NOT FOUND IN SAMPLE FOR [RelativeCoordinateCrop] Augmentation"
-        assert ("y_center" in sample["coordinates"]) and (
-            "x_center" in sample["coordinates"]
-        ), "COORDINATES NOT FOUND IN SAMPLE FOR [RelativeCoordinateCrop] Augmentation"
-        H, W = input_dict["input"].shape[:2]
-
-        y_center = sample["coordinates"]["y_center"]
-        x_center = sample["coordinates"]["x_center"]
-
-        ytop = max(0, y_center - self.height)
-        ybottom = min(H, y_center + self.height)
-        xleft = max(0, x_center - self.width)
-        xright = min(W, x_center + self.width)
-        input_dict["input"] = input_dict["input"][ytop:ybottom, xleft:xright]
         return input_dict

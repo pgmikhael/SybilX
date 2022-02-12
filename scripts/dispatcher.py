@@ -9,7 +9,7 @@ import multiprocessing
 import pickle
 import json
 import sybilx.parsing as parsing
-from sybilx.loaders.abstract_loader import md5
+from sybilx.utils.registry import md5
 
 EXPERIMENT_CRASH_MSG = "ALERT! job:[{}] has crashed! Check logfile at:[{}]"
 CONFIG_NOT_FOUND_MSG = "ALERT! {} config {} file does not exist!"

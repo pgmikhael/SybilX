@@ -1,3 +1,5 @@
+import hashlib
+
 REGISTRIES = {
     "LIGHTNING_REGISTRY": {},
     "BASE_MODEL_REGISTRY": {},
@@ -28,6 +30,14 @@ def get_object(object_name, object_type):
 def register_object(object_name, object_type):
     def decorator(obj):
         REGISTRIES["{}_REGISTRY".format(object_type.upper())][object_name] = obj
+        obj.name = object_name
         return obj
 
     return decorator
+
+
+def md5(key):
+    """
+    returns a hashed with md5 string of the key
+    """
+    return hashlib.md5(key.encode()).hexdigest()

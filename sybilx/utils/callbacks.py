@@ -1,5 +1,5 @@
 from pytorch_lightning.callbacks import Callback
-from modules.utils.shared import get_object
+from sybilx.utils.registry import get_object
 
 def set_callbacks(trainer, args):
     """

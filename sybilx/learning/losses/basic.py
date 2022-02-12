@@ -1,4 +1,4 @@
-from modules.utils.shared import register_object
+from sybilx.utils.registry import register_object
 import torch
 import torch.nn.functional as F
 import torch.nn as nn
@@ -14,6 +14,7 @@ def get_cross_entropy_loss(model_output, batch, model, args):
     logging_dict["cross_entropy_loss"] = loss.detach()
     predictions["probs"] = F.softmax(logit, dim=-1).detach()
     predictions["golds"] = batch["y"]
+    predictions["preds"] = predictions["probs"].argmax(axis=-1).reshape(-1)
     return loss, logging_dict, predictions
 
 

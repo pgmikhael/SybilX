@@ -100,8 +100,7 @@ class NLST_Survival_Dataset(data.Dataset):
 
         print(self.get_summary_statement(self.dataset, split_group))
 
-        dist_key = "y"
-        label_dist = [d[dist_key] for d in self.dataset]
+        label_dist = [d[args.class_bal_key] for d in self.dataset]
         label_counts = Counter(label_dist)
         weight_per_label = 1.0 / len(label_counts)
         label_weights = {
@@ -110,7 +109,7 @@ class NLST_Survival_Dataset(data.Dataset):
 
         print("Class counts are: {}".format(label_counts))
         print("Label weights are {}".format(label_weights))
-        self.weights = [label_weights[d[dist_key]] for d in self.dataset]
+        self.weights = [label_weights[d[args.class_bal_key]] for d in self.dataset]
 
     def create_dataset(self, split_group):
         """
@@ -292,7 +291,6 @@ class NLST_Survival_Dataset(data.Dataset):
             "institution": pt_metadata["cen"][0],
             "cancer_laterality": self.get_cancer_side(pt_metadata),
             "num_original_slices": len(series_dict["paths"]),
-            "additionals": [],
         }
 
         if self.args.use_risk_factors:
@@ -536,7 +534,7 @@ class NLST_Survival_Dataset(data.Dataset):
                 ]
             )
             # store annotation(s) data (x,y,width,height) for each slice
-            sample["additionals"] = [
+            sample["annotations"] = [
                 {
                     "image_annotations": self.annotations_metadata[
                         sample["series"]
@@ -546,7 +544,7 @@ class NLST_Survival_Dataset(data.Dataset):
             ]
         else:
             sample["volume_annotations"] = np.array([0 for _ in sample["paths"]])
-            sample["additionals"] = [
+            sample["annotations"] = [
                 {"image_annotations": None} for path in sample["paths"]
             ]
         return sample
@@ -568,10 +566,9 @@ class NLST_Survival_Dataset(data.Dataset):
         sample = self.dataset[index]
         try:
             item = {}
-            x, mask = self.input_loader.get_images(
-                sample["paths"], sample["additionals"], sample
-            )
+            input_dict = self.input_loader.get_images(sample["paths"], sample)
 
+            x, mask = input_dict["input"], input_dict["mask"]
             if self.args.use_all_images:
                 c, n, h, w = x.shape
                 x = torch.nn.functional.interpolate(
@@ -620,7 +617,7 @@ class NLST_Survival_Dataset(data.Dataset):
 
             return item
         except Exception:
-            warnings.warn(LOAD_FAIL_MSG.format(sample["paths"], traceback.print_exc()))
+            warnings.warn(LOAD_FAIL_MSG.format(sample["exam"], traceback.print_exc()))
 
 
 @register_object("nlst_plco", "dataset")

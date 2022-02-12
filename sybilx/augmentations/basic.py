@@ -7,16 +7,18 @@ from albumentations.pytorch import ToTensorV2
 
 class ToTensor(Abstract_augmentation):
     """
-    torchvision.transforms.ToTensor wrapper to transform input into a tensor
+    torchvision.transforms.ToTensor wrapper.
     """
 
     def __init__(self):
         super(ToTensor, self).__init__()
         self.transform = ToTensorV2()
-        self.name = "tensorizer"
+        self.name = "totensor"
 
     def __call__(self, input_dict, sample=None):
         input_dict["input"] = torch.from_numpy(input_dict["input"]).float()
+        if input_dict.get("mask", None) is not None:
+            input_dict["mask"] = torch.from_numpy(input_dict["mask"]).float()
         return input_dict
 
 

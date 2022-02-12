@@ -17,5 +17,6 @@ lifelines==0.26.4
 opencv-python==4.5.4
 albumentations==1.1.0
 pydicom==2.2.2
+gitpython==3.1.17
 # logging
-#comet-ml
+comet-ml

@@ -77,6 +77,11 @@ class MGH_Dataset(NLST_Survival_Dataset):
                     if self.is_localizer(series_data):
                         continue
 
+                    # remove where slice location doesn't change (different axis):
+                    zaxes = [s[-1] for s in slice_locations]
+                    if len(set(zaxes)) < 2:
+                        continue
+
                     # check if restricting to specific slice thicknesses
                     if (self.args.slice_thickness_filter is not None) and (
                         (slice_thickness not in self.args.slice_thickness_filter)
@@ -126,7 +131,7 @@ class MGH_Dataset(NLST_Survival_Dataset):
                             3, dtype=np.int
                         ),  # has to be int, while cancer_location has to be float
                         "num_original_slices": len(series_dict["paths"]),
-                        "additionals": [],
+                        "annotations": [],
                     }
 
                     if not self.args.use_all_images:
@@ -147,7 +152,7 @@ class MGH_Dataset(NLST_Survival_Dataset):
                         sample["volume_annotations"] = np.array(
                             [0 for _ in sample["paths"]]
                         )
-                        sample["additionals"] = [
+                        sample["annotations"] = [
                             {"image_annotations": None} for path in sample["paths"]
                         ]
                         sample["annotation_areas"] = get_scaled_annotation_area(

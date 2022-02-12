@@ -47,4 +47,8 @@ import sybilx.learning.losses.guided_attention
 import sybilx.learning.metrics.basic
 import sybilx.learning.metrics.survival
 
+# callbacks
+import sybilx.callbacks.basic
+import sybilx.callbacks.swa
+
 __all__ = ["Sybil", "Serie"]

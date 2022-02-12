@@ -1,5 +1,5 @@
 from typing import Dict
-from modules.utils.shared import register_object
+from sybilx.utils.registry import register_object
 from collections import OrderedDict
 import numpy as np
 from lifelines.utils.btree import _BTree
@@ -11,7 +11,7 @@ from torchmetrics.functional import (
     average_precision,
 )
 import warnings
-
+import torch
 
 @register_object("survival", "metric")
 class SurvivalMetric(object):
@@ -55,9 +55,9 @@ class SurvivalMetric(object):
             stats_dict["{}_year_apscore".format(min_followup_if_neg)] = ap_score
             stats_dict["{}_year_prauc".format(min_followup_if_neg)] = pr_auc
 
-        if np.array(golds).sum() > 0:
+        if golds.sum() > 0:
             stats_dict["c_index"] = concordance_index(
-                logging_dict["censors"], probs, golds, args.censoring_distribution
+                logging_dict["censors"].cpu().numpy(), probs.cpu().numpy(), golds.cpu().numpy(), args.censoring_distribution
             )
         else:
             stats_dict["c_index"] = -1.0
@@ -82,13 +82,15 @@ def compute_auc_at_followup(probs, censor_times, golds, followup, fup_lower_boun
             probs_for_eval.append(prob_arr[followup])
             golds_for_eval.append(label)
 
+    probs_for_eval = torch.tensor(probs_for_eval, device=probs.device)
+    golds_for_eval = torch.tensor(golds_for_eval, device=probs.device)
+
     try:
         roc_auc = auroc(
-            probs_for_eval, golds_for_eval, num_classes=2, average="samples"
-        )
+            probs_for_eval, golds_for_eval, pos_label=1, num_classes = 2)
 
-        ap_score = average_precision(probs_for_eval, golds_for_eval, average="samples")
-        precision, recall, _ = precision_recall_curve(probs_for_eval, golds_for_eval)
+        ap_score = average_precision( probs_for_eval, golds_for_eval, pos_label=1, num_classes = 2) 
+        precision, recall, _ = precision_recall_curve(probs_for_eval, golds_for_eval,  pos_label=1, num_classes = 2)
         pr_auc = auc(recall, precision)
     except Exception as e:
         warnings.warn("Failed to calculate AUC because {}".format(e))
