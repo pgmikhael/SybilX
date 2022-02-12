@@ -90,7 +90,7 @@
     "num_chan": [
       3
     ],
-    "tuning_metric": [
+    "monitor": [
       "c_index"
     ],
     "num_workers": [

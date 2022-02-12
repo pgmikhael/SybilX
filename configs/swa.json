@@ -88,7 +88,7 @@
     "metrics": [
       "survival_classification survival"
     ],
-    "tuning_metric": [
+    "monitor": [
       "c_index"
     ],
     "num_workers": [
