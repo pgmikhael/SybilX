@@ -86,13 +86,12 @@ class NLST_Survival_Dataset(data.Dataset):
 
         self.input_loader = get_sample_loader(split_group, args)
 
-        if args.use_annotations:
-            assert (
-                self.args.region_annotations_filepath
-            ), "ANNOTATIONS METADATA FILE NOT SPECIFIED"
-            self.annotations_metadata = json.load(
-                open(self.args.region_annotations_filepath, "r")
-            )
+        assert (
+            self.args.region_annotations_filepath
+        ), "ANNOTATIONS METADATA FILE NOT SPECIFIED"
+        self.annotations_metadata = json.load(
+            open(self.args.region_annotations_filepath, "r")
+        )
 
         self.dataset = self.create_dataset(split_group)
         if len(self.dataset) == 0:
@@ -303,11 +302,6 @@ class NLST_Survival_Dataset(data.Dataset):
             sample["slice_locations"] = fit_to_length(
                 sorted_slice_locs, self.args.num_images, "<PAD>"
             )
-
-        if self.args.use_annotations:
-            sample = self.get_ct_annotations(sample)
-            sample["annotation_areas"] = get_scaled_annotation_area(sample, self.args)
-            sample["has_annotation"] = np.sum(sample["volume_annotations"]) > 0
 
         return sample
 
@@ -564,6 +558,10 @@ class NLST_Survival_Dataset(data.Dataset):
 
     def __getitem__(self, index):
         sample = self.dataset[index]
+        if self.args.use_annotations:
+            sample = self.get_ct_annotations(sample)
+            sample["annotation_areas"] = get_scaled_annotation_area(sample, self.args)
+            sample["has_annotation"] = np.sum(sample["volume_annotations"]) > 0
         try:
             item = {}
             input_dict = self.input_loader.get_images(sample["paths"], sample)
