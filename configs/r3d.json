@@ -82,9 +82,13 @@
     "num_chan": [
       3
     ],
-    "loss_fns": ["cross_entropy survival guided_attention"],
-    "metrics": ["classification survival"],
-    "tuning_metric": [
+    "loss_fns": [
+      "cross_entropy survival guided_attention"
+    ],
+    "metrics": [
+      "classification survival"
+    ],
+    "monitor": [
       "c_index"
     ],
     "num_workers": [

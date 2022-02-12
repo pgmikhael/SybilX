@@ -229,7 +229,9 @@ def parse_args(args_strings=None):
         ],
         help="Name of dataset from dataset factory to use [default: nlst]",
     )
-    parser.add_argument('--class_bal', action='store_true', default=False, help = 'class balance')
+    parser.add_argument(
+        "--class_bal", action="store_true", default=False, help="class balance"
+    )
     parser.add_argument(
         "--img_size",
         type=int,
@@ -450,9 +452,7 @@ def parse_args(args_strings=None):
         default="default_image_loader",
         help="input loader",
     )
-    parser.add_argument(
-        "--lightning_name", type=str, default="vgg", help="Name of DNN"
-    )
+    parser.add_argument("--lightning_name", type=str, default="vgg", help="Name of DNN")
     parser.add_argument(
         "--base_model", type=str, default="vgg", help="Name of parent model"
     )
@@ -467,7 +467,12 @@ def parse_args(args_strings=None):
     parser.add_argument(
         "--metrics", type=str, nargs="*", default=[], help="Name of performance metric"
     )
-    parser.add_argument('--store_classwise_metrics', action='store_true', default = False, help = 'Whether to log metrics per class or just log average across classes')
+    parser.add_argument(
+        "--store_classwise_metrics",
+        action="store_true",
+        default=False,
+        help="Whether to log metrics per class or just log average across classes",
+    )
 
     # learning
     parser.add_argument(
@@ -541,12 +546,6 @@ def parse_args(args_strings=None):
         default=1,
         help="Number of steps for domain adaptation discriminator per one step of encoding model [default: 5]",
     )
-    parser.add_argument(
-        "--tuning_metric",
-        type=str,
-        default="c_index",
-        help="Criterion based on which model is saved [default: c_index]",
-    )
 
     # callbacks
     parser.add_argument(
@@ -557,7 +556,12 @@ def parse_args(args_strings=None):
         help="Lightning callbacks",
     )
 
-    parser.add_argument('--monitor', type=str, default='val_auc', help="Name of metric to use to decide when to save model")
+    parser.add_argument(
+        "--monitor",
+        type=str,
+        default="val_auc",
+        help="Name of metric to use to decide when to save model",
+    )
 
     # stochastic weight averaging
     parser.add_argument(
@@ -606,8 +610,13 @@ def parse_args(args_strings=None):
         help="Whether loading a model from a saved checkpoint",
     )
 
-    parser.add_argument('--relax_checkpoint_matching', action='store_true', default=False, help = "Do not enforce that the keys in checkpoint_path match the keys returned by this module’s state dict")
-    
+    parser.add_argument(
+        "--relax_checkpoint_matching",
+        action="store_true",
+        default=False,
+        help="Do not enforce that the keys in checkpoint_path match the keys returned by this module’s state dict",
+    )
+
     parser.add_argument(
         "--snapshot",
         type=str,
@@ -654,7 +663,11 @@ def parse_args(args_strings=None):
         default="logs/test.args",
         help="Where to save the result logs",
     )
-    parser.add_argument('--experiment_name', type = str, help = 'defined either automatically by dispatcher.py or time in main.py. Keep without default')
+    parser.add_argument(
+        "--experiment_name",
+        type=str,
+        help="defined either automatically by dispatcher.py or time in main.py. Keep without default",
+    )
 
     # cache
     parser.add_argument(
