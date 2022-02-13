@@ -20,8 +20,6 @@ from sybilx.datasets.utils import (
 from sybilx.utils.registry import register_object
 from sybilx.datasets.nlst_risk_factors import NLSTRiskFactorVectorizer
 
-METADATA_FILENAME = {"google_test": "NLST/full_nlst_google.json"}
-
 GOOGLE_SPLITS_FILENAME = (
     "/Mounts/rbg-storage1/datasets/NLST/Shetty_et_al(Google)/data_splits.p"
 )
@@ -477,10 +475,6 @@ class NLST_Survival_Dataset(data.Dataset):
         }
         for idx in range(len(meta)):
             meta[idx]["split"] = institute_to_split[meta[idx]["pt_metadata"]["cen"][0]]
-
-    @property
-    def METADATA_FILENAME(self):
-        return METADATA_FILENAME["google_test"]
 
     @property
     def CORRUPTED_PATHS(self):
