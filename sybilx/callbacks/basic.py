@@ -7,7 +7,6 @@ from pytorch_lightning.callbacks import ModelCheckpoint, LearningRateMonitor
 @register_object('checkpointer', 'callback')
 class Checkpoint(ModelCheckpoint):
     def __init__(self, args) -> None:
-        if args.monitor == None
         super().__init__(        
             monitor=args.monitor,
             dirpath= os.path.join(args.save_dir, args.experiment_name),
