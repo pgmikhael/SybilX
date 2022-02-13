@@ -491,10 +491,7 @@ class NLST_Survival_Dataset(data.Dataset):
         statement += "\n" + "Censor Times: {}".format(
             Counter([d["time_at_event"] for d in dataset])
         )
-        annotation_msg = (
-            self.annotation_summary_msg(dataset) if self.args.use_annotations else ""
-        )
-        statement += annotation_msg
+        statement 
         return statement
 
     @property
@@ -536,16 +533,6 @@ class NLST_Survival_Dataset(data.Dataset):
                 {"image_annotations": None} for path in sample["paths"]
             ]
         return sample
-
-    def annotation_summary_msg(self, dataset):
-        annotations = [np.sum(d["volume_annotations"]) for d in dataset]
-        annotation_dist = Counter(annotations)
-        annotation_dist = dict(sorted(annotation_dist.items(), key=lambda i: i[0]))
-        num_annotations = sum([i > 0 for i in annotations])
-        mean_dist = np.mean([k for k in annotation_dist.values() if k != 0])
-        return "\nAnnotations: Dataset has {} annotated samples. Number of annotations per sample has the following distribution {}, with mean {} \n".format(
-            num_annotations, annotation_dist, mean_dist
-        )
 
     def __len__(self):
         return len(self.dataset)
