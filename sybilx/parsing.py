@@ -565,9 +565,12 @@ def parse_args(args_strings=None):
     parser.add_argument(
         "--monitor",
         type=str,
-        default="val_auc",
+        default=None,
         help="Name of metric to use to decide when to save model",
     )
+
+    parser.add_argument('--checkpoint_save_top_k', type = int, default = 1, help = "the best k models according to the quantity monitored will be saved")
+    parser.add_argument('--checkpoint_save_last', action = 'store_true', default = False, help = "save the last model to last.ckpt")
 
     # stochastic weight averaging
     parser.add_argument(
