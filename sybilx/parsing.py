@@ -219,14 +219,6 @@ def parse_args(args_strings=None):
     parser.add_argument(
         "--dataset",
         default="nlst",
-        choices=[
-            "sybil",
-            "nlst",
-            "nlst_risk_factors",
-            "nlst_for_plco",
-            "mgh",
-            "nlst_mgh",
-        ],
         help="Name of dataset from dataset factory to use [default: nlst]",
     )
     parser.add_argument(
