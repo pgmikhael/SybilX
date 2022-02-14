@@ -13,6 +13,12 @@
         "dataset": [
             "mgh_cohort1"
         ],
+        "dataset_file_path": [
+            "/Mounts/rbg-storage1/datasets/MGH_Lung_Fintelmann/mgh_lung_cancer_cohort1.json"
+        ],
+        "img_dir": [
+            "/Mounts/rbg-storage1/datasets/MGH_Lung_Fintelmann/pngs"
+        ],
         "max_followup": [
             6
         ],
@@ -50,7 +56,7 @@
             true
         ],
         "snapshot": [
-            "/Mounts/rbg-storage1/snapshots/lung_ct/36b8fed8790d236fa384e815f632f385.args"
+            "/Mounts/rbg-storage1/snapshots/lung_ct/36b8fed8790d236fa384e815f632f385/last.ckpt"
         ],
         "use_only_thin_cuts_for_ct": [
             true
@@ -135,12 +141,6 @@
         ],
         "dropout": [
             0.1
-        ],
-        "dataset_file_path": [
-            "/Mounts/rbg-storage1/datasets/MGH_Lung_Fintelmann/mgh_lung_dataset_june21.json"
-        ],
-        "img_dir": [
-            "/Mounts/rbg-storage1/datasets/MGH_Lung_Fintelmann/nlst-ct-png"
         ],
         "save_dir": [
             "/Mounts/rbg-storage1/snapshots/lung_ct"
