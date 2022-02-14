@@ -258,13 +258,13 @@ class MGH_Dataset(NLST_Survival_Dataset):
             sample["seed"] = np.random.randint(0, 2**32 - 1)
 
         # get images for multi image input
-        s = copy.deepcopy(sample)
         input_dicts = [
-            self.input_loader.get_image(path, s) for e, path in enumerate(paths)
+            self.input_loader.get_image(path, sample) for e, path in enumerate(paths)
         ]
 
         images = [i["input"] for i in input_dicts]
         out_dict["input"] = self.reshape_images(images)
+        out_dict["mask"] = None
 
         return out_dict
 
@@ -526,12 +526,12 @@ class MGH_Screening(NLST_Survival_Dataset):
             sample["seed"] = np.random.randint(0, 2**32 - 1)
 
         # get images for multi image input
-        s = copy.deepcopy(sample)
         input_dicts = [
-            self.input_loader.get_image(path, s) for e, path in enumerate(paths)
+            self.input_loader.get_image(path, sample) for e, path in enumerate(paths)
         ]
 
         images = [i["input"] for i in input_dicts]
         out_dict["input"] = self.reshape_images(images)
+        out_dict["mask"] = None
 
         return out_dict

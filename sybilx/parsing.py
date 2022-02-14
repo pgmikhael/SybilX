@@ -635,7 +635,7 @@ def parse_args(args_strings=None):
 
     # storing results
     parser.add_argument(
-        "--store_hiddens",
+        "--save_hiddens",
         action="store_true",
         default=False,
         help="Save hidden repr from each image to an npz based off results path, git hash and exam name",
