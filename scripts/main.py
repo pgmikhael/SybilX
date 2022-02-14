@@ -100,8 +100,8 @@ def cli_main(args):
         )
         trainer.test(model, test_dataset)
 
-    print("Saving args to {}".format(args.results_path))
-    pickle.dump(vars(args), open(args.results_path, "wb"))
+    print("Saving args to {}.args".format(args.results_path))
+    pickle.dump(vars(args), open('{}.args'.format(args.results_path), "wb"))
 
 
 if __name__ == "__main__":
