@@ -74,6 +74,7 @@ def cli_main(args):
             model = get_object(snargs.lightning_name, "lightning")(snargs)
             modelpath = snargs.model_path
         elif args.snapshot.endswith(".ckpt"):
+            model = get_object(args.lightning_name, "lightning")(args)
             modelpath = args.snapshot
         else:
             raise FileType("Snapshot should be an args or ckpt file.")
