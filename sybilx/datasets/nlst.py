@@ -6,6 +6,7 @@ import numpy as np
 from sybilx import augmentations
 from tqdm import tqdm
 from collections import Counter
+import copy
 import torch
 import torch.nn.functional as F
 from torch.utils import data
@@ -543,7 +544,7 @@ class NLST_Survival_Dataset(data.Dataset):
             sample["has_annotation"] = np.sum(sample["volume_annotations"]) > 0
         try:
             item = {}
-            input_dict = self.input_loader.get_images(sample["paths"], sample)
+            input_dict = self.get_images(sample["paths"], sample)
 
             x, mask = input_dict["input"], input_dict["mask"]
             if self.args.use_all_images:
@@ -595,6 +596,40 @@ class NLST_Survival_Dataset(data.Dataset):
             return item
         except Exception:
             warnings.warn(LOAD_FAIL_MSG.format(sample["exam"], traceback.print_exc()))
+
+    def get_images(self, paths, sample):
+        """
+        Returns a stack of transformed images by their absolute paths.
+        If cache is used - transformed images will be loaded if available,
+        and saved to cache if not.
+        """
+        out_dict = {}
+        if self.args.fix_seed_for_multi_image_augmentations:
+            sample["seed"] = np.random.randint(0, 2**32 - 1)
+
+        # get images for multi image input
+        s = copy.deepcopy(sample)
+        input_dicts = []
+        for e, path in enumerate(paths):
+            s["annotations"] = sample["annotations"][e]
+            input_dicts.append(self.input_loader.get_image(path, s))
+
+        images = [i["input"] for i in input_dicts]
+        masks = [i["mask"] for i in input_dicts]
+
+        out_dict["input"] = self.reshape_images(images)
+        out_dict["mask"] = (
+            self.reshape_images(masks) if self.args.use_annotations else None
+        )
+
+        return out_dict
+
+    def reshape_images(self, images):
+        images = [im.unsqueeze(0) for im in images]
+        images = torch.cat(images, dim=0)
+        # Convert from (T, C, H, W) to (C, T, H, W)
+        images = images.permute(1, 0, 2, 3)
+        return images
 
 
 @register_object("nlst_plco", "dataset")
