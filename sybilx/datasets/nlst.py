@@ -84,12 +84,10 @@ class NLST_Survival_Dataset(data.Dataset):
 
         self.input_loader = get_sample_loader(split_group, args)
 
-        assert (
-            self.args.region_annotations_filepath
-        ), "ANNOTATIONS METADATA FILE NOT SPECIFIED"
-        self.annotations_metadata = json.load(
-            open(self.args.region_annotations_filepath, "r")
-        )
+        if self.args.region_annotations_filepath:
+            self.annotations_metadata = json.load(
+                open(self.args.region_annotations_filepath, "r")
+            )
 
         self.dataset = self.create_dataset(split_group)
         if len(self.dataset) == 0:

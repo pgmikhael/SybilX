@@ -154,8 +154,7 @@ class MGH_Dataset(NLST_Survival_Dataset):
             return True
 
         # remove where slice location doesn't change (different axis):
-        zaxes = [s[-1] for s in series_dict["image_posn"]]
-        if len(set(zaxes)) < 2:
+        if len(set(series_dict["image_posn"])) < 2:
             return True
 
         if len(series_dict["paths"]) < self.args.min_num_images:
