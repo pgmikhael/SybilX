@@ -53,26 +53,17 @@ class MGH_NLST_Combined_Dataset(NLST_Survival_Dataset):
 
         return dataset
 
-    @property
-    def METADATA_FILENAME(self):
-        return "MGH_Lung_Fintelmann/mgh_metadata.json"
-
-    @property
-    def task(self):
-        return "CANCER"
-
     @staticmethod
     def set_args(args):
         args.num_classes = args.max_followup
         args.multi_image = True
 
     def get_summary_statement(self, dataset, split_group):
-        summary = "Constructed Combined MGH+NLST CT {} Survival {} dataset with {} records, {} exams, {} patients, and the following class balance \n {}"
+        summary = "Constructed Combined MGH+NLST CT Cancer Survival {} dataset with {} records, {} exams, {} patients, and the following class balance \n {}"
         class_balance = Counter([d["y"] for d in dataset])
         exams = set([d["exam"] for d in dataset])
         patients = set([d["pid"] for d in dataset])
         statement = summary.format(
-            self.task,
             split_group,
             len(dataset),
             len(exams),

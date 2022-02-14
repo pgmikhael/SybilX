@@ -20,8 +20,6 @@ from sybilx.datasets.utils import (
 from sybilx.utils.registry import register_object
 from sybilx.datasets.nlst_risk_factors import NLSTRiskFactorVectorizer
 
-METADATA_FILENAME = {"google_test": "NLST/full_nlst_google.json"}
-
 GOOGLE_SPLITS_FILENAME = (
     "/Mounts/rbg-storage1/datasets/NLST/Shetty_et_al(Google)/data_splits.p"
 )
@@ -265,6 +263,18 @@ class NLST_Survival_Dataset(data.Dataset):
             img_paths, slice_locations
         )
 
+        if not sorted_img_paths[0].startswith(self.args.img_dir):
+            sorted_img_paths = [
+                self.args.img_dir
+                + path[path.find("nlst-ct-png") + len("nlst-ct-png") :]
+                for path in sorted_img_paths
+            ]
+        if self.args.img_file_type == "dicom":
+            sorted_img_paths = [
+                path.replace("nlst-ct-png", "nlst-ct").replace(".png", "")
+                for path in sorted_img_paths
+            ]
+
         y, y_seq, y_mask, time_at_event = self.get_label(pt_metadata, screen_timepoint)
 
         exam_int = int(
@@ -370,18 +380,6 @@ class NLST_Survival_Dataset(data.Dataset):
         sorted_img_paths = np.array(img_paths)[sorted_ids].tolist()
         sorted_slice_locs = np.sort(slice_locations).tolist()
 
-        if not sorted_img_paths[0].startswith(self.args.img_dir):
-            sorted_img_paths = [
-                self.args.img_dir
-                + path[path.find("nlst-ct-png") + len("nlst-ct-png") :]
-                for path in sorted_img_paths
-            ]
-        if self.args.img_file_type == "dicom":
-            sorted_img_paths = [
-                path.replace("nlst-ct-png", "nlst-ct").replace(".png", "")
-                for path in sorted_img_paths
-            ]
-
         return sorted_img_paths, sorted_slice_locs
 
     def get_risk_factors(self, pt_metadata, screen_timepoint, return_dict=False):
@@ -479,10 +477,6 @@ class NLST_Survival_Dataset(data.Dataset):
             meta[idx]["split"] = institute_to_split[meta[idx]["pt_metadata"]["cen"][0]]
 
     @property
-    def METADATA_FILENAME(self):
-        return METADATA_FILENAME["google_test"]
-
-    @property
     def CORRUPTED_PATHS(self):
         return pickle.load(open(CORRUPTED_PATHS, "rb"))
 
@@ -497,7 +491,7 @@ class NLST_Survival_Dataset(data.Dataset):
         statement += "\n" + "Censor Times: {}".format(
             Counter([d["time_at_event"] for d in dataset])
         )
-        statement 
+        statement
         return statement
 
     @property
