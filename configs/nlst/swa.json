@@ -135,8 +135,8 @@
       0.0
     ],
     "swa_lr": [
-      0.05,
-      0.001
+      1e-4,
+      1e-3
     ],
     "swa_annealing_epochs": [
       1
