@@ -58,6 +58,7 @@
         "snapshot": [
             "/Mounts/rbg-storage1/snapshots/lung_ct/36b8fed8790d236fa384e815f632f385/last.ckpt"
         ],
+	"relax_checkpoint_matching": [true],
         "use_only_thin_cuts_for_ct": [
             true
         ],
@@ -98,7 +99,7 @@
             true
         ],
         "class_bal": [
-            true
+            false
         ],
         "train_rawinput_augmentations": [
             "scale_2d rotate_range/deg=20"
@@ -131,7 +132,7 @@
             "simple"
         ],
         "gpus": [
-            8
+            1
         ],
         "val_check_interval": [
             1.0
