@@ -55,6 +55,9 @@
     "base_model": [
       "sybil"
     ],
+    "from_checkpoint": [true],
+    "snapshot": ["/Mounts/rbg-storage1/snapshots/lung_ct/36b8fed8790d236fa384e815f632f385/last.ckpt"],
+    "relax_checkpoint_matching": [true],
     "use_only_thin_cuts_for_ct": [
       true
     ],
@@ -86,7 +89,7 @@
       "survival guided_attention"
     ],
     "metrics": [
-      "survival_classification survival"
+      "survival"
     ],
     "monitor": [
       "val_c_index"
@@ -101,13 +104,13 @@
       5
     ],
     "train": [
-      true
+      false
     ],
     "dev": [
       false
     ],
     "test": [
-      false
+      true
     ],
     "class_bal": [
       true
@@ -134,7 +137,7 @@
       "nlst-cancer"
     ],
     "comet_tags": [
-      "sybil"
+      "sybil eval"
     ],
     "num_sanity_val_steps": [
       0
@@ -143,7 +146,7 @@
       "simple"
     ],
     "gpus": [
-      8
+      1
     ],
     "val_check_interval": [
       1.0

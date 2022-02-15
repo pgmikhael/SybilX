@@ -1,6 +1,6 @@
 from ast import arg
 from collections import OrderedDict
-from argparse import Namespace
+from argparse import FileType, Namespace
 import pickle
 import os
 import sys
@@ -69,10 +69,17 @@ def cli_main(args):
         print("{} -- {}".format(key.upper(), value))
 
     if args.from_checkpoint:
-        snargs = Namespace(**pickle.load(open(args.snapshot, "rb")))
-        model = get_object(snargs.lightning_name, "lightning")(snargs)
+        if args.snapshot.endswith(".args"):
+            snargs = Namespace(**pickle.load(open(args.snapshot, "rb")))
+            model = get_object(snargs.lightning_name, "lightning")(snargs)
+            modelpath = snargs.model_path
+        elif args.snapshot.endswith(".ckpt"):
+            model = get_object(args.lightning_name, "lightning")(args)
+            modelpath = args.snapshot
+        else:
+            raise FileType("Snapshot should be an args or ckpt file.")
         model = model.load_from_checkpoint(
-            checkpoint_path=snargs.model_path, strict=not args.relax_checkpoint_matching
+            checkpoint_path=modelpath, strict=not args.relax_checkpoint_matching
         )
         model.args = args
     else:
@@ -100,8 +107,8 @@ def cli_main(args):
         )
         trainer.test(model, test_dataset)
 
-    print("Saving args to {}".format(args.results_path))
-    pickle.dump(vars(args), open(args.results_path, "wb"))
+    print("Saving args to {}.args".format(args.results_path))
+    pickle.dump(vars(args), open("{}.args".format(args.results_path), "wb"))
 
 
 if __name__ == "__main__":

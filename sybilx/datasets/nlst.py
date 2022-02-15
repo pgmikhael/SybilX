@@ -6,6 +6,7 @@ import numpy as np
 from sybilx import augmentations
 from tqdm import tqdm
 from collections import Counter
+import copy
 import torch
 import torch.nn.functional as F
 from torch.utils import data
@@ -19,8 +20,6 @@ from sybilx.datasets.utils import (
 )
 from sybilx.utils.registry import register_object
 from sybilx.datasets.nlst_risk_factors import NLSTRiskFactorVectorizer
-
-METADATA_FILENAME = {"google_test": "NLST/full_nlst_google.json"}
 
 GOOGLE_SPLITS_FILENAME = (
     "/Mounts/rbg-storage1/datasets/NLST/Shetty_et_al(Google)/data_splits.p"
@@ -86,10 +85,7 @@ class NLST_Survival_Dataset(data.Dataset):
 
         self.input_loader = get_sample_loader(split_group, args)
 
-        if args.use_annotations:
-            assert (
-                self.args.region_annotations_filepath
-            ), "ANNOTATIONS METADATA FILE NOT SPECIFIED"
+        if self.args.region_annotations_filepath:
             self.annotations_metadata = json.load(
                 open(self.args.region_annotations_filepath, "r")
             )
@@ -266,6 +262,18 @@ class NLST_Survival_Dataset(data.Dataset):
             img_paths, slice_locations
         )
 
+        if not sorted_img_paths[0].startswith(self.args.img_dir):
+            sorted_img_paths = [
+                self.args.img_dir
+                + path[path.find("nlst-ct-png") + len("nlst-ct-png") :]
+                for path in sorted_img_paths
+            ]
+        if self.args.img_file_type == "dicom":
+            sorted_img_paths = [
+                path.replace("nlst-ct-png", "nlst-ct").replace(".png", "")
+                for path in sorted_img_paths
+            ]
+
         y, y_seq, y_mask, time_at_event = self.get_label(pt_metadata, screen_timepoint)
 
         exam_int = int(
@@ -303,11 +311,6 @@ class NLST_Survival_Dataset(data.Dataset):
             sample["slice_locations"] = fit_to_length(
                 sorted_slice_locs, self.args.num_images, "<PAD>"
             )
-
-        if self.args.use_annotations:
-            sample = self.get_ct_annotations(sample)
-            sample["annotation_areas"] = get_scaled_annotation_area(sample, self.args)
-            sample["has_annotation"] = np.sum(sample["volume_annotations"]) > 0
 
         return sample
 
@@ -375,18 +378,6 @@ class NLST_Survival_Dataset(data.Dataset):
         sorted_ids = np.argsort(slice_locations)
         sorted_img_paths = np.array(img_paths)[sorted_ids].tolist()
         sorted_slice_locs = np.sort(slice_locations).tolist()
-
-        if not sorted_img_paths[0].startswith(self.args.img_dir):
-            sorted_img_paths = [
-                self.args.img_dir
-                + path[path.find("nlst-ct-png") + len("nlst-ct-png") :]
-                for path in sorted_img_paths
-            ]
-        if self.args.img_file_type == "dicom":
-            sorted_img_paths = [
-                path.replace("nlst-ct-png", "nlst-ct").replace(".png", "")
-                for path in sorted_img_paths
-            ]
 
         return sorted_img_paths, sorted_slice_locs
 
@@ -485,10 +476,6 @@ class NLST_Survival_Dataset(data.Dataset):
             meta[idx]["split"] = institute_to_split[meta[idx]["pt_metadata"]["cen"][0]]
 
     @property
-    def METADATA_FILENAME(self):
-        return METADATA_FILENAME["google_test"]
-
-    @property
     def CORRUPTED_PATHS(self):
         return pickle.load(open(CORRUPTED_PATHS, "rb"))
 
@@ -503,10 +490,7 @@ class NLST_Survival_Dataset(data.Dataset):
         statement += "\n" + "Censor Times: {}".format(
             Counter([d["time_at_event"] for d in dataset])
         )
-        annotation_msg = (
-            self.annotation_summary_msg(dataset) if self.args.use_annotations else ""
-        )
-        statement += annotation_msg
+        statement
         return statement
 
     @property
@@ -549,24 +533,18 @@ class NLST_Survival_Dataset(data.Dataset):
             ]
         return sample
 
-    def annotation_summary_msg(self, dataset):
-        annotations = [np.sum(d["volume_annotations"]) for d in dataset]
-        annotation_dist = Counter(annotations)
-        annotation_dist = dict(sorted(annotation_dist.items(), key=lambda i: i[0]))
-        num_annotations = sum([i > 0 for i in annotations])
-        mean_dist = np.mean([k for k in annotation_dist.values() if k != 0])
-        return "\nAnnotations: Dataset has {} annotated samples. Number of annotations per sample has the following distribution {}, with mean {} \n".format(
-            num_annotations, annotation_dist, mean_dist
-        )
-
     def __len__(self):
         return len(self.dataset)
 
     def __getitem__(self, index):
         sample = self.dataset[index]
+        if self.args.use_annotations:
+            sample = self.get_ct_annotations(sample)
+            sample["annotation_areas"] = get_scaled_annotation_area(sample, self.args)
+            sample["has_annotation"] = np.sum(sample["volume_annotations"]) > 0
         try:
             item = {}
-            input_dict = self.input_loader.get_images(sample["paths"], sample)
+            input_dict = self.get_images(sample["paths"], sample)
 
             x, mask = input_dict["input"], input_dict["mask"]
             if self.args.use_all_images:
@@ -618,6 +596,40 @@ class NLST_Survival_Dataset(data.Dataset):
             return item
         except Exception:
             warnings.warn(LOAD_FAIL_MSG.format(sample["exam"], traceback.print_exc()))
+
+    def get_images(self, paths, sample):
+        """
+        Returns a stack of transformed images by their absolute paths.
+        If cache is used - transformed images will be loaded if available,
+        and saved to cache if not.
+        """
+        out_dict = {}
+        if self.args.fix_seed_for_multi_image_augmentations:
+            sample["seed"] = np.random.randint(0, 2**32 - 1)
+
+        # get images for multi image input
+        s = copy.deepcopy(sample)
+        input_dicts = []
+        for e, path in enumerate(paths):
+            s["annotations"] = sample["annotations"][e]
+            input_dicts.append(self.input_loader.get_image(path, s))
+
+        images = [i["input"] for i in input_dicts]
+        masks = [i["mask"] for i in input_dicts]
+
+        out_dict["input"] = self.reshape_images(images)
+        out_dict["mask"] = (
+            self.reshape_images(masks) if self.args.use_annotations else None
+        )
+
+        return out_dict
+
+    def reshape_images(self, images):
+        images = [im.unsqueeze(0) for im in images]
+        images = torch.cat(images, dim=0)
+        # Convert from (T, C, H, W) to (C, T, H, W)
+        images = images.permute(1, 0, 2, 3)
+        return images
 
 
 @register_object("nlst_plco", "dataset")

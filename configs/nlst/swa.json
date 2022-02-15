@@ -29,7 +29,7 @@
       0.9
     ],
     "max_epochs": [
-      1
+      10
     ],
     "lr_decay": [
       0.1
@@ -88,6 +88,7 @@
     "metrics": [
       "survival_classification survival"
     ],
+    "checkpoint_save_last": [true],
     "monitor": [
       "val_c_index"
     ],
@@ -128,14 +129,14 @@
       true
     ],
     "callback_names": [
-      "checkpointer lr_monitor swa"
+      "lr_monitor checkpointer swa"
     ],
     "swa_epoch": [
       0.0
     ],
     "swa_lr": [
-      0.05,
-      0.001
+      1e-4,
+      1e-3
     ],
     "swa_annealing_epochs": [
       1
@@ -184,7 +185,7 @@
       "/storage/nlst_cache"
     ],
     "snapshot": [
-      "/Mounts/rbg-storage1/logs/lung_ct/sybil_mgh_finetunev1.p"
+      "/Mounts/rbg-storage1/logs/lung_ct/dfa0399d738fc388c44fa30e1cf1f50e.args"
     ],
     "from_checkpoint": [
       true

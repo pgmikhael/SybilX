@@ -21,19 +21,19 @@ class Base(pl.LightningModule):
         self.save_hyperparameters()
         self.args = args
         self.model = get_object(args.base_model, "model")(args)
-        self.loss_fns = {"train": [get_object(l, "loss") for l in args.loss_fns]}
+
+    def setup(self, stage):
+        self.loss_fns = {"train": [get_object(l, "loss") for l in self.args.loss_fns]}
         self.loss_fns["val"] = (
             self.loss_fns["train"]
-            if args.eval_loss_fns is None
-            else [get_object(l, "loss") for l in args.val_loss_fns]
+            if self.args.eval_loss_fns is None
+            else [get_object(l, "loss") for l in self.args.val_loss_fns]
         )
         self.loss_fns["test"] = (
             self.loss_fns["train"]
-            if args.eval_loss_fns is None
-            else [get_object(l, "loss") for l in args.test_loss_fns]
+            if self.args.eval_loss_fns is None
+            else [get_object(l, "loss") for l in self.args.test_loss_fns]
         )
-
-    def setup(self, stage):
         self.metrics = [get_object(m, "metric")(self.args) for m in self.args.metrics]
         self.metric_keys = list(
             set([key for metric in self.metrics for key in metric.metric_keys])
@@ -55,6 +55,7 @@ class Base(pl.LightningModule):
             "mse",
             "mae",
             "r2",
+            "c_index"
         ]
 
     @property

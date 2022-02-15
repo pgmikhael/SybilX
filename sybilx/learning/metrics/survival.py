@@ -56,16 +56,16 @@ class SurvivalMetric(object):
             stats_dict["{}_year_prauc".format(min_followup_if_neg)] = pr_auc
 
         if golds.sum() > 0:
-            stats_dict["c_index"] = concordance_index(
-                logging_dict["censors"].cpu().numpy(), probs.cpu().numpy(), golds.cpu().numpy(), args.censoring_distribution
+            cindex = concordance_index(
+                    censor_times.cpu().numpy(), probs.cpu().numpy(), golds.cpu().numpy(), args.censoring_distribution
             )
+            stats_dict["c_index"] = torch.tensor(cindex, device = probs.device)
         else:
             stats_dict["c_index"] = -1.0
         return stats_dict
 
 
 def compute_auc_at_followup(probs, censor_times, golds, followup, fup_lower_bound=-1):
-    golds, censor_times = golds.ravel(), censor_times.ravel()
     if len(probs.shape) == 3:
         probs = probs.reshape(probs.shape[0] * probs.shape[1], probs.shape[2])
 
@@ -89,8 +89,8 @@ def compute_auc_at_followup(probs, censor_times, golds, followup, fup_lower_boun
         roc_auc = auroc(
             probs_for_eval, golds_for_eval, pos_label=1, num_classes = 2)
 
-        ap_score = average_precision( probs_for_eval, golds_for_eval, pos_label=1, num_classes = 2) 
-        precision, recall, _ = precision_recall_curve(probs_for_eval, golds_for_eval,  pos_label=1, num_classes = 2)
+        ap_score = average_precision( probs_for_eval, golds_for_eval, pos_label=1) 
+        precision, recall, _ = precision_recall_curve(probs_for_eval, golds_for_eval,  pos_label=1)
         pr_auc = auc(recall, precision)
     except Exception as e:
         warnings.warn("Failed to calculate AUC because {}".format(e))

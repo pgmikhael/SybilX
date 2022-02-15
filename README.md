@@ -1,6 +1,6 @@
 # SybilX
 
-Lung Cancer Risk Prediction
+Lung Cancer Risk Prediction Research Base
 
 ## Run the model
 

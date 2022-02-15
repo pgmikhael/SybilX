@@ -203,6 +203,12 @@ def parse_args(args_strings=None):
         help="Whether or not to run model on dev set",
     )
     parser.add_argument(
+        "--predict",
+        action="store_true",
+        default=False,
+        help="Whether to run model for pure prediction where labels are not known",
+    )
+    parser.add_argument(
         "--fine_tune",
         action="store_true",
         default=False,
@@ -219,14 +225,6 @@ def parse_args(args_strings=None):
     parser.add_argument(
         "--dataset",
         default="nlst",
-        choices=[
-            "sybil",
-            "nlst",
-            "nlst_risk_factors",
-            "nlst_for_plco",
-            "mgh",
-            "nlst_mgh",
-        ],
         help="Name of dataset from dataset factory to use [default: nlst]",
     )
     parser.add_argument(
@@ -565,9 +563,12 @@ def parse_args(args_strings=None):
     parser.add_argument(
         "--monitor",
         type=str,
-        default="val_auc",
+        default=None,
         help="Name of metric to use to decide when to save model",
     )
+
+    parser.add_argument('--checkpoint_save_top_k', type = int, default = 1, help = "the best k models according to the quantity monitored will be saved")
+    parser.add_argument('--checkpoint_save_last', action = 'store_true', default = False, help = "save the last model to last.ckpt")
 
     # stochastic weight averaging
     parser.add_argument(
@@ -640,7 +641,7 @@ def parse_args(args_strings=None):
 
     # storing results
     parser.add_argument(
-        "--store_hiddens",
+        "--save_hiddens",
         action="store_true",
         default=False,
         help="Save hidden repr from each image to an npz based off results path, git hash and exam name",
