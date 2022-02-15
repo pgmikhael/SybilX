@@ -203,6 +203,12 @@ def parse_args(args_strings=None):
         help="Whether or not to run model on dev set",
     )
     parser.add_argument(
+        "--predict",
+        action="store_true",
+        default=False,
+        help="Whether to run model for pure prediction where labels are not known",
+    )
+    parser.add_argument(
         "--fine_tune",
         action="store_true",
         default=False,
