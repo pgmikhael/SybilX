@@ -22,6 +22,7 @@ from sybilx.serie import Serie
 
 # data
 import sybilx.datasets.nlst
+import sybilx.datasets.nlst_xray
 import sybilx.datasets.mgh
 
 # augmentation
@@ -40,9 +41,13 @@ import sybilx.learning.optimizers.basic
 # scheduler
 import sybilx.learning.schedulers.basic
 
+# models
+import sybilx.models.cxr_lc
+
 # losses
 import sybilx.learning.losses.basic
 import sybilx.learning.losses.guided_attention
+import sybilx.learning.losses.weighted_focal_loss
 
 # metrics
 import sybilx.learning.metrics.basic
