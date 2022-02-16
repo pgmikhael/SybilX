@@ -87,10 +87,6 @@ if __name__ == "__main__":
             "tube_current": 'XRayTubeCurrent',
         }
 
-        for attr in key2attr:
-            if hasattr(dcm_meta, key2attr[attr]):
-                img_dict[attr] = getattr(dcm_meta, attr)
-
         img_dict = {
             "path": path,
             # "image_type": dcm_meta.ImageType,
@@ -105,6 +101,10 @@ if __name__ == "__main__":
             # "acquisition_desc": dcm_meta.AcquisitionDeviceProcessingDescription,
             # "tube_current": dcm_meta.XRayTubeCurrent,
         }
+
+        for attr in key2attr:
+            if hasattr(dcm_meta, key2attr[attr]):
+                img_dict[attr] = getattr(dcm_meta, key2attr[attr])
 
         if pid in pid2idx:
             pt_idx = pid2idx[pid]
