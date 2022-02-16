@@ -37,11 +37,7 @@ if __name__ == "__main__":
     meta_data = pd.read_csv(args.nlst_metadata_csv, low_memory=True)
     meta_data.fillna(-1, inplace=True)
 
-    def make_metadata_dict(
-        dataframe,
-        pid,
-    ):
-
+    def make_metadata_dict(dataframe, pid):
         df = dataframe.loc[(dataframe.pid == int(pid))]
         if df.shape[0] > 0:
             return df.to_dict("list")
@@ -79,19 +75,35 @@ if __name__ == "__main__":
             "date": date,
         }
 
+        key2attr = {
+            "image_type": 'ImageType',
+            "instance_number": 'InstanceNumber',
+            "window_center": 'WindowCenter',
+            "window_width": 'WindowWidth',
+            "kvp": 'KVP',
+            "exposure_time": 'ExposureTime',
+            "exposure": 'Exposure',
+            "acquisition_desc": 'AcquisitionDeviceProcessingDescription',
+            "tube_current": 'XRayTubeCurrent',
+        }
+
+        for attr in key2attr:
+            if hasattr(dcm_meta, key2attr[attr]):
+                img_dict[attr] = getattr(dcm_meta, attr)
+
         img_dict = {
             "path": path,
-            "image_type": dcm_meta.ImageType,
+            # "image_type": dcm_meta.ImageType,
             "sop_id": sop_id,
             "series_id": series_id,
-            "instance_number": dcm_meta.InstanceNumber,
-            "window_center": dcm_meta.WindowCenter,
-            "window_width": dcm_meta.WindowWidth,
-            "kvp": dcm_meta.KVP,
-            "exposure_time": dcm_meta.ExposureTime,
-            "exposure": dcm_meta.Exposure,
-            "acquisition_desc": dcm_meta.AcquisitionDeviceProcessingDescription,
-            "tube_current": dcm_meta.XRayTubeCurrent,
+            # "instance_number": dcm_meta.InstanceNumber,
+            # "window_center": dcm_meta.WindowCenter,
+            # "window_width": dcm_meta.WindowWidth,
+            # "kvp": dcm_meta.KVP,
+            # "exposure_time": dcm_meta.ExposureTime,
+            # "exposure": dcm_meta.Exposure,
+            # "acquisition_desc": dcm_meta.AcquisitionDeviceProcessingDescription,
+            # "tube_current": dcm_meta.XRayTubeCurrent,
         }
 
         if pid in pid2idx:
