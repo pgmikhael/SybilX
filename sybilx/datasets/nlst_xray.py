@@ -22,7 +22,7 @@ from sybilx.utils.registry import register_object
 from sybilx.datasets.nlst_risk_factors import NLSTRiskFactorVectorizer
 
 
-CORRUPTED_PATHS = "/Mounts/rbg-storage1/datasets/NLST/corrupted_img_paths.pkl"
+CORRUPTED_PATHS = "/Mounts/rbg-storage1/datasets/ACRIN_XRAY/NLST/corrupted_img_paths.pkl"
 
 CT_ITEM_KEYS = [
     "pid",

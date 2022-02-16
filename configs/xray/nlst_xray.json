@@ -45,7 +45,7 @@
     "val_check_interval": [1.0],
     "ignore_warnings": [false],
     "dropout": [0.1],
-    "dataset_file_path": ["/Mounts/rbg-storage1/datasets/ACRIN_XRAY/NLST/"],
+    "dataset_file_path": ["/Mounts/rbg-storage1/datasets/ACRIN_XRAY/"],
     "save_dir": ["/Mounts/rbg-storage1/snapshots/lung_xray"],
     "img_dir": ["/Mounts/rbg-storage1/datasets/ACRIN_XRAY/NLST/"],
     "cache_path": ["/storage/nlst_cache"]
