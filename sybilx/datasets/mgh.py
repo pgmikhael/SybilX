@@ -284,21 +284,15 @@ class MGH_Screening(NLST_Survival_Dataset):
             The dataset as a dictionary with img paths, label,
             and additional information regarding exam or participant
         """
-        dataset = []
+        assert not self.args.train, "Cohort 2 should not be used for training"
 
-        # if split probs is set, randomly assign new splits, (otherwise default is 70% train, 15% dev and 15% test)
-        if self.args.assign_splits:
-            np.random.seed(self.args.cross_val_seed)
-            self.assign_splits(self.metadata_json)
+        dataset = []
 
         for mrn_row in tqdm(self.metadata_json):
             if mrn_row["in_cohort1"]:
                 continue
 
-            pid, split, exams = mrn_row["pid"], mrn_row["split"], mrn_row["accessions"]
-
-            if not split == split_group:
-                continue
+            pid, exams = mrn_row["pid"], mrn_row["accessions"]
 
             for exam_dict in exams:
 
