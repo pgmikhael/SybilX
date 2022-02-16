@@ -6,7 +6,7 @@ from collections import OrderedDict
 import pdb
 
 
-@register_object("cross_entropy", "loss")
+@register_object("weighted_focal_loss", "loss")
 def get_weighted_focal_loss(model_output, batch, model, args):
     """
     Focal loss = self.alpha * (1-pt)**self.gamma * BCE_loss * torch.stack([weights,weights],1).float()
