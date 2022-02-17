@@ -56,7 +56,6 @@
             true
         ],
         "snapshot": [
-	    "/home/peter/SybilModels/nlst_mgh_tune.ckpt",
             "/home/peter/SybilModels/nlst_only.ckpt"
         ],
 	"relax_checkpoint_matching": [true],

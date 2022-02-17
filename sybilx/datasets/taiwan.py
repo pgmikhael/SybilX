@@ -79,13 +79,11 @@ class CGMH_Dataset(NLST_Survival_Dataset):
             "time_at_event": time_at_event,
             "y_seq": y_seq,
             "y_mask": y_mask,
-            "exam": int(
-                "{}{}{}".format(
-                    mrn_row["pid"],
-                    exam_dict["examid"],
+            "exam": "{}{}{}".format(
+                mrn_row["pid"][-5:] ,
+                exam_dict["examid"][-5:],
                     series_id.replace(".", "")[-5:],
-                )
-            ),  # last 5 of study id + last 5 of series id
+                ),
             "series": series_id,
             "pid": mrn_row["pid"],
         }
@@ -134,7 +132,7 @@ class CGMH_Dataset(NLST_Survival_Dataset):
         return y, y_seq.astype("float64"), y_mask.astype("float64"), time_at_event
 
     def is_localizer(self, series_dict):
-        is_localizer = "LOCALIZER" in literal_eval(series_dict["ImageType"])
+        is_localizer = "LOCALIZER" in series_dict["ImageType"]
         return is_localizer
 
     @staticmethod
