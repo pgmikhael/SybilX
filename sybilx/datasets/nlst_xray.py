@@ -135,8 +135,9 @@ class NLST_XRay_Dataset(data.Dataset):
                 continue
 
             for exam_dict in exams:
-                for series_id, series_dict in exam_dict["image_series"].items():
-                    if self.skip_sample(series_dict, pt_metadata):
+                for series_dict in exam_dict["image_series"]:
+                    series_id = series_dict["series_id"]
+                    if self.skip_sample(series_dict, pt_metadata, exam_dict):
                         continue
 
                     sample = self.get_volume_dict(
@@ -149,13 +150,13 @@ class NLST_XRay_Dataset(data.Dataset):
 
         return dataset
 
-    def skip_sample(self, series_dict, pt_metadata):
-        series_data = series_dict["series_data"]
+    def skip_sample(self, series_dict, pt_metadata, exam_dict):
+        # series_data = series_dict["series_data"]
         # check if screen is localizer screen or not enough images
-        is_localizer = self.is_localizer(series_data)
+        # is_localizer = self.is_localizer(series_data)
 
         # check if valid label (info is not missing)
-        screen_timepoint = series_data["study_yr"][0]
+        screen_timepoint = exam_dict["screen_timepoint"] # series_data["study_yr"][0]
         bad_label = not self.check_label(pt_metadata, screen_timepoint)
 
         # invalid label
@@ -166,8 +167,8 @@ class NLST_XRay_Dataset(data.Dataset):
             invalid_label = False
 
         if (
-            is_localizer
-            or bad_label
+            # is_localizer or
+            bad_label
             or invalid_label
         ):
             return True
@@ -176,10 +177,10 @@ class NLST_XRay_Dataset(data.Dataset):
 
     def get_volume_dict(self, series_id, series_dict, exam_dict, pt_metadata, pid, split):
         path = series_dict["path"]
-        series_data = series_dict["series_data"]
-        device = series_data["manufacturer"][0]
-        screen_timepoint = series_data["study_yr"][0]
-        assert screen_timepoint == exam_dict["screen_timepoint"]
+        # series_data = series_dict["series_data"]
+        # device = series_data["manufacturer"][0]
+        screen_timepoint = exam_dict["screen_timepoint"] # series_data["study_yr"][0]
+        # assert screen_timepoint == exam_dict["screen_timepoint"]
 
         # if series_id in self.corrupted_series:
         #     if any([path in self.corrupted_paths for path in img_paths]):
@@ -209,10 +210,10 @@ class NLST_XRay_Dataset(data.Dataset):
             "exam": exam_int,
             "accession": exam_dict["accession_number"],
             "series": series_id,
-            "study": series_data["studyuid"][0],
+            # "study": series_data["studyuid"][0],
             "screen_timepoint": screen_timepoint,
             "pid": pid,
-            "device": device,
+            # "device": device,
             "institution": pt_metadata["cen"][0],
             "cancer_laterality": self.get_cancer_side(pt_metadata),
         }
@@ -441,7 +442,9 @@ class NLST_XRay_Dataset(data.Dataset):
             sample["has_annotation"] = np.sum(sample["volume_annotations"]) > 0
         try:
             item = {}
-            input_dict = self.get_images(sample["path"], sample)
+            import pdb
+            pdb.set_trace()
+            input_dict = self.get_image(sample["path"], sample)
 
             x, mask = input_dict["input"], input_dict["mask"]
             if self.args.use_all_images:

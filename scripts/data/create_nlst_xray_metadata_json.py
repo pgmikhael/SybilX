@@ -16,7 +16,7 @@ parser = argparse.ArgumentParser()
 parser.add_argument(
     "--output_json_path",
     type=str,
-    default="/Mounts/rbg-storage1/datasets/ACRIN_XRAY/xray_dataset.json",
+    default="/Mounts/rbg-storage1/datasets/ACRIN_temp/xray_dataset.json",
 )
 parser.add_argument(
     "--data_dir", type=str, default="/Mounts/rbg-storage1/datasets/ACRIN_XRAY"
@@ -104,7 +104,13 @@ if __name__ == "__main__":
 
         for attr in key2attr:
             if hasattr(dcm_meta, key2attr[attr]):
-                img_dict[attr] = getattr(dcm_meta, key2attr[attr])
+                if isinstance(getattr(dcm_meta, key2attr[attr]), pydicom.multival.MultiValue):
+                    list_dump = []
+                    for it in getattr(dcm_meta, key2attr[attr]):
+                        list_dump.append(it)
+                    img_dict[attr] = list_dump
+                else:
+                    img_dict[attr] = getattr(dcm_meta, key2attr[attr])
 
         if pid in pid2idx:
             pt_idx = pid2idx[pid]
@@ -133,4 +139,4 @@ if __name__ == "__main__":
 
             json_dataset.append(pt_dict)
 
-    json.dump(json_dataset, open(args.output_json_path, "w"))
+    json.dump(list(json_dataset), open(args.output_json_path, "w"))

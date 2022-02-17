@@ -25,12 +25,15 @@ class ChestXRayLungCancer(nn.Module):
         ps = [0.75]
         ps = [ps[0]/2] * (len(lin_ftrs)-2) + ps
         actns = [nn.ReLU(inplace=True)] * (len(lin_ftrs)- 1) # 2) + [None]
-        pool = AdaptiveConcatPool2d()
-        layers = [pool, nn.Flatten()]
+        
+        # pool layers
+        self.pool = nn.Sequential(nn.AdaptiveAvgPool2d(1), nn.AdaptiveMaxPool2d(1))
+ 
+        layers = [nn.Flatten()]
   
         for n_in, n_out, batch_norm, p, activation_fn in zip(lin_ftrs[:-1], lin_ftrs[1:], bns, ps, actns):
             if batch_norm:
-                layers.append(nn.BatchNorm(n_in, ndim=1))
+                layers.append(nn.BatchNorm1d(n_in))
             layers.append(nn.Dropout(p))
             layers.append(nn.Linear(n_in, n_out))
             if activation_fn is not None: 
@@ -38,7 +41,7 @@ class ChestXRayLungCancer(nn.Module):
         
         # Image 
         self.custom_head = nn.Sequential(*layers)
-        self.image_encoder = nn.Sequential(*list(encoder.children())[:-2], self.custom_head)
+        self.image_encoder = nn.Sequential(*list(encoder.children())[:-2])
 
         # Age, Sex, Smoking Status
         risk_factors_layers = [nn.Linear(7, 32), nn.ReLU(), nn.Dropout(p=args.dropout), nn.Linear(32, 32), nn.ReLU()]
@@ -52,6 +55,8 @@ class ChestXRayLungCancer(nn.Module):
         output = {}
         risk_factors_hidden = self.risk_factors_mlp( batch['risk_factors'] ) # TODO: age, sex, smoking 
         image_hidden = self.image_encoder( x )
+        image_hidden = self.pool(image_hidden)
+        image_hidden = self.custom_head(image_hidden)
         output["hidden"] = torch.cat( [risk_factors_hidden, image_hidden] )
         output["logit"] = self.final_mlp( output["hidden"] )
         return output
