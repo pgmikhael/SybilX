@@ -33,13 +33,11 @@ class CGMH_Dataset(NLST_Survival_Dataset):
 
             for exam_dict in exams:
 
-                for series_id, series_dict in exam_dict["series"].items():
+                for series_dict in exam_dict["series"]:
                     if self.skip_sample(series_dict, exam_dict):
                         continue
 
-                    sample = self.get_volume_dict(
-                        series_id, series_dict, exam_dict, mrn_row
-                    )
+                    sample = self.get_volume_dict(series_dict, exam_dict, mrn_row)
                     if len(sample) == 0:
                         continue
 
@@ -58,7 +56,7 @@ class CGMH_Dataset(NLST_Survival_Dataset):
 
         return False
 
-    def get_volume_dict(self, series_id, series_dict, exam_dict, mrn_row):
+    def get_volume_dict(self, series_dict, exam_dict, mrn_row):
 
         img_paths = series_dict["paths"]
         img_paths = [
@@ -73,6 +71,7 @@ class CGMH_Dataset(NLST_Survival_Dataset):
 
         y, y_seq, y_mask, time_at_event = self.get_label(exam_dict, mrn_row)
 
+        series_id = series_dict["seriesid"]
         sample = {
             "paths": sorted_img_paths,
             "slice_locations": sorted_slice_locs,
