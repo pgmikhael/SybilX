@@ -24,7 +24,7 @@ def get_weighted_focal_loss(model_output, batch, model, args):
     ce_loss = F.cross_entropy(logit, batch['y'], reduction='none')
     pt = torch.exp(-ce_loss)
     loss = args.wfl_alpha * (1-pt)**args.wfl_gamma * ce_loss # * weights
-
+    loss = torch.mean(loss)
     logging_dict["cross_entropy_loss"] = ce_loss.detach()
     logging_dict["focal_loss"] = loss.detach()
     predictions["probs"] = F.softmax(logit, dim=-1).detach()

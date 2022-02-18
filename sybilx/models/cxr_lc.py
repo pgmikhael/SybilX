@@ -20,7 +20,7 @@ class ChestXRayLungCancer(nn.Module):
         encoder = pretrainedmodels.__dict__[model_name](num_classes=1000, pretrained='imagenet')
 
         # this is refactored from fastai.vision.learner.create_head and fastai.layers.LinBnDrop
-        lin_ftrs = [2048*2*2, self.hidden_dim, 32]
+        lin_ftrs = [1536, self.hidden_dim, 32]
         bns = [True] + [True]*len(lin_ftrs[1:])
         ps = [0.75]
         ps = [ps[0]/2] * (len(lin_ftrs)-2) + ps
@@ -40,11 +40,11 @@ class ChestXRayLungCancer(nn.Module):
                 layers.append(activation_fn)
         
         # Image 
-        self.custom_head = nn.Sequential(*layers)
         self.image_encoder = nn.Sequential(*list(encoder.children())[:-2])
+        self.custom_head = nn.Sequential(*layers)
 
         # Age, Sex, Smoking Status
-        risk_factors_layers = [nn.Linear(7, 32), nn.ReLU(), nn.Dropout(p=args.dropout), nn.Linear(32, 32), nn.ReLU()]
+        risk_factors_layers = [nn.Linear(14, 32), nn.ReLU(), nn.Dropout(p=args.dropout), nn.Linear(32, 32), nn.ReLU()] # change input dim to 7 if risk factors changes
         self.risk_factors_mlp = nn.Sequential(*risk_factors_layers)
 
         # final MLP
@@ -53,11 +53,11 @@ class ChestXRayLungCancer(nn.Module):
 
     def forward(self, x, batch = None):
         output = {}
-        risk_factors_hidden = self.risk_factors_mlp( batch['risk_factors'] ) # TODO: age, sex, smoking 
+        risk_factors_hidden = self.risk_factors_mlp( batch['risk_factors'].float() ) # TODO: age, sex, smoking  (currently all risk factors)
         image_hidden = self.image_encoder( x )
         image_hidden = self.pool(image_hidden)
         image_hidden = self.custom_head(image_hidden)
-        output["hidden"] = torch.cat( [risk_factors_hidden, image_hidden] )
+        output["hidden"] = torch.cat( [risk_factors_hidden, image_hidden], dim=1 )
         output["logit"] = self.final_mlp( output["hidden"] )
         return output
 
