@@ -6,7 +6,7 @@
     "precision": [16],
     "dataset": ["nlst_xray"],
     "max_followup": [6],
-    "input_loader_name": ["ct_loader"],
+    "input_loader_name": ["dicom_transform_loader"],
     "lightning_name": ["base"],
     "weight_decay": [1e-2],
     "momentum": [0.9],

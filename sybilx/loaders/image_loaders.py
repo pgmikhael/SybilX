@@ -58,6 +58,47 @@ class CTLoader(abstract_loader):
         return ".png"
 
 
+@register_object("dicom_transform_loader", "input_loader")
+class DicomTransformLoader(abstract_loader):
+    """
+    MIMIC method of DICOM image loading
+    source: https://physionet.org/content/mimic-cxr-jpg/2.0.0/
+    Chest radiographs were converted from DICOM to a compressed JPG format. 
+    
+    First, the image pixels were extracted from the DICOM file using the pydicom library. 
+    Pixel values were normalized to the range [0, 255] by subtracting the lowest value in the image, dividing by the highest value in the shifted image, truncating values, and converting the result to an unsigned integer. 
+    The DICOM field PhotometricInterpretation was used to determine whether the pixel values were inverted, 
+    and if necessary images were inverted such that air in the image appears white (highest pixel value), while the outside of the patient's body appears black (lowest pixel value). 
+    The OpenCV library was then used to histogram equalize the image with the intention of enhancing contrast. 
+    Histogram equalization involves shifting pixel values towards 0 or towards 255 such that all pixel values 0 through 255 have approximately equal frequency. 
+    Images were then converted to JPG files using OpenCV with a quality factor of 95.
+    """
+    def __init__(self, cache_path, augmentations, args):
+        super(DicomLoader, self).__init__(cache_path, augmentations, args)
+
+    def configure_path(self, path, sample):
+        return path
+
+    def load_input(self, path, sample):
+        try:
+            dcm = pydicom.dcmread(path)
+            min_val = np.min(dcm.pixel_array)
+            min_max_pixel_array = dcm.pixel_array - min_val
+            max_val = np.max(min_max_pixel_array)
+            min_max_pixel_array = np.trunc(( min_max_pixel_array / max_val ) * 255).astype(np.uint8)
+            min_max_pixel_array = cv2.equalizeHist(min_max_pixel_array)
+
+        except Exception:
+            raise Exception(LOADING_ERROR.format("COULD NOT LOAD DICOM."))
+
+        return {"input": min_max_pixel_array}
+
+    @property
+    def cached_extension(self):
+        return ""
+
+
+
 @register_object("dicom_loader", "input_loader")
 class DicomLoader(abstract_loader):
     def __init__(self, cache_path, augmentations, args):
