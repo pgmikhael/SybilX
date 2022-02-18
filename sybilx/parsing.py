@@ -439,28 +439,28 @@ def parse_args(args_strings=None):
     parser.add_argument(
         "--primary_loss_lambda",
         type=float,
-        default=0.9,
+        default=1.0,
         help="Lambda to weigh the primary loss.",
+    )
+    parser.add_argument(
+         "--adv_loss_lambda",
+         type=float,
+         default=1.0,
+         help="Lambda to weigh the adversary loss.",
+     )
+
+    # Weighted Focal Loss
+    parser.add_argument(
+        "--wfl_alpha",
+        type=float,
+        default=0.9,
+        help="Alpha to weigh the WFL loss.",
     )
     parser.add_argument(
         "--wfl_gamma",
         type=float,
         default=2,
         help="Lambda to weigh the adversary loss.",
-    )
-
-    # Weighted Focal Loss
-    parser.add_argument(
-        "--wfl_alpha",
-        type=float,
-        default=1.0,
-        help="Alpha to weigh the WFL loss.",
-    )
-    parser.add_argument(
-        "--wfl_alpha",
-        type=float,
-        default=1.0,
-        help="Alpha to weigh the WFL loss.",
     )
     
     # loader
