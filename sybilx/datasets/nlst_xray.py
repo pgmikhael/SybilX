@@ -190,11 +190,11 @@ class NLST_XRay_Dataset(data.Dataset):
         #         img_paths = np.array(img_paths)[uncorrupted_imgs].tolist()
         #         slice_locations = np.array(slice_locations)[uncorrupted_imgs].tolist()
 
-        if not path[0].startswith(self.args.img_dir):
-            path = self.args.img_dir + path[path.find("nlst-xr-png") + len("nlst-xr-png") :]
+        # if not path[0].startswith(self.args.img_dir):
+          #  path = self.args.img_dir + path[path.find("nlst-xr-png") + len("nlst-xr-png") :]
 
-        if self.args.img_file_type == "dicom":
-            path = path.replace("nlst-xr-png", "nlst-xr").replace(".png", "")
+        # if self.args.img_file_type == "dicom":
+           # path = path.replace("nlst-xr-png", "nlst-xr").replace(".png", "")
 
         y, y_seq, y_mask, time_at_event = self.get_label(pt_metadata, screen_timepoint)
 
@@ -442,8 +442,6 @@ class NLST_XRay_Dataset(data.Dataset):
             sample["has_annotation"] = np.sum(sample["volume_annotations"]) > 0
         try:
             item = {}
-            import pdb
-            pdb.set_trace()
             input_dict = self.get_image(sample["path"], sample)
 
             x, mask = input_dict["input"], input_dict["mask"]
@@ -510,7 +508,8 @@ class NLST_XRay_Dataset(data.Dataset):
         # get images for multi image input
         s = copy.deepcopy(sample)
         input_dict = self.input_loader.get_image(path, s)
-        s["annotations"] = sample["annotations"][0]
+        if self.args.use_annotations:
+            s["annotations"] = sample["annotations"][0]
 
         image = input_dict["input"]
         masks = input_dict["mask"]

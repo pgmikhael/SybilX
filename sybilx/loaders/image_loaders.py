@@ -74,7 +74,7 @@ class DicomTransformLoader(abstract_loader):
     Images were then converted to JPG files using OpenCV with a quality factor of 95.
     """
     def __init__(self, cache_path, augmentations, args):
-        super(DicomLoader, self).__init__(cache_path, augmentations, args)
+        super(DicomTransformLoader, self).__init__(cache_path, augmentations, args)
 
     def configure_path(self, path, sample):
         return path
