@@ -87,6 +87,8 @@ class DicomTransformLoader(abstract_loader):
             max_val = np.max(min_max_pixel_array)
             min_max_pixel_array = np.trunc(( min_max_pixel_array / max_val ) * 255).astype(np.uint8)
             min_max_pixel_array = cv2.equalizeHist(min_max_pixel_array)
+            if hasattr(dcm, 'PhotometricInterpretation') and 'MONOCHROME2' in dcm.PhotometricInterpretation:
+                min_max_pixel_array = 255 - min_max_pixel_array
 
         except Exception:
             raise Exception(LOADING_ERROR.format("COULD NOT LOAD DICOM."))
