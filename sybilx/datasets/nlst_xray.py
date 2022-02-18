@@ -436,51 +436,51 @@ class NLST_XRay_Dataset(data.Dataset):
 
     def __getitem__(self, index):
         sample = self.dataset[index]
-        if self.args.use_annotations:
-            sample = self.get_ct_annotations(sample)
-            sample["annotation_areas"] = get_scaled_annotation_area(sample, self.args)
-            sample["has_annotation"] = np.sum(sample["volume_annotations"]) > 0
+        # if self.args.use_annotations:
+        #     sample = self.get_ct_annotations(sample)
+        #     sample["annotation_areas"] = get_scaled_annotation_area(sample, self.args)
+        #     sample["has_annotation"] = np.sum(sample["volume_annotations"]) > 0
         try:
             item = {}
             input_dict = self.get_image(sample["path"], sample)
 
             x, mask = input_dict["input"], input_dict["mask"]
-            if self.args.use_all_images:
-                c, n, h, w = x.shape
-                x = torch.nn.functional.interpolate(
-                    x.unsqueeze(0), (self._num_images, h, w), align_corners=True
-                )[0]
-                if mask is not None:
-                    mask = torch.nn.functional.interpolate(
-                        mask.unsqueeze(0), (self._num_images, h, w), align_corners=True
-                    )[0]
+            # if self.args.use_all_images:
+            #     c, n, h, w = x.shape
+            #     x = torch.nn.functional.interpolate(
+            #         x.unsqueeze(0), (self._num_images, h, w), align_corners=True
+            #     )[0]
+            #     if mask is not None:
+            #         mask = torch.nn.functional.interpolate(
+            #             mask.unsqueeze(0), (self._num_images, h, w), align_corners=True
+            #         )[0]
 
-            if self.args.use_annotations:
-                # item['mask'] = mask
-                # mask = item.pop('mask')
-                mask = torch.abs(mask)
-                mask_area = mask.sum(dim=(-1, -2)).unsqueeze(-1).unsqueeze(-1)
-                mask_area[mask_area == 0] = 1
-                mask = mask / mask_area
-                item["image_annotations"] = mask
-                if self.args.use_all_images:
-                    t = torch.from_numpy(sample["annotation_areas"])
-                    item["annotation_areas"] = F.interpolate(
-                        t[None, None],
-                        (self._num_images),
-                        mode="linear",
-                        align_corners=True,
-                    )[0, 0]
-                    t = torch.from_numpy(sample["volume_annotations"]).float()
-                    item["volume_annotations"] = F.interpolate(
-                        t[None, None],
-                        (self._num_images),
-                        mode="linear",
-                        align_corners=True,
-                    )[0, 0]
-                else:
-                    item["annotation_areas"] = sample["annotation_areas"]
-                    item["volume_annotations"] = sample["volume_annotations"]
+            # if self.args.use_annotations:
+            #     # item['mask'] = mask
+            #     # mask = item.pop('mask')
+            #     mask = torch.abs(mask)
+            #     mask_area = mask.sum(dim=(-1, -2)).unsqueeze(-1).unsqueeze(-1)
+            #     mask_area[mask_area == 0] = 1
+            #     mask = mask / mask_area
+            #     item["image_annotations"] = mask
+            #     if self.args.use_all_images:
+            #         t = torch.from_numpy(sample["annotation_areas"])
+            #         item["annotation_areas"] = F.interpolate(
+            #             t[None, None],
+            #             (self._num_images),
+            #             mode="linear",
+            #             align_corners=True,
+            #         )[0, 0]
+            #         t = torch.from_numpy(sample["volume_annotations"]).float()
+            #         item["volume_annotations"] = F.interpolate(
+            #             t[None, None],
+            #             (self._num_images),
+            #             mode="linear",
+            #             align_corners=True,
+            #         )[0, 0]
+            #     else:
+            #         item["annotation_areas"] = sample["annotation_areas"]
+            #         item["volume_annotations"] = sample["volume_annotations"]
 
             if self.args.use_risk_factors:
                 item["risk_factors"] = sample["risk_factors"]
@@ -508,16 +508,16 @@ class NLST_XRay_Dataset(data.Dataset):
         # get images for multi image input
         s = copy.deepcopy(sample)
         input_dict = self.input_loader.get_image(path, s)
-        if self.args.use_annotations:
-            s["annotations"] = sample["annotations"][0]
+        # if self.args.use_annotations:
+        #     s["annotations"] = sample["annotations"][0]
 
         image = input_dict["input"]
         masks = input_dict["mask"]
 
-        out_dict["input"] = self.reshape_images(image)
-        out_dict["mask"] = (
-            self.reshape_images(masks) if self.args.use_annotations else None
-        )
+        # out_dict["input"] = self.reshape_images(image)
+        # out_dict["mask"] = (
+        #     self.reshape_images(masks) if self.args.use_annotations else None
+        # )
 
         return out_dict
 
