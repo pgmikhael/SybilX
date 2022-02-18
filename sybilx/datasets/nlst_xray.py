@@ -519,7 +519,8 @@ class NLST_XRay_Dataset(data.Dataset):
         #     self.reshape_images(masks) if self.args.use_annotations else None
         # )
 
-        return out_dict
+        # return out_dict
+        return input_dict
 
     def reshape_images(self, images):
         images = [im.unsqueeze(0) for im in images]
