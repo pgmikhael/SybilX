@@ -285,6 +285,7 @@ def parse_args(args_strings=None):
         default="/Mounts/rbg-storage1/datasets/NLST/full_nlst_google.json",
         help="Path to dataset file either as json or csv",
     )
+    parser.add_argument('--data_dir', type = str, default = 'Data/', help="directory for alternate data, used in MNIST toy example")
     parser.add_argument(
         "--num_classes", type=int, default=6, help="Number of classes to predict"
     )
