@@ -48,7 +48,7 @@ class ChestXRayLungCancer(nn.Module):
         self.risk_factors_mlp = nn.Sequential(*risk_factors_layers)
 
         # final MLP
-        final_layers = [nn.Linear(64, 32), nn.ReLU(), nn.Dropout(p=args.dropout), nn.Linear(32, 2), nn.ReLU()]
+        final_layers = [nn.Linear(64, 32), nn.ReLU(), nn.Dropout(p=args.dropout), nn.Linear(32, args.num_classes)]
         self.final_mlp = nn.Sequential(*final_layers)
 
     def forward(self, x, batch = None):
@@ -60,15 +60,3 @@ class ChestXRayLungCancer(nn.Module):
         output["hidden"] = torch.cat( [risk_factors_hidden, image_hidden], dim=1 )
         output["logit"] = self.final_mlp( output["hidden"] )
         return output
-
-
-
-class AdaptiveConcatPool2d(nn.Module):
-    "Layer that concats `AdaptiveAvgPool2d` and `AdaptiveMaxPool2d`"
-    def __init__(self, size=None):
-        self.size = size or 1
-        self.ap = nn.AdaptiveAvgPool2d(self.size)
-        self.mp = nn.AdaptiveMaxPool2d(self.size)
-
-    def forward(self, x): 
-        return torch.cat([self.mp(x), self.ap(x)], 1)
