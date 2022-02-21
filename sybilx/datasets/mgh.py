@@ -289,15 +289,12 @@ class MGH_Screening(NLST_Survival_Dataset):
         dataset = []
 
         for mrn_row in tqdm(self.metadata_json):
-            if mrn_row["in_cohort1"]:
-                continue
-
             pid, exams = mrn_row["pid"], mrn_row["accessions"]
 
             for exam_dict in exams:
 
                 for series_id, series_dict in exam_dict["image_series"].items():
-                    if self.skip_sample(series_dict, exam_dict):
+                    if self.skip_sample(series_dict, exam_dict, mrn_row):
                         continue
 
                     sample = self.get_volume_dict(
@@ -310,7 +307,10 @@ class MGH_Screening(NLST_Survival_Dataset):
 
         return dataset
 
-    def skip_sample(self, series_dict, exam_dict):
+    def skip_sample(self, series_dict, exam_dict, mrn_row):
+        if mrn_row["in_cohort1"]:
+            return True
+
         # unknown cancer status
         if exam_dict["Future_cancer"] == "unkown":
             return True
@@ -532,3 +532,23 @@ class MGH_Screening(NLST_Survival_Dataset):
         out_dict["mask"] = None
 
         return out_dict
+    
+@register_object("mgh_cohort2-1", "dataset")
+class MGH_ScreeningExclude1(MGH_Screening):
+    """
+    MGH Dataset Cohort 2 without patients in cohort 1
+    """
+    def skip_sample(self, series_dict, exam_dict, mrn_row):
+        if mrn_row["in_cohort1"]:
+            return True
+        return super().skip_sample(series_dict, exam_dict, mrn_row):
+
+@register_object("mgh_cohort_outpatient", "dataset")
+class MGH_ScreeningOutpatient(MGH_Screening):
+    """
+    MGH Dataset Cohort 2 without patients in cohort 1
+    """
+    def skip_sample(self, series_dict, exam_dict, mrn_row):
+        if exam_dict["cohort1_meta"]["patient_location"] != "Outpatient":
+            return True
+        return super().skip_sample(series_dict, exam_dict, mrn_row):
