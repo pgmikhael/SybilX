@@ -9,8 +9,8 @@ from collections import defaultdict
 import time
 from torch.utils import data
 # project utils
-from modules.utils.shared import register_object
-from modules.augmentations.basic import ComposeAug
+from sybilx.utils.registry import register_object
+from sybilx.augmentations.basic import ComposeAug
 # torch
 import torch
 import torchvision

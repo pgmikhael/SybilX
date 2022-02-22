@@ -10,7 +10,7 @@
     "lightning_name": ["base"],
     "weight_decay": [1e-2],
 
-    "max_epochs": [10],
+    "max_epochs": [20],
     "lr_decay": [0.1],
     "img_mean": [128.1722],
     "img_std": [87.1849],
@@ -38,7 +38,7 @@
     "fix_seed_for_multi_image_augmentations": [true],
     "workspace": ["itamar"],
     "project_name": ["xray-cancer"],
-    "comet_tags": ["nlst_xrays"],
+    "comet_tags": ["nlst_xrays pixel_flipping"],
     "num_sanity_val_steps": [0],
     "profiler": ["simple"],
     "use_risk_factors": [true],

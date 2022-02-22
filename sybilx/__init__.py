@@ -24,7 +24,7 @@ from sybilx.serie import Serie
 import sybilx.datasets.nlst
 import sybilx.datasets.nlst_xray
 import sybilx.datasets.mgh
-
+import sybilx.datasets.mnist
 # augmentation
 import sybilx.augmentations.rawinput
 import sybilx.augmentations.tensor
