@@ -136,8 +136,7 @@ class NLSTCTLocalizers(data.Dataset):
                 continue
 
             for exam_dict in exams:
-                for series_dict in exam_dict["image_series"]:
-                    series_id = series_dict["series_id"]
+                for series_id, series_dict in exam_dict["image_series"].items():    
                     if self.skip_sample(series_dict, pt_metadata, exam_dict):
                         continue
 
@@ -161,10 +160,20 @@ class NLSTCTLocalizers(data.Dataset):
         else:
             # is localizer, now check that is frontal screen (ie not lateral)
             # TODO: update json with ImageOrientationPatient
+            # Here the test mutates the image paths
+            num_images = len(series_dict['paths'])
+            lateral_count = 0
             for path in series_dict['paths']:
                 ds = pydicom.dcmread(path.replace("nlst-ct-png", "nlst-ct").replace(".png", ""), stop_before_pixels=True)
+                # TODO: here decision is to use arbitrary localizer in the paths if it is frontal
                 if ds.ImageOrientationPatient[0] == 0:
-                    return True
+                    lateral_count += 1
+                elif ds.ImageOrientationPatient[0] != 0:
+                    series_dict['paths'] = path
+                    break
+            # all localizer images are lateral, then skip this sample
+            if lateral_count == num_images:
+                return True
 
         # check if valid label (info is not missing)
         screen_timepoint = exam_dict["screen_timepoint"] # series_data["study_yr"][0]
@@ -178,7 +187,6 @@ class NLSTCTLocalizers(data.Dataset):
             invalid_label = False
 
         if (
-            # is_localizer or
             bad_label
             or invalid_label
         ):
@@ -187,7 +195,7 @@ class NLSTCTLocalizers(data.Dataset):
             return False
 
     def get_volume_dict(self, series_id, series_dict, exam_dict, pt_metadata, pid, split):
-        path = series_dict["path"]
+        path = series_dict["paths"]
         # series_data = series_dict["series_data"]
         # device = series_data["manufacturer"][0]
         screen_timepoint = exam_dict["screen_timepoint"] # series_data["study_yr"][0]
@@ -204,8 +212,8 @@ class NLSTCTLocalizers(data.Dataset):
         # if not path[0].startswith(self.args.img_dir):
           #  path = self.args.img_dir + path[path.find("nlst-xr-png") + len("nlst-xr-png") :]
 
-        # if self.args.img_file_type == "dicom":
-           # path = path.replace("nlst-xr-png", "nlst-xr").replace(".png", "")
+        if self.args.img_file_type == "dicom":
+           path = path.replace("nlst-xr-png", "nlst-xr").replace(".png", "")
 
         y, y_seq, y_mask, time_at_event = self.get_label(pt_metadata, screen_timepoint)
 
