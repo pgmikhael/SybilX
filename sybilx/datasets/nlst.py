@@ -1,5 +1,6 @@
 import os
 from posixpath import split
+from re import X
 import traceback, warnings
 import pickle, json
 import numpy as np
@@ -696,3 +697,91 @@ class NLST_Risk_Factor_Task(NLST_Survival_Dataset):
         return self.risk_factor_vectorizer.get_risk_factors_for_sample(
             pt_metadata, screen_timepoint
         )
+
+@register_object("nlst_smoking_related_cancers_1", "dataset")
+class NLST_Smoking_Related_Cancers_1(NLST_Survival_Dataset):
+    """
+    Dataset for risk factor-based risk model
+    """
+
+    def get_label(self, pt_metadata, screen_timepoint):
+        # Approach 1 : use the timepoint from the earliest smoking-related cancer
+        #   even if it is not the earliest other cancer
+
+        other_cancers_in_pt = {
+            ind: pt_metadata["confirmed_icd_topog"+str(ind)][0] for ind in range(1,5)
+        }
+        smoking_rel_cancers_in_pt = dict(filter(
+            lambda x: self.is_smoking_rel_cancers(other_cancers_in_pt[x]), 
+            other_cancers_in_pt.items()
+        ))
+        smoking_rel_cancers_in_pt_dxdays = {
+            ind: pt_metadata["confirmed_candxdays"+str(ind)][0] for ind in smoking_rel_cancers_in_pt
+        }
+        index_of_first_confirmed_cancer = smoking_rel_cancers_in_pt_dxdays.keys()[0]
+        min_dx_days = smoking_rel_cancers_in_pt_dxdays.values()[0]
+        for ind, dx_days in smoking_rel_cancers_in_pt_dxdays:
+            if dx_days < min_dx_days:
+                index_of_first_confirmed_cancer = ind
+                min_dx_days = dx_days
+
+        days_since_rand = pt_metadata["scr_days{}".format(screen_timepoint)][0]
+        days_to_last_confirmed_cancer_since_rand = pt_metadata[
+            "confirmed_candxdays"+str(index_of_first_confirmed_cancer)][0]
+        days_to_cancer = days_to_last_confirmed_cancer_since_rand - days_since_rand
+        years_to_cancer = (
+            int(days_to_cancer // 365) if days_to_last_confirmed_cancer_since_rand > -1 else 100
+        )
+        days_to_last_followup = int(pt_metadata["fup_days"][0] - days_since_rand)
+        years_to_last_followup = days_to_last_followup // 365
+        y = years_to_cancer < self.args.max_followup
+        y_seq = np.zeros(self.args.max_followup)
+        cancer_timepoint = pt_metadata["cancyr"][0] # ??
+        if y: # if there is cancer, lung or other
+            if years_to_cancer > -1:
+                assert screen_timepoint <= cancer_timepoint
+            time_at_event = years_to_cancer
+            y_seq[years_to_cancer:] = 1
+        else: # if no cancer
+            time_at_event = min(years_to_last_followup, self.args.max_followup - 1)
+        y_mask = np.array(
+            [1] * (time_at_event + 1)
+            + [0] * (self.args.max_followup - (time_at_event + 1))
+        )
+        assert len(y_mask) == self.args.max_followup
+        return y, y_seq.astype("float64"), y_mask.astype("float64"), time_at_event
+
+    def is_smoking_rel_cancers(cancer_icd):
+        lung_and_bronchus_rel_cancers = {'C34.0', 'C34.1', 'C34.2', 'C34.3', 'C34.8', 'C34.9'}
+        bladder_rel_cancers = {'C67.0', 'C67.1', 'C67.2', 'C67.3', 'C67.4', 'C67.5', 'C67.6', 'C67.7', 'C67.8'}
+        ureter_rel_cancers = {'C66.1', 'C66.2'}
+        renal_pelvis_rel_cancers = {'C65.1', 'C65.2'}
+        head_neck_rel_cancers = {'C00-C14'}
+        sinuses_rel_cancers = {'C30.0', 'C31.0', 'C31.1', 'C31.2', 'C31.3', 'C31.8', 'C31.9'}
+        oesophagus_rel_cancers = {'C15.3', 'C15.4', 'C15.5', 'C15.8', 'C15.9'}
+        larynx_rel_cancers = {'C32.0', 'C32.1', 'C32.3', 'C32.3', 'C32.8', 'C32.9'}
+        pancreas_rel_cancers = {'C25.0', 'C25.1', 'C25.2', 'C25.3', 'C25.4', 'C25.7', 'C25.8'}
+        stomach_rel_cancers = {'C16.0', 'C16.1', 'C16.2', 'C16.3', 'C16.4', 'C16.8'}
+        liver_rel_cancers = {'C22.0', 'C22.1', 'C22.2', 'C22.3', 'C22.4', 'C22.7', 'C22.8', 'C22.9'}
+        cervix_rel_cancers = {'C53.0', 'C53.1', 'C53.8', 'C53.9'}
+        myeloid_leukemia_rel_cancers = {'C92.0', 'C92.1', 'C92.2', 'C92.3', 'C92.4', 'C92.5', 'C92.6', 'C92.A', 'C92.Z', 'C92.9'}
+        
+        smoking_rel_cancers = (
+            lung_and_bronchus_rel_cancers+
+            bladder_rel_cancers+
+            ureter_rel_cancers+
+            renal_pelvis_rel_cancers+
+            head_neck_rel_cancers+
+            sinuses_rel_cancers+
+            oesophagus_rel_cancers+
+            larynx_rel_cancers+
+            pancreas_rel_cancers+
+            stomach_rel_cancers+
+            liver_rel_cancers+
+            cervix_rel_cancers+
+            myeloid_leukemia_rel_cancers
+        )
+        
+        if cancer_icd in smoking_rel_cancers:
+            return True
+        return False
