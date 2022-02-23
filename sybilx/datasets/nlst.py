@@ -712,7 +712,7 @@ class NLST_Smoking_Related_Cancers_1(NLST_Survival_Dataset):
             ind: pt_metadata["confirmed_icd_topog"+str(ind)][0] for ind in range(1,5)
         }
         smoking_rel_cancers_in_pt = dict(filter(
-            lambda x: self.is_smoking_rel_cancers(other_cancers_in_pt[x]), 
+            lambda x: self.is_smoking_rel_cancers(x[1]), 
             other_cancers_in_pt.items()
         ))
         smoking_rel_cancers_in_pt_dxdays = {
