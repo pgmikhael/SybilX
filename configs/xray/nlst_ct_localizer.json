@@ -46,8 +46,7 @@
     "dropout": [0.1],
     "dataset_file_path": ["/Mounts/rbg-storage1/datasets/NLST/full_nlst_google.json"],
     "save_dir": ["/Mounts/rbg-storage1/snapshots/lung_xray"],
-    "img_dir": ["/Mounts/rbg-storage1/datasets/NLST/nlst-ct-png"],
-    "cache_path": ["/storage/nlst_cache"]
+    "img_dir": ["/Mounts/rbg-storage1/datasets/NLST/nlst-ct-png"]
   },
   "available_gpus": [
     "0,1,2,3"

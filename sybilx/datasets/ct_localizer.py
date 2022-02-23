@@ -213,7 +213,7 @@ class NLSTCTLocalizers(data.Dataset):
           #  path = self.args.img_dir + path[path.find("nlst-xr-png") + len("nlst-xr-png") :]
 
         if self.args.img_file_type == "dicom":
-           path = path.replace("nlst-xr-png", "nlst-xr").replace(".png", "")
+           path = path.replace("nlst-ct-png", "nlst-ct").replace(".png", "")
 
         y, y_seq, y_mask, time_at_event = self.get_label(pt_metadata, screen_timepoint)
 
