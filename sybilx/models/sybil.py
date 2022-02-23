@@ -67,3 +67,36 @@ class RiskFactorPredictor(SybilNet):
 
     def get_loss_functions(self):
         return ["risk_factor_loss"]
+
+class GradePredictor(SybilNet):
+    def __init__(self, args):
+        super(GradePredictor, self).__init__(args)
+
+        self.hidden_dim = 512
+
+        encoder = torchvision.models.video.r3d_18(pretrained=True)
+        self.image_encoder = nn.Sequential(*list(encoder.children())[:-2])
+
+        self.pool = MultiAttentionPool()
+
+        self.relu = nn.ReLU(inplace=False)
+        self.dropout = nn.Dropout(p=args.dropout)
+
+        # self.prob_of_failure_layer = Cumulative_Probability_Layer(
+        #     self.hidden_dim, args, max_followup=args.max_followup
+        # )
+        self.mapping = nn.Linear(...)
+
+    def forward(self, x, batch):
+        output = {}
+        x = self.image_encoder(x)
+        output = self.pool(x, batch)
+
+        hidden = output["hidden"]
+        for indx, key in enumerate(self.args.risk_factor_keys):
+            output["{}_logit".format(key)] = self._modules["{}_fc".format(key)](hidden)
+
+        return output
+
+    def get_loss_functions(self):
+        return ["risk_factor_loss"]

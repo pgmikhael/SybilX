@@ -696,3 +696,95 @@ class NLST_Risk_Factor_Task(NLST_Survival_Dataset):
         return self.risk_factor_vectorizer.get_risk_factors_for_sample(
             pt_metadata, screen_timepoint
         )
+
+@register_object("nlst_cancer_grade", "dataset")
+class NLST_Cancer_Grade_Dataset(NLST_Survival_Dataset):
+    """
+    Dataset for cancer grade
+    """
+    
+    def get_volume_dict(
+        self, series_id, series_dict, exam_dict, pt_metadata, pid, split
+    ):
+        img_paths = series_dict["paths"]
+        slice_locations = series_dict["img_position"]
+        series_data = series_dict["series_data"]
+        device = series_data["manufacturer"][0]
+        screen_timepoint = series_data["study_yr"][0]
+        assert screen_timepoint == exam_dict["screen_timepoint"]
+
+        if series_id in self.corrupted_series:
+            if any([path in self.corrupted_paths for path in img_paths]):
+                uncorrupted_imgs = np.where(
+                    [path not in self.corrupted_paths for path in img_paths]
+                )[0]
+                img_paths = np.array(img_paths)[uncorrupted_imgs].tolist()
+                slice_locations = np.array(slice_locations)[uncorrupted_imgs].tolist()
+
+        sorted_img_paths, sorted_slice_locs = self.order_slices(
+            img_paths, slice_locations
+        )
+
+        if not sorted_img_paths[0].startswith(self.args.img_dir):
+            sorted_img_paths = [
+                self.args.img_dir
+                + path[path.find("nlst-ct-png") + len("nlst-ct-png") :]
+                for path in sorted_img_paths
+            ]
+        if self.args.img_file_type == "dicom":
+            sorted_img_paths = [
+                path.replace("nlst-ct-png", "nlst-ct").replace(".png", "")
+                for path in sorted_img_paths
+            ]
+
+        y = self.get_label(pt_metadata, screen_timepoint)
+
+        exam_int = int(
+            "{}{}{}".format(
+                int(pid), int(screen_timepoint), int(series_id.split(".")[-1][-3:])
+            )
+        )
+        sample = {
+            "paths": sorted_img_paths,
+            "slice_locations": sorted_slice_locs,
+            "y": int(y),
+            "exam_str": "{}_{}".format(exam_dict["exam"], series_id),
+            "exam": exam_int,
+            "accession": exam_dict["accession_number"],
+            "series": series_id,
+            "study": series_data["studyuid"][0],
+            "screen_timepoint": screen_timepoint,
+            "pid": pid,
+            "device": device,
+            "institution": pt_metadata["cen"][0],
+            "cancer_laterality": self.get_cancer_side(pt_metadata),
+            "num_original_slices": len(series_dict["paths"]),
+        }
+
+        if self.args.use_risk_factors:
+            sample["risk_factors"] = self.get_risk_factors(
+                pt_metadata, screen_timepoint, return_dict=False
+            )
+
+        if not self.args.use_all_images:
+            sample["paths"] = fit_to_length(sorted_img_paths, self.args.num_images)
+            sample["slice_locations"] = fit_to_length(
+                sorted_slice_locs, self.args.num_images, "<PAD>"
+            )
+
+        return sample
+
+    def get_label(self, pt_metadata, screen_timepoint):
+        days_since_rand = pt_metadata["scr_days{}".format(screen_timepoint)][0]
+        days_to_cancer_since_rand = pt_metadata["candx_days"][0]
+        days_to_cancer = days_to_cancer_since_rand - days_since_rand
+        years_to_cancer = (
+            int(days_to_cancer // 365) if days_to_cancer_since_rand > -1 else 100
+        )
+
+        lung_cancer_grade = pt_metadata.de_grade
+        if years_to_cancer > 1 or lung_cancer_grade == ".N":
+            lung_cancer_grade = "0"
+        y = lung_cancer_grade
+        
+        return y
