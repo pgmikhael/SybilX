@@ -751,7 +751,7 @@ class NLST_Smoking_Related_Cancers_1(NLST_Survival_Dataset):
         assert len(y_mask) == self.args.max_followup
         return y, y_seq.astype("float64"), y_mask.astype("float64"), time_at_event
 
-    def is_smoking_rel_cancers(cancer_icd):
+    def is_smoking_rel_cancers(self, cancer_icd):
         lung_and_bronchus_rel_cancers = {'C34.0', 'C34.1', 'C34.2', 'C34.3', 'C34.8', 'C34.9'}
         bladder_rel_cancers = {'C67.0', 'C67.1', 'C67.2', 'C67.3', 'C67.4', 'C67.5', 'C67.6', 'C67.7', 'C67.8'}
         ureter_rel_cancers = {'C66.1', 'C66.2'}
@@ -767,18 +767,18 @@ class NLST_Smoking_Related_Cancers_1(NLST_Survival_Dataset):
         myeloid_leukemia_rel_cancers = {'C92.0', 'C92.1', 'C92.2', 'C92.3', 'C92.4', 'C92.5', 'C92.6', 'C92.A', 'C92.Z', 'C92.9'}
         
         smoking_rel_cancers = (
-            lung_and_bronchus_rel_cancers+
-            bladder_rel_cancers+
-            ureter_rel_cancers+
-            renal_pelvis_rel_cancers+
-            head_neck_rel_cancers+
-            sinuses_rel_cancers+
-            oesophagus_rel_cancers+
-            larynx_rel_cancers+
-            pancreas_rel_cancers+
-            stomach_rel_cancers+
-            liver_rel_cancers+
-            cervix_rel_cancers+
+            lung_and_bronchus_rel_cancers |
+            bladder_rel_cancers |
+            ureter_rel_cancers |
+            renal_pelvis_rel_cancers |
+            head_neck_rel_cancers |
+            sinuses_rel_cancers |
+            oesophagus_rel_cancers |
+            larynx_rel_cancers |
+            pancreas_rel_cancers |
+            stomach_rel_cancers |
+            liver_rel_cancers |
+            cervix_rel_cancers |
             myeloid_leukemia_rel_cancers
         )
         
