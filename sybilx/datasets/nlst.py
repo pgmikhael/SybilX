@@ -711,7 +711,7 @@ class NLST_Smoking_Related_Cancers_1(NLST_Survival_Dataset):
         # defaults:
         y = False
         y_seq = np.zeros(self.args.max_followup)
-        time_at_event = min(self.args.max_followup - 1)
+        time_at_event = self.args.max_followup - 1
         y_mask = np.array(
             [1] * (time_at_event + 1)
             + [0] * (self.args.max_followup - (time_at_event + 1))
@@ -732,10 +732,10 @@ class NLST_Smoking_Related_Cancers_1(NLST_Survival_Dataset):
             return y, y_seq.astype("float64"), y_mask.astype("float64"), time_at_event
         
         index_of_first_confirmed_cancer = list(smoking_rel_cancers_in_pt_dxdays.keys())[0]
-        min_dx_days = smoking_rel_cancers_in_pt_dxdays.values()[0]
-        for ind, dx_days in smoking_rel_cancers_in_pt_dxdays:
+        min_dx_days = list(smoking_rel_cancers_in_pt_dxdays.values())[0]
+        for ind, dx_days in smoking_rel_cancers_in_pt_dxdays.items():
             if dx_days < min_dx_days:
-                index_of_first_confirmed_cancer = ind
+                index_of_first_confirmed_cancer = ind+1
                 min_dx_days = dx_days
 
         days_since_rand = pt_metadata["scr_days{}".format(screen_timepoint)][0]
@@ -747,12 +747,12 @@ class NLST_Smoking_Related_Cancers_1(NLST_Survival_Dataset):
         )
         days_to_last_followup = int(pt_metadata["fup_days"][0] - days_since_rand)
         years_to_last_followup = days_to_last_followup // 365
-        y = years_to_cancer < self.args.max_followup
+        y = (years_to_cancer >= 0) and (years_to_cancer < self.args.max_followup)
         y_seq = np.zeros(self.args.max_followup)
-        cancer_timepoint = pt_metadata["cancyr"][0] # ??
+        # cancer_timepoint = pt_metadata["cancyr"][0] # ??
         if y: # if there is cancer, lung or other
-            if years_to_cancer > -1:
-                assert screen_timepoint <= cancer_timepoint
+            # if years_to_cancer > -1:
+            #    assert screen_timepoint <= cancer_timepoint
             time_at_event = years_to_cancer
             y_seq[years_to_cancer:] = 1
         else: # if no cancer
