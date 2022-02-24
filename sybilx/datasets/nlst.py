@@ -708,6 +708,15 @@ class NLST_Smoking_Related_Cancers_1(NLST_Survival_Dataset):
         # Approach 1 : use the timepoint from the earliest smoking-related cancer
         #   even if it is not the earliest other cancer
 
+        # defaults:
+        y = False
+        y_seq = np.zeros(self.args.max_followup)
+        time_at_event = min(self.args.max_followup - 1)
+        y_mask = np.array(
+            [1] * (time_at_event + 1)
+            + [0] * (self.args.max_followup - (time_at_event + 1))
+        )
+
         other_cancers_in_pt = {
             ind: pt_metadata["confirmed_icd_topog"+str(ind)][0] for ind in range(1,5)
         }
@@ -718,6 +727,10 @@ class NLST_Smoking_Related_Cancers_1(NLST_Survival_Dataset):
         smoking_rel_cancers_in_pt_dxdays = {
             ind: pt_metadata["confirmed_candxdays"+str(ind)][0] for ind in smoking_rel_cancers_in_pt
         }
+
+        if len(smoking_rel_cancers_in_pt_dxdays)==0:
+            return y, y_seq.astype("float64"), y_mask.astype("float64"), time_at_event
+        
         index_of_first_confirmed_cancer = list(smoking_rel_cancers_in_pt_dxdays.keys())[0]
         min_dx_days = smoking_rel_cancers_in_pt_dxdays.values()[0]
         for ind, dx_days in smoking_rel_cancers_in_pt_dxdays:
