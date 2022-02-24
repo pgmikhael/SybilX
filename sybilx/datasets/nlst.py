@@ -718,7 +718,7 @@ class NLST_Smoking_Related_Cancers_1(NLST_Survival_Dataset):
         smoking_rel_cancers_in_pt_dxdays = {
             ind: pt_metadata["confirmed_candxdays"+str(ind)][0] for ind in smoking_rel_cancers_in_pt
         }
-        index_of_first_confirmed_cancer = smoking_rel_cancers_in_pt_dxdays.keys()[0]
+        index_of_first_confirmed_cancer = list(smoking_rel_cancers_in_pt_dxdays.keys())[0]
         min_dx_days = smoking_rel_cancers_in_pt_dxdays.values()[0]
         for ind, dx_days in smoking_rel_cancers_in_pt_dxdays:
             if dx_days < min_dx_days:
