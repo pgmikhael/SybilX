@@ -131,6 +131,10 @@ class NLSTCTLocalizers(data.Dataset):
                 mrn_row["accessions"],
                 mrn_row["pt_metadata"],
             )
+            
+            # 3 that fail to load
+            if pid in ['205566', '201397', '202619']:
+                continue
 
             if not split == split_group:
                 continue
@@ -164,7 +168,7 @@ class NLSTCTLocalizers(data.Dataset):
             num_images = len(series_dict['paths'])
             lateral_count = 0
             for path in series_dict['paths']:
-                ds = pydicom.dcmread(path.replace("nlst-ct-png", "nlst-ct").replace(".png", ""), stop_before_pixels=True)
+                ds = pydicom.dcmread(path.replace("nlst-ct-png", "nlst-ct").replace(".png", ""))
                 # TODO: here decision is to use arbitrary localizer in the paths if it is frontal
                 if ds.ImageOrientationPatient[0] == 0:
                     lateral_count += 1
