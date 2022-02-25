@@ -14,7 +14,8 @@ class ChestXRayLungCancer(nn.Module):
         super(ChestXRayLungCancer, self).__init__()
 
         self.hidden_dim = 512
- 
+        self.args = args
+        
         # encoder = torchvision.models.inception_v3(pretrained=True) # older model 
         model_name = 'inceptionv4'
         encoder = pretrainedmodels.__dict__[model_name](num_classes=1000, pretrained='imagenet')
@@ -44,11 +45,16 @@ class ChestXRayLungCancer(nn.Module):
         self.custom_head = nn.Sequential(*layers)
 
         # Age, Sex, Smoking Status
-        risk_factors_layers = [nn.Linear(14, 32), nn.ReLU(), nn.Dropout(p=args.dropout), nn.Linear(32, 32), nn.ReLU()] # change input dim to 7 if risk factors changes
-        self.risk_factors_mlp = nn.Sequential(*risk_factors_layers)
+        if args.use_risk_factors:
+            risk_factors_layers = [nn.Linear(14, 32), nn.ReLU(), nn.Dropout(p=args.dropout), nn.Linear(32, 32), nn.ReLU()] # change input dim to 7 if risk factors changes
+            self.risk_factors_mlp = nn.Sequential(*risk_factors_layers)
 
         # final MLP
-        final_layers = [nn.Linear(64, 32), nn.ReLU(), nn.Dropout(p=args.dropout), nn.Linear(32, args.num_classes)]
+        if args.use_risk_factors:
+            final_layers = [nn.Linear(64, 32), nn.ReLU(), nn.Dropout(p=args.dropout), nn.Linear(32, args.num_classes)]
+        else:
+            final_layers = [nn.Linear(32, 32), nn.ReLU(), nn.Dropout(p=args.dropout), nn.Linear(32, args.num_classes)]
+        
         self.final_mlp = nn.Sequential(*final_layers)
 
     def forward(self, x, batch = None):
@@ -57,6 +63,9 @@ class ChestXRayLungCancer(nn.Module):
         image_hidden = self.image_encoder( x )
         image_hidden = self.pool(image_hidden)
         image_hidden = self.custom_head(image_hidden)
-        output["hidden"] = torch.cat( [risk_factors_hidden, image_hidden], dim=1 )
-        output["logit"] = self.final_mlp( output["hidden"] )
+        if self.args.use_risk_factors:
+            output["hidden"] = torch.cat( [risk_factors_hidden, image_hidden], dim=1 )
+            output["logit"] = self.final_mlp( output["hidden"] )
+        else:
+            output["logit"] = self.final_mlp( image_hidden )
         return output
