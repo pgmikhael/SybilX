@@ -1,7 +1,7 @@
 {
   "script": "main",
   "grid_search_space": {
-    "batch_size": [3],
+    "batch_size": [2],
     "accumulate_grad_batches": [1],
     "precision": [16],
     "dataset": ["ct_localizers"],
@@ -27,7 +27,7 @@
     "train": [true],
     "dev": [false],
     "test": [false],
-    "class_bal": [true],
+    "class_bal": [false],
     "train_rawinput_augmentations": ["scale_2d rotate_range/deg=20"],
     "train_tnsr_augmentations": ["force_num_chan_2d normalize_2d"],
     "test_rawinput_augmentations": ["scale_2d"],
@@ -39,7 +39,7 @@
     "num_sanity_val_steps": [0],
     "profiler": ["simple"],
     "use_risk_factors": [true],
-    "gpus": [4],
+    "gpus": [1],
     "val_check_interval": [1.0],
     "num_classes": [2],
     "ignore_warnings": [false],
