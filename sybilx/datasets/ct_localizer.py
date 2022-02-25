@@ -132,7 +132,7 @@ class NLSTCTLocalizers(data.Dataset):
                 mrn_row["pt_metadata"],
             )
             
-            # 3 that fail to load
+            # 3 that fail to load dicoms
             if pid in ['205566', '201397', '202619']:
                 continue
 
