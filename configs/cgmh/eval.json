@@ -2,7 +2,7 @@
     "script": "main",
     "grid_search_space": {
         "batch_size": [
-            6
+            3
         ],
         "accumulate_grad_batches": [
             1
@@ -56,7 +56,8 @@
             true
         ],
         "snapshot": [
-            "/home/peter/SybilModels/nlst_only.ckpt"
+            "/home/peter/SybilModels/nlst_only.ckpt",
+	    "/home/peter/SybilModels/nlst_mgh_tune.ckpt"
         ],
 	"relax_checkpoint_matching": [true],
         "use_only_thin_cuts_for_ct": [

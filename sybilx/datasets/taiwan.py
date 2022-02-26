@@ -97,7 +97,7 @@ class CGMH_Dataset(NLST_Survival_Dataset):
         return sample
 
     def get_label(self, exam_dict, mrn_row):
-
+        assert exam_dict["cancer"] in ["lung", "none", "other"]
         is_cancer_cohort = exam_dict["cancer"] == "lung"
         days_to_event = exam_dict["days_to_event"]
 
@@ -192,6 +192,6 @@ class CGMH_ExcludeOther(CGMH_Dataset):
     def skip_sample(self, series_dict, exam_dict):
         if super().skip_sample(series_dict, exam_dict):
             return True
-        if exam_dict["cancer"] == "none":
+        if exam_dict["cancer"] == "other":
             return True
         return False
