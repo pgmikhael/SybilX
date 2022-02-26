@@ -7,7 +7,6 @@ from collections import Counter
 from sybilx.datasets.utils import fit_to_length, get_scaled_annotation_area
 from sybilx.utils.registry import register_object
 
-
 @register_object("cgmh", "dataset")
 class CGMH_Dataset(NLST_Survival_Dataset):
     """
@@ -46,7 +45,8 @@ class CGMH_Dataset(NLST_Survival_Dataset):
         return dataset
 
     def skip_sample(self, series_dict, exam_dict):
-
+        if exam_dict["days_to_event"] < -1:
+            return True
         # check if screen is localizer screen or not enough images
         if self.is_localizer(series_dict):
             return True
@@ -98,7 +98,7 @@ class CGMH_Dataset(NLST_Survival_Dataset):
 
     def get_label(self, exam_dict, mrn_row):
 
-        is_cancer_cohort = exam_dict["cancer"]
+        is_cancer_cohort = exam_dict["cancer"] == "lung"
         days_to_event = exam_dict["days_to_event"]
 
         y = False
@@ -186,3 +186,12 @@ class CGMH_Dataset(NLST_Survival_Dataset):
         out_dict["mask"] = None
 
         return out_dict
+
+@register_object("cgmh_exclude_other", "dataset")
+class CGMH_ExcludeOther(CGMH_Dataset):
+    def skip_sample(self, series_dict, exam_dict):
+        if super().skip_sample(series_dict, exam_dict):
+            return True
+        if exam_dict["cancer"] == "none":
+            return True
+        return False

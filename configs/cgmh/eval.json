@@ -11,7 +11,7 @@
             16
         ],
         "dataset": [
-            "cgmh"
+            "cgmh", "cgmh_exclude_other"
         ],
         "dataset_file_path": [
             "/home/peter/ldct_dataset.json"
@@ -128,11 +128,9 @@
         "num_sanity_val_steps": [
             0
         ],
+	"gpus": [1],
         "profiler": [
             "simple"
-        ],
-        "gpus": [
-            1
         ],
         "val_check_interval": [
             1.0
@@ -144,10 +142,10 @@
             0.1
         ],
         "save_dir": [
-            "/Mounts/rbg-storage1/snapshots/lung_ct"
+            "/home/peter/logs"
         ]
     },
     "available_gpus": [
-        "7"
+        "0"
     ]
 }
