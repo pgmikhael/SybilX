@@ -191,7 +191,7 @@ class Survival_Classification(BaseClassification):
 
         golds = logging_dict["golds"].reshape(-1)
         probs = logging_dict["probs"]
-        preds = probs[:,-1].reshape(-1) > 0.5
+        preds = probs[:, -1].reshape(-1) > 0.5
         probs = probs.reshape((-1, probs.shape[-1]))[:, -1]
 
         stats_dict["accuracy"] = accuracy(golds, preds)
@@ -209,4 +209,38 @@ class Survival_Classification(BaseClassification):
                 stats_dict["ap_score"] = average_precision(probs, golds)
                 precision, recall, _ = precision_recall_curve(probs, golds)
                 stats_dict["prauc"] = auc(recall, precision)
+        return stats_dict
+
+
+@register_object("discrim_classification", "metric")
+class Discriminator_Classification(object):
+    def __init__(self, args) -> None:
+        super().__init__()
+
+    @property
+    def metric_keys(self):
+        return ["discrim_probs", "discrim_golds"]
+
+    def __call__(self, logging_dict, args):
+        stats_dict = OrderedDict()
+
+        golds = np.array(logging_dict["discrim_golds"]).reshape(-1)
+        probs = np.array(logging_dict["discrim_probs"])
+        preds = probs.argmax(axis=-1).reshape(-1)
+        probs = probs.reshape((-1, probs.shape[-1]))
+
+        stats_dict["discrim_accuracy"] = accuracy(golds, preds)
+        stats_dict["discrim_confusion_matrix"] = confusion_matrix(preds, golds, 2)
+
+        (
+            stats_dict["discrim_precision"],
+            stats_dict["discrim_recall"],
+        ) = precision_recall(probs, golds)
+        stats_dict["discrim_f1"] = f1(probs, golds)
+        stats_dict["discrim_auc"] = auroc(probs, golds, pos_label=1)
+        stats_dict["discrim_ap_score"] = average_precision(probs, golds, pos_label=1)
+
+        pr, rc, _ = precision_recall_curve(probs, golds)
+        stats_dict["discrim_prauc"] = auc(rc, pr)
+
         return stats_dict

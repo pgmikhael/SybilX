@@ -1,9 +1,11 @@
 from copy import copy
 from sybilx.datasets.mgh import MGH_Dataset
 from sybilx.datasets.nlst import NLST_Survival_Dataset
+from sybilx.utils.registry import register_object
 from collections import Counter
 
 
+@register_object("mgh+nlst", "dataset")
 class MGH_NLST_Combined_Dataset(NLST_Survival_Dataset):
     """
     MGH and NLST Combined.

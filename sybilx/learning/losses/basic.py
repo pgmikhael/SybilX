@@ -70,6 +70,7 @@ def get_ordinal_ce_loss(model_output, batch, model, args):
     return loss * args.ce_loss_lambda, l_dict, p_dict
 
 
+@register_object("source_discriminator", "loss")
 def discriminator_loss(model_output, batch, model, args):
     logging_dict, predictions = OrderedDict(), OrderedDict()
     d_output = model.discriminator(model_output, batch)
