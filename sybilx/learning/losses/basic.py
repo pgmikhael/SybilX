@@ -68,3 +68,20 @@ def get_ordinal_ce_loss(model_output, batch, model, args):
     p_dict["golds"] = batch["y"]
 
     return loss * args.ce_loss_lambda, l_dict, p_dict
+
+
+def discriminator_loss(model_output, batch, model, args):
+    logging_dict, predictions = OrderedDict(), OrderedDict()
+    d_output = model.discriminator(model_output, batch)
+    loss = (
+        F.cross_entropy(d_output["logit"], batch["origin_dataset"].long())
+        * args.adv_loss_lambda
+    )
+    logging_dict["discrim_loss"] = loss.detach()
+    predictions["discrim_probs"] = d_output["logit"].detach()
+    predictions["discrim_golds"] = batch["origin_dataset"]
+
+    if model.reverse_discrim_loss:
+        loss = -loss
+
+    return loss, logging_dict, predictions

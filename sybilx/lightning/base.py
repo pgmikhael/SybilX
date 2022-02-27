@@ -55,7 +55,7 @@ class Base(pl.LightningModule):
             "mse",
             "mae",
             "r2",
-            "c_index"
+            "c_index",
         ]
 
     @property
@@ -77,7 +77,7 @@ class Base(pl.LightningModule):
                 keys_to_unlog.append(k)
         return keys_to_unlog
 
-    def step(self, batch, batch_idx):
+    def step(self, batch, batch_idx, optimizer_idx):
         """
         Defines a single training or validation step:
             Computes losses given batch and model outputs
@@ -135,20 +135,20 @@ class Base(pl.LightningModule):
             self.log_image(model_output, batch)
         return logged_output
 
-    def training_step(self, batch, batch_idx):
+    def training_step(self, batch, batch_idx, optimizer_idx=None):
         """
         Single training step
         """
         self.phase = "train"
-        output = self.step(batch, batch_idx)
+        output = self.step(batch, batch_idx, optimizer_idx)
         return output
 
-    def validation_step(self, batch, batch_idx):
+    def validation_step(self, batch, batch_idx, optimizer_idx=None):
         """
         Single validation step
         """
         self.phase = "val"
-        output = self.step(batch, batch_idx)
+        output = self.step(batch, batch_idx, optimizer_idx)
         return output
 
     def test_step(self, batch, batch_idx):

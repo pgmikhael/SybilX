@@ -32,9 +32,7 @@ class MGH_NLST_Combined_Dataset(NLST_Survival_Dataset):
         dataset = []
 
         mgh_args = copy(self.args)
-        mgh_args.dataset_file_path = (
-            "/Mounts/rbg-storage1/datasets/MGH_Lung_Fintelmann/mgh_metadata.json"
-        )
+        mgh_args.dataset_file_path = "/Mounts/rbg-storage1/datasets/MGH_Lung_Fintelmann/mgh_lung_cancer_cohort1.json"
         mgh_dataset = MGH_Dataset(mgh_args, split_group)
 
         for exam_dict in mgh_dataset.dataset:
@@ -73,8 +71,4 @@ class MGH_NLST_Combined_Dataset(NLST_Survival_Dataset):
         statement += "\n" + "Censor Times: {}".format(
             Counter([d["time_at_event"] for d in dataset])
         )
-        annotation_msg = (
-            self.annotation_summary_msg(dataset) if self.args.use_annotations else ""
-        )
-        statement += annotation_msg
         return statement
