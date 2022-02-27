@@ -59,11 +59,11 @@ class ChestXRayLungCancer(nn.Module):
 
     def forward(self, x, batch = None):
         output = {}
-        risk_factors_hidden = self.risk_factors_mlp( batch['risk_factors'].float() ) # TODO: age, sex, smoking  (currently all risk factors)
         image_hidden = self.image_encoder( x )
         image_hidden = self.pool(image_hidden)
         image_hidden = self.custom_head(image_hidden)
         if self.args.use_risk_factors:
+            risk_factors_hidden = self.risk_factors_mlp( batch['risk_factors'].float() ) # TODO: age, sex, smoking  (currently all risk factors)
             output["hidden"] = torch.cat( [risk_factors_hidden, image_hidden], dim=1 )
             output["logit"] = self.final_mlp( output["hidden"] )
         else:
