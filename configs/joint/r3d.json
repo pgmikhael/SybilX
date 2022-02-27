@@ -92,10 +92,10 @@
       3
     ],
     "loss_fns": [
-      "survival guided_attention source_discriminator"
+      "survival guided_attention source_discrimination"
     ],
     "metrics": [
-      "survival"
+      "survival discrim_classification"
     ],
     "monitor": [
       "val_c_index"
