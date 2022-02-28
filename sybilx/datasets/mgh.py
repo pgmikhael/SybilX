@@ -235,10 +235,6 @@ class MGH_Dataset(NLST_Survival_Dataset):
         statement += "\n" + "Censor Times: {}".format(
             Counter([d["time_at_event"] for d in dataset])
         )
-        annotation_msg = (
-            self.annotation_summary_msg(dataset) if self.args.use_annotations else ""
-        )
-        statement += annotation_msg
         return statement
 
     def assign_splits(self, meta):
@@ -500,10 +496,6 @@ class MGH_Screening(NLST_Survival_Dataset):
         statement += "\n" + "Censor Times: {}".format(
             Counter([d["time_at_event"] for d in dataset])
         )
-        annotation_msg = (
-            self.annotation_summary_msg(dataset) if self.args.use_annotations else ""
-        )
-        statement += annotation_msg
         return statement
 
     def assign_splits(self, meta):

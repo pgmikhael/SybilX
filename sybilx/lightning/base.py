@@ -246,7 +246,7 @@ class Base(pl.LightningModule):
         total_loss = 0
         logging_dict, predictions = OrderedDict(), OrderedDict()
         for loss_fn in self.loss_fns[self.phase]:
-            loss, l_dict, p_dict = loss_fn(model_output, batch, self.model, self.args)
+            loss, l_dict, p_dict = loss_fn(model_output, batch, self, self.args)
             total_loss += loss
             logging_dict.update(l_dict)
             predictions.update(p_dict)

@@ -10,7 +10,7 @@ class AlignmentMLP(nn.Module):
         self.args = args
 
         # calculate input size based on chosn layers (default: just 'hidden')
-        discrim_input_size = args.hidden_dim 
+        discrim_input_size = 512 
 
         # init discriminator
         self.model = nn.Sequential(

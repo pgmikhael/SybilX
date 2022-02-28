@@ -79,7 +79,7 @@ def discriminator_loss(model_output, batch, model, args):
         * args.adv_loss_lambda
     )
     logging_dict["discrim_loss"] = loss.detach()
-    predictions["discrim_probs"] = d_output["logit"].detach()
+    predictions["discrim_probs"] = F.softmax( d_output["logit"], dim=-1).detach()
     predictions["discrim_golds"] = batch["origin_dataset"]
 
     if model.reverse_discrim_loss:
