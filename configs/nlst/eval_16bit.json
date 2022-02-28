@@ -56,7 +56,7 @@
       "sybil"
     ],
     "from_checkpoint": [true],
-    "snapshot": ["/Mounts/rbg-storage1/snapshots/lung_ct/36b8fed8790d236fa384e815f632f385/last.ckpt"],
+    "snapshot": ["/Mounts/rbg-storage1/logs/lung_ct/0614c71fe4bbd9f44f5ade0b2427dc46.args"],
     "relax_checkpoint_matching": [true],
     "use_only_thin_cuts_for_ct": [
       true
