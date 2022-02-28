@@ -81,7 +81,7 @@ class CT16Loader(abstract_loader):
             )
         else:
             x = cv2.imread(path, -1)
-            x = np.float16(x)
+            x = np.float32(x)
         return {"input": x, "mask": mask}
 
     @property
