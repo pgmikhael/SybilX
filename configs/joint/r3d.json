@@ -32,7 +32,7 @@
       5
     ],
     "weight_decay": [
-      1e-2
+      1e-5
     ],
     "momentum": [
       0.9
@@ -158,7 +158,7 @@
       "nlst-cancer"
     ],
     "comet_tags": [
-      "sybil"
+      "sybil adversarial"
     ],
     "num_sanity_val_steps": [
       0
