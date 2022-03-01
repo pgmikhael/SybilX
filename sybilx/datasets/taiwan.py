@@ -6,6 +6,7 @@ from sybilx.datasets.nlst import NLST_Survival_Dataset
 from collections import Counter
 from sybilx.datasets.utils import fit_to_length, get_scaled_annotation_area
 from sybilx.utils.registry import register_object
+import pickle 
 
 @register_object("cgmh", "dataset")
 class CGMH_Dataset(NLST_Survival_Dataset):
@@ -23,7 +24,7 @@ class CGMH_Dataset(NLST_Survival_Dataset):
             and additional information regarding exam or participant
         """
         assert not self.args.train, "Cohort 2 should not be used for training"
-
+        empty_paths = pickle.load(open('/home/peter/empty_scans.p','rb'))
         dataset = []
 
         for mrn_row in tqdm(self.metadata_json):
@@ -33,7 +34,7 @@ class CGMH_Dataset(NLST_Survival_Dataset):
             for exam_dict in exams:
 
                 for series_dict in exam_dict["series"]:
-                    if self.skip_sample(series_dict, exam_dict):
+                    if self.skip_sample(series_dict, exam_dict, empty_paths):
                         continue
 
                     sample = self.get_volume_dict(series_dict, exam_dict, mrn_row)
@@ -44,7 +45,7 @@ class CGMH_Dataset(NLST_Survival_Dataset):
 
         return dataset
 
-    def skip_sample(self, series_dict, exam_dict):
+    def skip_sample(self, series_dict, exam_dict, empty_paths):
         if exam_dict["days_to_event"] < -1:
             return True
         # check if screen is localizer screen or not enough images
@@ -52,6 +53,9 @@ class CGMH_Dataset(NLST_Survival_Dataset):
             return True
 
         if len(series_dict["paths"]) < self.args.min_num_images:
+            return True
+        
+        if any([ p.replace("CGMH_LDCT", "ldct_pngs").replace(".dcm", ".png") in empty_paths for p in series_dict["paths"] ]):
             return True
 
         return False
@@ -86,6 +90,7 @@ class CGMH_Dataset(NLST_Survival_Dataset):
                 ),
             "series": series_id,
             "pid": mrn_row["pid"],
+            "manufacturer": exam_dict["manufacturer"]
         }
 
         if not self.args.use_all_images:
@@ -134,7 +139,7 @@ class CGMH_Dataset(NLST_Survival_Dataset):
     def is_localizer(self, series_dict):
         is_localizer = "LOCALIZER" in series_dict["ImageType"]
         return is_localizer
-
+    
     @staticmethod
     def set_args(args):
         args.num_classes = args.max_followup
@@ -189,8 +194,8 @@ class CGMH_Dataset(NLST_Survival_Dataset):
 
 @register_object("cgmh_exclude_other", "dataset")
 class CGMH_ExcludeOther(CGMH_Dataset):
-    def skip_sample(self, series_dict, exam_dict):
-        if super().skip_sample(series_dict, exam_dict):
+    def skip_sample(self, series_dict, exam_dict, empty_paths):
+        if super().skip_sample(series_dict, exam_dict, empty_paths):
             return True
         if exam_dict["cancer"] == "other":
             return True
