@@ -373,6 +373,8 @@ def gather_step_outputs(outputs):
     """
 
     output_dict = OrderedDict()
+    if isinstance(outputs[-1], list): # adversarial setting with two optimizers
+        outputs = outputs[0]
 
     for k in outputs[-1].keys():
         if k == "preds_dict":

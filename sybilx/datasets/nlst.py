@@ -37,6 +37,7 @@ CT_ITEM_KEYS = [
     "cancer_laterality",
     "has_annotation",
     "origin_dataset",
+    "device"
 ]
 
 RACE_ID_KEYS = {
