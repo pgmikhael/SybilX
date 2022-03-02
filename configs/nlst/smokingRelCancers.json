@@ -77,13 +77,10 @@
         3
       ],
       "loss_fns": [
-        "cross_entropy",
-        "survival", 
-        "guided_attention"
+        "cross_entropy survival guided_attention"
       ],
       "metrics": [
-        "survival_classification",
-        "survival"
+        "survival_classification survival"
       ],
       "num_workers": [
         3
@@ -122,8 +119,7 @@
         true
       ],
       "callback_names": [
-        "checkpointer",
-        "lr_monitor"
+        "checkpointer lr_monitor"
       ],
       "num_sanity_val_steps": [
         0
@@ -153,7 +149,7 @@
         "test_run"
       ],
       "gpus": [
-        1
+        4
       ],
       "limit_train_batches": [
         0.5
