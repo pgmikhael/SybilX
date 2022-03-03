@@ -255,7 +255,7 @@ class Random_Brightness_Contrast(Abstract_augmentation):
         brightness = float(kwargs["brightness"]) if "brightness" in kwargs else 0
 
         self.transform = A.RandomBrightnessContrast(
-            brightness_limit=brightness, contrast_limit=contrast, p=1
+            brightness_limit=brightness, contrast_limit=contrast, p=0.5
         )
 
     def __call__(self, input_dict, sample=None):
