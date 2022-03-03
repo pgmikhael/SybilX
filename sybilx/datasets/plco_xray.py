@@ -132,7 +132,7 @@ class PLCO_XRay_Dataset(data.Dataset):
             for exam_dict in exams:
                 for series_dict in exam_dict["image_series"]:
                     filename = series_dict["filename"]
-                    if self.skip_sample(series_dict, pt_metadata, exam_dict):
+                    if self.skip_sample(series_dict, pt_metadata, exam_dict, split_group):
                         continue
 
                     sample = self.get_volume_dict(
@@ -145,15 +145,28 @@ class PLCO_XRay_Dataset(data.Dataset):
 
         return dataset
 
-    def skip_sample(self, series_dict, pt_metadata, exam_dict):
+    def skip_sample(self, series_dict, pt_metadata, exam_dict, split_group):
         # check if valid label (info is not missing)
         study_yr = exam_dict["study_yr"] # series_data["study_yr"][0]
+        visit_num = exam_dict["visit_num"] # series_data["study_yr"][0]
         days_since_rand = pt_metadata["xry_days{}".format(study_yr)]
         screen_timepoint = days_since_rand // 365
         days_to_cancer_since_rand = pt_metadata["lung_cancer_diagdays"]
         years_to_cancer = (
             int(days_to_cancer_since_rand // 365) if days_to_cancer_since_rand > -1 else 100
         )
+
+        if self.args.plco_train_study_yrs is not None and split_group == 'train' and study_yr not in self.args.plco_train_study_yrs:
+            return True
+
+        if self.args.plco_test_study_yrs is not None and split_group in ('dev','test') and study_yr not in self.args.plco_test_study_yrs:
+            return True
+
+        if self.args.plco_use_only_visitnum is not None and visit_num not in self.args.plco_use_only_visitnum:
+            return True
+
+        if self.args.plco_use_only_one_image and exam_dict['image_series'].index(series_dict) > 0:
+            return True
 
         # invalid label
         bad_label = not self.check_label(pt_metadata, study_yr)

@@ -290,6 +290,15 @@ def parse_args(args_strings=None):
         "--num_classes", type=int, default=6, help="Number of classes to predict"
     )
 
+    parser.add_argument('--plco_train_study_yrs', type = int, nargs='+', required=False, default = None, help="filters to only include specific study_yrs when training for PLCO data.")
+    parser.add_argument('--plco_test_study_yrs', type = int, nargs='+', required=False, default = None, help="filters to only include specific study_yrs for PLCO data when testing/validating.")
+    parser.add_argument('--plco_use_only_visitnum', type = int, nargs='+', required=False, default = None, help="filters to only include specific visitnums for PLCO data.")
+    parser.add_argument('--plco_use_only_one_image',
+        action="store_true",
+        default=False,
+        help="filters to only include one image per exam/visitnum for PLCO data."
+    )
+
     # Alternative training/testing schemes
     parser.add_argument(
         "--cross_val_seed",

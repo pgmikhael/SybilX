@@ -26,7 +26,7 @@ parser.add_argument(
 parser.add_argument(
     "--log_dir",
     type=str,
-    default="/path/to/results/dir",
+    default="logs",
     help="path to store logs and detailed job level result files",
 )
 parser.add_argument(

@@ -23,6 +23,7 @@ from sybilx.serie import Serie
 # data
 import sybilx.datasets.nlst
 import sybilx.datasets.nlst_xray
+import sybilx.datasets.plco_xray
 import sybilx.datasets.ct_localizer
 import sybilx.datasets.mgh
 import sybilx.datasets.mnist
