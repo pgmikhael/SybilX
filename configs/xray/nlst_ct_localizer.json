@@ -1,7 +1,7 @@
 {
   "script": "main",
   "grid_search_space": {
-    "batch_size": [24, 32, 8],
+    "batch_size": [24],
     "accumulate_grad_batches": [1],
     "dataset": ["ct_localizers"],
     "max_followup": [6],
@@ -12,7 +12,7 @@
     "lr_decay": [0.1],
     "limit_train_batches": [1.0],
     "limit_val_batches": [1.0],
-    "lr": [3e-5, 1e-5, 5e-4],
+    "lr": [5e-4, 1e-4, 1e-3],
     "base_model": ["cxrlc"],
     "use_annotations": [false],
     "num_chan": [3],
@@ -27,10 +27,10 @@
     "dev": [false],
     "test": [false],
     "class_bal": [true],
-    "train_rawinput_augmentations": ["scale_2d rotate_range/deg=20"],
-    "train_tnsr_augmentations": ["force_num_chan_2d normalize_2d"],
+    "train_rawinput_augmentations": ["scale_2d rotate_range/deg=2.5 random_brightness_contrast/brightness=0.2 random_affine_transform/scale=0.2"],
+    "train_tnsr_augmentations": ["force_num_chan_2d"],
     "test_rawinput_augmentations": ["scale_2d"],
-    "test_tnsr_augmentations": ["force_num_chan_2d normalize_2d"],
+    "test_tnsr_augmentations": ["force_num_chan_2d"],
     "fix_seed_for_multi_image_augmentations": [true],
     "workspace": ["itamar"],
     "project_name": ["xray-cancer"],
@@ -43,11 +43,9 @@
     "dropout": [0.1],
     "dataset_file_path": ["/Mounts/rbg-storage1/datasets/NLST/full_nlst_google.json"],
     "save_dir": ["/Mounts/rbg-storage1/snapshots/lung_xray"],
-    "img_dir": ["/Mounts/rbg-storage1/datasets/NLST/nlst-ct-png"]
-  },
-  "paired_search_space":{
-	  "comet_tags": ["nlst_ct_localizer with_risk", "nlst_ct_localizer without_risk"],
-	  "use_risk_factors": [true, false]
+    "img_dir": ["/Mounts/rbg-storage1/datasets/NLST/nlst-ct-png"],
+    "comet_tags": ["nlst_ct_localizer with_risk"],
+    "use_risk_factors": [true]
   },
   "available_gpus": ["0","1","2","3","4","5","6","7"]
 }
