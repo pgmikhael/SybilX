@@ -82,11 +82,7 @@ class DicomTransformLoader(abstract_loader):
     def load_input(self, path, sample):
         try:
             dcm = pydicom.dcmread(path)
-            min_val = np.min(dcm.pixel_array)
-            min_max_pixel_array = dcm.pixel_array - min_val
-            max_val = np.max(min_max_pixel_array)
-            min_max_pixel_array = np.trunc(( min_max_pixel_array / max_val ) * 255).astype(np.uint8)
-            min_max_pixel_array = cv2.equalizeHist(min_max_pixel_array)
+            min_max_pixel_array = self.transform_image(dcm.pixel_array)
             if hasattr(dcm, 'PhotometricInterpretation') and 'MONOCHROME2' in dcm.PhotometricInterpretation:
                 min_max_pixel_array = 255 - min_max_pixel_array
 
@@ -95,10 +91,32 @@ class DicomTransformLoader(abstract_loader):
 
         return {"input": min_max_pixel_array}
 
+    def transform_image(self, pixel_array):
+        min_val = np.min(pixel_array)
+        min_max_pixel_array = pixel_array - min_val
+        max_val = np.max(min_max_pixel_array)
+        min_max_pixel_array = np.trunc(( min_max_pixel_array / max_val ) * 255).astype(np.uint8)
+        min_max_pixel_array = cv2.equalizeHist(min_max_pixel_array)
+        return min_max_pixel_array
+
     @property
     def cached_extension(self):
         return ""
 
+@register_object("cv_transform_loader", "input_loader")
+class CVTransformLoader(DicomTransformLoader):
+    """
+    MIMIC method of image loading, using OpenCV (see DicomTransformLoader)
+    """
+    def __init__(self, cache_path, augmentations, args):
+        super(DicomTransformLoader, self).__init__(cache_path, augmentations, args)
+
+
+    def load_input(self, path, sample):
+        img = cv2.imread(path, 0)
+        min_max_pixel_array = self.transform_image(img)
+
+        return {"input": min_max_pixel_array}
 
 
 @register_object("dicom_loader", "input_loader")
