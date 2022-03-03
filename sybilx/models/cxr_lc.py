@@ -46,7 +46,7 @@ class ChestXRayLungCancer(nn.Module):
 
         # Age, Sex, Smoking Status
         if args.use_risk_factors:
-            risk_factors_layers = [nn.Linear(14, 32), nn.ReLU(), nn.Dropout(p=args.dropout), nn.Linear(32, 32), nn.ReLU()] # change input dim to 7 if risk factors changes
+            risk_factors_layers = [nn.Linear(7, 32), nn.ReLU(), nn.Dropout(p=args.dropout), nn.Linear(32, 32), nn.ReLU()] # change input dim to 7 if risk factors changes
             self.risk_factors_mlp = nn.Sequential(*risk_factors_layers)
 
         # final MLP

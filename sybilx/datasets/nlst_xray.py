@@ -72,7 +72,6 @@ class NLST_XRay_Dataset(data.Dataset):
 
         self.split_group = split_group
         self.args = args
-        # self._num_images = args.num_images  # number of slices in each volume
         self._max_followup = args.max_followup
 
         try:
@@ -113,10 +112,6 @@ class NLST_XRay_Dataset(data.Dataset):
             The dataset as a dictionary with img paths, label,
             and additional information regarding exam or participant
         """
-        # self.corrupted_paths = self.CORRUPTED_PATHS["paths"]
-        # self.corrupted_series = self.CORRUPTED_PATHS["series"]
-        # self.risk_factor_vectorizer = NLSTRiskFactorVectorizer(self.args)
-
         if self.args.assign_splits:
             np.random.seed(self.args.cross_val_seed)
             self.assign_splits(self.metadata_json)
@@ -151,12 +146,8 @@ class NLST_XRay_Dataset(data.Dataset):
         return dataset
 
     def skip_sample(self, series_dict, pt_metadata, exam_dict):
-        # series_data = series_dict["series_data"]
-        # check if screen is localizer screen or not enough images
-        # is_localizer = self.is_localizer(series_data)
-
         # check if valid label (info is not missing)
-        screen_timepoint = exam_dict["screen_timepoint"] # series_data["study_yr"][0]
+        screen_timepoint = exam_dict["screen_timepoint"] 
         bad_label = not self.check_label(pt_metadata, screen_timepoint)
 
         # invalid label
@@ -177,24 +168,7 @@ class NLST_XRay_Dataset(data.Dataset):
 
     def get_volume_dict(self, series_id, series_dict, exam_dict, pt_metadata, pid, split):
         path = series_dict["path"]
-        # series_data = series_dict["series_data"]
-        # device = series_data["manufacturer"][0]
-        screen_timepoint = exam_dict["screen_timepoint"] # series_data["study_yr"][0]
-        # assert screen_timepoint == exam_dict["screen_timepoint"]
-
-        # if series_id in self.corrupted_series:
-        #     if any([path in self.corrupted_paths for path in img_paths]):
-        #         uncorrupted_imgs = np.where(
-        #             [path not in self.corrupted_paths for path in img_paths]
-        #         )[0]
-        #         img_paths = np.array(img_paths)[uncorrupted_imgs].tolist()
-        #         slice_locations = np.array(slice_locations)[uncorrupted_imgs].tolist()
-
-        # if not path[0].startswith(self.args.img_dir):
-          #  path = self.args.img_dir + path[path.find("nlst-xr-png") + len("nlst-xr-png") :]
-
-        # if self.args.img_file_type == "dicom":
-           # path = path.replace("nlst-xr-png", "nlst-xr").replace(".png", "")
+        screen_timepoint = exam_dict["screen_timepoint"]
 
         y, y_seq, y_mask, time_at_event = self.get_label(pt_metadata, screen_timepoint)
 
@@ -291,9 +265,9 @@ class NLST_XRay_Dataset(data.Dataset):
         age_start_smoking = pt_metadata["smokeage"][0]
         age_quit_smoking = pt_metadata["age_quit"][0]
         years_smoking = pt_metadata["smokeyr"][0]
-        is_smoker = pt_metadata["cigsmok"][0]
+        # is_smoker = pt_metadata["cigsmok"][0]
 
-        years_since_quit_smoking = 0 if is_smoker else current_age - age_quit_smoking
+        # years_since_quit_smoking = 0 if is_smoker else current_age - age_quit_smoking
 
         education = (
             pt_metadata["educat"][0]
@@ -333,22 +307,27 @@ class NLST_XRay_Dataset(data.Dataset):
 
         risk_factors = {
             "age": current_age,
-            "race": race,
-            "race_name": RACE_ID_KEYS.get(pt_metadata["race"][0], "UNK"),
-            "ethnicity": ethnicity,
-            "ethnicity_name": ETHNICITY_KEYS.get(ethnicity, "UNK"),
-            "education": education,
-            "bmi": bmi,
-            "cancer_hx": cancer_hx,
-            "family_lc_hx": family_hx,
-            "copd": pt_metadata["diagcopd"][0],
-            "is_smoker": is_smoker,
-            "smoking_intensity": pt_metadata["smokeday"][0],
-            "smoking_duration": pt_metadata["smokeyr"][0],
-            "years_since_quit_smoking": years_since_quit_smoking,
-            "weight": weight,
-            "height": height,
-            "gender": GENDER_KEYS.get(pt_metadata["gender"][0], "UNK"),
+            # "race": race,
+            # "race_name": RACE_ID_KEYS.get(pt_metadata["race"][0], "UNK"),
+            # "ethnicity": ethnicity,
+            # "ethnicity_name": ETHNICITY_KEYS.get(ethnicity, "UNK"),
+            # "education": education,
+            # "bmi": bmi,
+            # "cancer_hx": cancer_hx,
+            # "family_lc_hx": family_hx,
+            # "copd": pt_metadata["diagcopd"][0],
+            "is_smoker": int(pt_metadata["cigsmok"][0] == 1),
+            "is_not_smoker": int(pt_metadata["cigsmok"][0] == 0), # don't judge, this is to be true to CXR-LC paper
+            "smoking_status_unknown": (pt_metadata["cigsmok"][0] == -1),
+            # "smoking_intensity": pt_metadata["smokeday"][0],
+            # "smoking_duration": pt_metadata["smokeyr"][0],
+            # "years_since_quit_smoking": years_since_quit_smoking,
+            # "weight": weight,
+            # "height": height,
+            # "gender": GENDER_KEYS.get(pt_metadata["gender"][0], "UNK"),
+            "is_female": int(pt_metadata["sex"] == 0),
+            "is_male": int(pt_metadata["sex"] == 1),
+            "gender_unknown": int(pt_metadata["sex"] == -1)
         }
 
         if return_dict:
@@ -436,51 +415,12 @@ class NLST_XRay_Dataset(data.Dataset):
 
     def __getitem__(self, index):
         sample = self.dataset[index]
-        # if self.args.use_annotations:
-        #     sample = self.get_ct_annotations(sample)
-        #     sample["annotation_areas"] = get_scaled_annotation_area(sample, self.args)
-        #     sample["has_annotation"] = np.sum(sample["volume_annotations"]) > 0
+
         try:
             item = {}
             input_dict = self.get_image(sample["path"], sample)
 
             x, mask = input_dict["input"], input_dict["mask"]
-            # if self.args.use_all_images:
-            #     c, n, h, w = x.shape
-            #     x = torch.nn.functional.interpolate(
-            #         x.unsqueeze(0), (self._num_images, h, w), align_corners=True
-            #     )[0]
-            #     if mask is not None:
-            #         mask = torch.nn.functional.interpolate(
-            #             mask.unsqueeze(0), (self._num_images, h, w), align_corners=True
-            #         )[0]
-
-            # if self.args.use_annotations:
-            #     # item['mask'] = mask
-            #     # mask = item.pop('mask')
-            #     mask = torch.abs(mask)
-            #     mask_area = mask.sum(dim=(-1, -2)).unsqueeze(-1).unsqueeze(-1)
-            #     mask_area[mask_area == 0] = 1
-            #     mask = mask / mask_area
-            #     item["image_annotations"] = mask
-            #     if self.args.use_all_images:
-            #         t = torch.from_numpy(sample["annotation_areas"])
-            #         item["annotation_areas"] = F.interpolate(
-            #             t[None, None],
-            #             (self._num_images),
-            #             mode="linear",
-            #             align_corners=True,
-            #         )[0, 0]
-            #         t = torch.from_numpy(sample["volume_annotations"]).float()
-            #         item["volume_annotations"] = F.interpolate(
-            #             t[None, None],
-            #             (self._num_images),
-            #             mode="linear",
-            #             align_corners=True,
-            #         )[0, 0]
-            #     else:
-            #         item["annotation_areas"] = sample["annotation_areas"]
-            #         item["volume_annotations"] = sample["volume_annotations"]
 
             if self.args.use_risk_factors:
                 item["risk_factors"] = sample["risk_factors"]
@@ -508,89 +448,8 @@ class NLST_XRay_Dataset(data.Dataset):
         # get images for multi image input
         s = copy.deepcopy(sample)
         input_dict = self.input_loader.get_image(path, s)
-        # if self.args.use_annotations:
-        #     s["annotations"] = sample["annotations"][0]
 
         image = input_dict["input"]
         masks = input_dict["mask"]
 
-        # out_dict["input"] = self.reshape_images(image)
-        # out_dict["mask"] = (
-        #     self.reshape_images(masks) if self.args.use_annotations else None
-        # )
-
-        # return out_dict
         return input_dict
-
-    def reshape_images(self, images):
-        images = [im.unsqueeze(0) for im in images]
-        images = torch.cat(images, dim=0)
-        # Convert from (T, C, H, W) to (C, T, H, W)
-        images = images.permute(1, 0, 2, 3)
-        return images
-
-
-# @register_object("nlst_plco", "dataset")
-# class NLST_for_PLCO(NLST_Survival_Dataset):
-#     """
-#     Dataset for risk factor-based risk model
-#     """
-
-#     def get_volume_dict(
-#         self, series_id, series_dict, exam_dict, pt_metadata, pid, split
-#     ):
-#         series_data = series_dict["series_data"]
-#         screen_timepoint = series_data["study_yr"][0]
-#         assert screen_timepoint == exam_dict["screen_timepoint"]
-
-#         y, y_seq, y_mask, time_at_event = self.get_label(pt_metadata, screen_timepoint)
-
-#         exam_int = int(
-#             "{}{}{}".format(
-#                 int(pid), int(screen_timepoint), int(series_id.split(".")[-1][-3:])
-#             )
-#         )
-
-#         riskfactors = self.get_risk_factors(
-#             pt_metadata, screen_timepoint, return_dict=True
-#         )
-
-#         riskfactors["education"] = EDUCAT_LEVEL.get(riskfactors["education"], -1)
-#         riskfactors["race"] = RACE_ID_KEYS.get(pt_metadata["race"][0], -1)
-
-#         sample = {
-#             "y": int(y),
-#             "time_at_event": time_at_event,
-#             "y_seq": y_seq,
-#             "y_mask": y_mask,
-#             "exam_str": "{}_{}".format(exam_dict["exam"], series_id),
-#             "exam": exam_int,
-#             "accession": exam_dict["accession_number"],
-#             "series": series_id,
-#             "study": series_data["studyuid"][0],
-#             "screen_timepoint": screen_timepoint,
-#             "pid": pid,
-#         }
-#         sample.update(riskfactors)
-
-#         if (
-#             riskfactors["education"] == -1
-#             or riskfactors["race"] == -1
-#             or pt_metadata["weight"][0] == -1
-#             or pt_metadata["height"][0] == -1
-#         ):
-#             return {}
-
-#         return sample
-
-
-# @register_object("nlst_risk_factors", "dataset")
-# class NLST_Risk_Factor_Task(NLST_Survival_Dataset):
-#     """
-#     Dataset for risk factor-based risk model
-#     """
-
-#     def get_risk_factors(self, pt_metadata, screen_timepoint, return_dict=False):
-#         return self.risk_factor_vectorizer.get_risk_factors_for_sample(
-#             pt_metadata, screen_timepoint
-#         )

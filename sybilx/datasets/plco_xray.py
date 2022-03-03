@@ -266,11 +266,11 @@ class PLCO_XRay_Dataset(data.Dataset):
         age_start_smoking = pt_metadata["smokea_f"]
         age_quit_smoking = pt_metadata["ssmokea_f"]
         years_smoking = pt_metadata["cig_years"]
-        is_smoker = pt_metadata["cig_stat"] == 1
+        # is_smoker = pt_metadata["cig_stat"] == 1
         cigarettes_per_day = pt_metadata["cigpd_f"] # divided into 8 intervals
         pack_years = pt_metadata["pack_years"] if pt_metadata["pack_years"] not in ('.F','.M') else -1
 
-        years_since_quit_smoking = 0 if is_smoker else current_age - age_quit_smoking
+        # years_since_quit_smoking = 0 if is_smoker else current_age - age_quit_smoking
 
         # TODO: ensure education level coding corresponds with NLST coding
         education = (
@@ -294,22 +294,27 @@ class PLCO_XRay_Dataset(data.Dataset):
 
         risk_factors = {
             "age": current_age,
-            "race": race,
-            "race_name": RACE_ID_KEYS.get(race, "UNK"),
-            "ethnicity": ethnicity,
-            "ethnicity_name": ETHNICITY_KEYS.get(ethnicity, "UNK"),
-            "education": education,
-            "bmi": bmi,
-            "cancer_hx": cancer_hx,
-            "family_lc_hx": family_hx,
+            # "race": race,
+            # "race_name": RACE_ID_KEYS.get(race, "UNK"),
+            # "ethnicity": ethnicity,
+            # "ethnicity_name": ETHNICITY_KEYS.get(ethnicity, "UNK"),
+            # "education": education,
+            # "bmi": bmi,
+            # "cancer_hx": cancer_hx,
+            # "family_lc_hx": family_hx,
             #"copd": pt_metadata["diagcopd"][0],
-            "is_smoker": is_smoker,
-            "smoking_intensity": cigarettes_per_day,
-            "smoking_duration": years_smoking,
-            "years_since_quit_smoking": years_since_quit_smoking,
-            "weight": weight,
-            "height": height,
-            "sex": SEX_KEYS.get(pt_metadata["sex"], "UNK"),
+            "is_smoker": int(pt_metadata["cigsmok"][0] == 1),
+            "is_not_smoker": int(pt_metadata["cigsmok"][0] == 0), # don't judge, this is to be true to CXR-LC paper
+            "smoking_status_unknown": (pt_metadata["cigsmok"][0] == -1),
+            # "smoking_intensity": cigarettes_per_day,
+            # "smoking_duration": years_smoking,
+            # "years_since_quit_smoking": years_since_quit_smoking,
+            # "weight": weight,
+            # "height": height,
+            # "sex": SEX_KEYS.get(pt_metadata["sex"], "UNK"),
+            "is_female": int(pt_metadata["sex"] == 0),
+            "is_male": int(pt_metadata["sex"] == 1),
+            "gender_unknown": int(pt_metadata["sex"] == -1)
         }
 
         if return_dict:
