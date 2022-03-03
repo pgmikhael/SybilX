@@ -1,29 +1,26 @@
 {
   "script": "main",
   "grid_search_space": {
-    "batch_size": [3],
-    "accumulate_grad_batches": [1],
+    "batch_size": [24, 32, 8],
     "precision": [16],
+    "accumulate_grad_batches": [1],
     "dataset": ["nlst_xray"],
     "max_followup": [6],
     "input_loader_name": ["dicom_transform_loader"],
     "lightning_name": ["base"],
     "weight_decay": [1e-2],
-
     "max_epochs": [20],
     "lr_decay": [0.1],
-    "img_mean": [128.1722],
-    "img_std": [87.1849],
     "img_size": ["256 256"],
     "limit_train_batches": [1.0],
     "limit_val_batches": [1.0],
-    "lr": [3e-5],
+    "lr": [3e-5, 1e-5, 5e-4],
     "base_model": ["cxrlc"],
     "use_annotations": [false],
     "num_chan": [3],
     "loss_fns": ["weighted_focal_loss"],
     "metrics": ["classification"],
-    "monitor": ["val_accuracy"],
+    "monitor": ["val_roc_auc"],
     "num_workers": [3],
     "optimizer": ["adam"],
     "patience": [5],
@@ -38,21 +35,20 @@
     "fix_seed_for_multi_image_augmentations": [true],
     "workspace": ["itamar"],
     "project_name": ["xray-cancer"],
-    "comet_tags": ["nlst_xrays pixel_flipping"],
     "num_sanity_val_steps": [0],
     "profiler": ["simple"],
-    "use_risk_factors": [true],
-    "gpus": [8],
+    "gpus": [1],
     "val_check_interval": [1.0],
     "num_classes": [2],
     "ignore_warnings": [false],
     "dropout": [0.1],
     "dataset_file_path": ["/Mounts/rbg-storage1/datasets/ACRIN_XRAY/xray_dataset.json"],
     "save_dir": ["/Mounts/rbg-storage1/snapshots/lung_xray"],
-    "img_dir": ["/Mounts/rbg-storage1/datasets/ACRIN_XRAY/NLST/"],
-    "cache_path": ["/storage/nlst_cache"]
+    "img_dir": ["/Mounts/rbg-storage1/datasets/ACRIN_XRAY/NLST/"]
   },
-  "available_gpus": [
-    "0,1,2,3,4,5,6,7"
-  ]
+  "paired_search_space":{
+	  "comet_tags": ["nlst_x_ray with_risk", "nlst_x_ray without_risk"],
+	  "use_risk_factors": [true, false]
+  },
+  "available_gpus": ["0","1","2","3"]
 }
