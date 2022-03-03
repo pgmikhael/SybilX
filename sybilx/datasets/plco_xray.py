@@ -279,9 +279,12 @@ class PLCO_XRay_Dataset(data.Dataset):
         age_start_smoking = pt_metadata["smokea_f"]
         age_quit_smoking = pt_metadata["ssmokea_f"]
         years_smoking = pt_metadata["cig_years"]
-        # is_smoker = pt_metadata["cig_stat"] == 1
         cigarettes_per_day = pt_metadata["cigpd_f"] # divided into 8 intervals
         pack_years = pt_metadata["pack_years"] if pt_metadata["pack_years"] not in ('.F','.M') else -1
+
+        is_smoker = pt_metadata["cig_stat"] == 1
+        is_not_smoker = pt_metadata["cig_stat"] in (0, 2) #Never/former smoker
+        smoking_status_unknown = pt_metadata["cig_stat"] in ('.A', '.F', '.M', -1)
 
         # years_since_quit_smoking = 0 if is_smoker else current_age - age_quit_smoking
 
@@ -316,9 +319,9 @@ class PLCO_XRay_Dataset(data.Dataset):
             # "cancer_hx": cancer_hx,
             # "family_lc_hx": family_hx,
             #"copd": pt_metadata["diagcopd"][0],
-            "is_smoker": int(pt_metadata["cigsmok"][0] == 1),
-            "is_not_smoker": int(pt_metadata["cigsmok"][0] == 0), # don't judge, this is to be true to CXR-LC paper
-            "smoking_status_unknown": (pt_metadata["cigsmok"][0] == -1),
+            "is_smoker": is_smoker,
+            "is_not_smoker": is_not_smoker, # don't judge, this is to be true to CXR-LC paper
+            "smoking_status_unknown": smoking_status_unknown,
             # "smoking_intensity": cigarettes_per_day,
             # "smoking_duration": years_smoking,
             # "years_since_quit_smoking": years_since_quit_smoking,
