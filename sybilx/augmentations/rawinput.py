@@ -335,3 +335,55 @@ class Grayscale(Abstract_augmentation):
     def __call__(self, input_dict, sample=None):
         input_dict["input"] = self.transform(image=input_dict["input"])["image"]
         return input_dict
+
+
+@register_object("random_affine_transform", "augmentation")
+class Random_Affine_Transform(Abstract_augmentation):
+    """
+        Affine wrapper https://albumentations.ai/docs/api_reference/augmentations/geometric/transforms/
+
+        Can modify this to do many things, but is set here just to allow for scale (for zoom)
+        - Scaling ("zoom" in/out)
+
+        Could also do:
+        - Translation ("move" image on the x-/y-axis)
+        - Rotation
+        - Shear (move one side of the image, turning a square into a trapezoid)
+
+    kwargs:
+        scale=None, 
+        translate_percent=None, 
+        translate_px=None, 
+        rotate=None, 
+        shear=None, 
+        interpolation=1, 
+        mask_interpolation=0, 
+        cval=0, 
+        cval_mask=0, 
+        mode=0, 
+        fit_output=False, 
+        always_apply=False, 
+        p=0.5
+    """
+
+    def __init__(self, args, kwargs):
+        super(Random_Affine_Transform, self).__init__()
+        self.args = args
+        kwargs_len = len(kwargs.keys())
+        assert kwargs_len == 1
+        if "scale" in kwargs:
+            scale = kwargs["scale"].replace("(", "").replace(")", "").replace(" ", "").split(",")
+            scale = [float(x) for x in scale]
+            scale = tuple(scale)
+        else:
+            scale = None
+
+        self.transform = A.Affine(
+            scale=scale
+        )
+
+    def __call__(self, input_dict, sample=None):
+        if "seed" in sample:
+            self.set_seed(sample["seed"])
+        input_dict["input"] = self.transform(image=input_dict["input"])["image"]
+        return input_dict
