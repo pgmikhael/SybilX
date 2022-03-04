@@ -361,9 +361,9 @@ class NLSTCTLocalizers(data.Dataset):
             # "weight": weight,
             # "height": height,
             # "gender": GENDER_KEYS.get(pt_metadata["gender"][0], "UNK"),
-            "is_female": int(pt_metadata["sex"] == 0),
-            "is_male": int(pt_metadata["sex"] == 1),
-            "gender_unknown": int(pt_metadata["sex"] == -1)
+            "is_female": int(pt_metadata["gender"] == 0),
+            "is_male": int(pt_metadata["gender"] == 1),
+            "gender_unknown": int(pt_metadata["gender"] != 0 and pt_metadata["gender"] != 1)
         }
 
         if return_dict:
