@@ -200,21 +200,7 @@ class NLSTCTLocalizers(data.Dataset):
 
     def get_volume_dict(self, series_id, series_dict, exam_dict, pt_metadata, pid, split):
         path = series_dict["paths"]
-        # series_data = series_dict["series_data"]
-        # device = series_data["manufacturer"][0]
         screen_timepoint = exam_dict["screen_timepoint"] # series_data["study_yr"][0]
-        # assert screen_timepoint == exam_dict["screen_timepoint"]
-
-        # if series_id in self.corrupted_series:
-        #     if any([path in self.corrupted_paths for path in img_paths]):
-        #         uncorrupted_imgs = np.where(
-        #             [path not in self.corrupted_paths for path in img_paths]
-        #         )[0]
-        #         img_paths = np.array(img_paths)[uncorrupted_imgs].tolist()
-        #         slice_locations = np.array(slice_locations)[uncorrupted_imgs].tolist()
-
-        # if not path[0].startswith(self.args.img_dir):
-          #  path = self.args.img_dir + path[path.find("nlst-xr-png") + len("nlst-xr-png") :]
 
         if self.args.img_file_type == "dicom":
            path = path.replace("nlst-ct-png", "nlst-ct").replace(".png", "")
@@ -356,22 +342,28 @@ class NLSTCTLocalizers(data.Dataset):
 
         risk_factors = {
             "age": current_age,
-            "race": race,
-            "race_name": RACE_ID_KEYS.get(pt_metadata["race"][0], "UNK"),
-            "ethnicity": ethnicity,
-            "ethnicity_name": ETHNICITY_KEYS.get(ethnicity, "UNK"),
-            "education": education,
-            "bmi": bmi,
-            "cancer_hx": cancer_hx,
-            "family_lc_hx": family_hx,
-            "copd": pt_metadata["diagcopd"][0],
-            "is_smoker": is_smoker,
-            "smoking_intensity": pt_metadata["smokeday"][0],
-            "smoking_duration": pt_metadata["smokeyr"][0],
-            "years_since_quit_smoking": years_since_quit_smoking,
-            "weight": weight,
-            "height": height,
-            "gender": GENDER_KEYS.get(pt_metadata["gender"][0], "UNK"),
+            # "race": race,
+            # "race_name": RACE_ID_KEYS.get(pt_metadata["race"][0], "UNK"),
+            # "ethnicity": ethnicity,
+            # "ethnicity_name": ETHNICITY_KEYS.get(ethnicity, "UNK"),
+            # "education": education,
+            # "bmi": bmi,
+            # "cancer_hx": cancer_hx,
+            # "family_lc_hx": family_hx,
+            # "copd": pt_metadata["diagcopd"][0],
+            # "is_smoker": is_smoker,
+            "is_smoker": int(pt_metadata["cigsmok"][0] == 1),
+            "is_not_smoker": int(pt_metadata["cigsmok"][0] == 0),
+            "smoking_status_unknown": int(pt_metadata["cigsmok"][0] == -1),
+            # "smoking_intensity": pt_metadata["smokeday"][0],
+            # "smoking_duration": pt_metadata["smokeyr"][0],
+            # "years_since_quit_smoking": years_since_quit_smoking,
+            # "weight": weight,
+            # "height": height,
+            # "gender": GENDER_KEYS.get(pt_metadata["gender"][0], "UNK"),
+            "is_female": int(pt_metadata["sex"] == 0),
+            "is_male": int(pt_metadata["sex"] == 1),
+            "gender_unknown": int(pt_metadata["sex"] == -1)
         }
 
         if return_dict:
