@@ -371,7 +371,7 @@ class Random_Affine_Transform(Abstract_augmentation):
         self.args = args
         kwargs_len = len(kwargs.keys())
         assert kwargs_len == 1
-        scale = (-float(kwargs["scale"]),float(kwargs["scale"]))  if "brightness" in kwargs else 0
+        scale = (-float(kwargs["scale"]),float(kwargs["scale"]))  if "scale" in kwargs else 0
 
 
         self.transform = A.Affine(
