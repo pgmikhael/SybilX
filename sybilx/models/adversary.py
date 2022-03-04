@@ -20,7 +20,7 @@ class AlignmentMLP(nn.Module):
             nn.Linear(512, 256),
             nn.BatchNorm1d(256, eps=1e-05, momentum=0.1, affine=True, track_running_stats=True),
             nn.LeakyReLU(0.2, inplace=True),
-            nn.Linear(256, 2),
+            nn.Linear(256, args.adv_num_classes),
         )
 
     def forward(self, model_output, batch=None):

@@ -243,28 +243,6 @@ class MGH_Dataset(NLST_Survival_Dataset):
                 ["train", "dev", "test"], p=self.args.split_probs
             )
 
-    def get_images(self, paths, sample):
-        """
-        Returns a stack of transformed images by their absolute paths.
-        If cache is used - transformed images will be loaded if available,
-        and saved to cache if not.
-        """
-        out_dict = {}
-        if self.args.fix_seed_for_multi_image_augmentations:
-            sample["seed"] = np.random.randint(0, 2**32 - 1)
-
-        # get images for multi image input
-        input_dicts = [
-            self.input_loader.get_image(path, sample) for e, path in enumerate(paths)
-        ]
-
-        images = [i["input"] for i in input_dicts]
-        out_dict["input"] = self.reshape_images(images)
-        out_dict["mask"] = None
-
-        return out_dict
-
-
 @register_object("mgh_cohort2", "dataset")
 class MGH_Screening(NLST_Survival_Dataset):
     """
@@ -504,23 +482,3 @@ class MGH_Screening(NLST_Survival_Dataset):
                 ["train", "dev", "test"], p=self.args.split_probs
             )
 
-    def get_images(self, paths, sample):
-        """
-        Returns a stack of transformed images by their absolute paths.
-        If cache is used - transformed images will be loaded if available,
-        and saved to cache if not.
-        """
-        out_dict = {}
-        if self.args.fix_seed_for_multi_image_augmentations:
-            sample["seed"] = np.random.randint(0, 2**32 - 1)
-
-        # get images for multi image input
-        input_dicts = [
-            self.input_loader.get_image(path, sample) for e, path in enumerate(paths)
-        ]
-
-        images = [i["input"] for i in input_dicts]
-        out_dict["input"] = self.reshape_images(images)
-        out_dict["mask"] = None
-
-        return out_dict

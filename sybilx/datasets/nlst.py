@@ -247,7 +247,7 @@ class NLST_Survival_Dataset(data.Dataset):
         img_paths = series_dict["paths"]
         slice_locations = series_dict["img_position"]
         series_data = series_dict["series_data"]
-        device = series_data["manufacturer"][0]
+        device = series_data["manufacturer"][0] - 1
         screen_timepoint = series_data["study_yr"][0]
         assert screen_timepoint == exam_dict["screen_timepoint"]
 
@@ -612,7 +612,8 @@ class NLST_Survival_Dataset(data.Dataset):
         s = copy.deepcopy(sample)
         input_dicts = []
         for e, path in enumerate(paths):
-            s["annotations"] = sample["annotations"][e]
+            if self.args.use_annotations:
+                s["annotations"] = sample["annotations"][e]
             input_dicts.append(self.input_loader.get_image(path, s))
 
         images = [i["input"] for i in input_dicts]

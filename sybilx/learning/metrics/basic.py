@@ -213,9 +213,9 @@ class Survival_Classification(BaseClassification):
 
 
 @register_object("discrim_classification", "metric")
-class Discriminator_Classification(object):
+class Discriminator_Classification(BaseClassification):
     def __init__(self, args) -> None:
-        super().__init__()
+        super().__init__(args)
 
     @property
     def metric_keys(self):
