@@ -317,8 +317,8 @@ class NLST_XRay_Dataset(data.Dataset):
             # "family_lc_hx": family_hx,
             # "copd": pt_metadata["diagcopd"][0],
             "is_smoker": int(pt_metadata["cigsmok"][0] == 1),
-            "is_not_smoker": int(pt_metadata["cigsmok"][0] == 0), # don't judge, this is to be true to CXR-LC paper
-            "smoking_status_unknown": (pt_metadata["cigsmok"][0] == -1),
+            "is_not_smoker": int(pt_metadata["cigsmok"][0] == 0),
+            "smoking_status_unknown": int(pt_metadata["cigsmok"][0] == -1),
             # "smoking_intensity": pt_metadata["smokeday"][0],
             # "smoking_duration": pt_metadata["smokeyr"][0],
             # "years_since_quit_smoking": years_since_quit_smoking,
