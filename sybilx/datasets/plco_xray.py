@@ -9,6 +9,7 @@ from tqdm import tqdm
 from collections import Counter
 import copy
 import torch
+import pandas as pd
 #import torch.nn.functional as F
 from torch.utils import data
 #from sybilx.serie import Serie
@@ -21,6 +22,9 @@ from sybilx.datasets.utils import (
 )
 from sybilx.utils.registry import register_object
 #from sybilx.datasets.nlst_risk_factors import NLSTRiskFactorVectorizer
+
+CXR_LC_PATIENT_SPLITS_FILENAME = ("/Mounts/rbg-storage1/datasets/PLCO_XRAY/patient2split_cxr_lc.pkl")
+CXR_LC_IMAGE_SPLITS_FILENAME = ("/Mounts/rbg-storage1/datasets/PLCO_XRAY/image2split_cxr_lc.pkl")
 
 CT_ITEM_KEYS = [
     "pid",
@@ -67,7 +71,7 @@ class PLCO_XRay_Dataset(data.Dataset):
         constructs: standard pytorch Dataset obj, which can be fed in a DataLoader for batching
         """
         super(PLCO_XRay_Dataset, self).__init__()
-
+        self.NUM_SKIPPED_FROM_CXR_LC_SPLIT = 0
         self.split_group = split_group
         self.args = args
         self._max_followup = args.max_followup
@@ -142,7 +146,8 @@ class PLCO_XRay_Dataset(data.Dataset):
                         continue
 
                     dataset.append(sample)
-
+        if self.args.split_type == 'cxr_lc':
+            print(f"Number of samples skipped because they are not in PLCO splits: {self.NUM_SKIPPED_FROM_CXR_LC_SPLIT}")
         return dataset
 
     def skip_sample(self, series_dict, pt_metadata, exam_dict, split_group):
@@ -168,6 +173,11 @@ class PLCO_XRay_Dataset(data.Dataset):
         if self.args.plco_use_only_one_image and exam_dict['image_series'].index(series_dict) > 0:
             return True
 
+        if self.args.split_type == 'cxr_lc':
+            if not (series_dict["filename"] in self.CXR_LC_IMAGE_SPLITS):
+                self.NUM_SKIPPED_FROM_CXR_LC_SPLIT += 1
+                return True
+
         # invalid label
         bad_label = not self.check_label(pt_metadata, study_yr)
         if not bad_label:
@@ -185,6 +195,7 @@ class PLCO_XRay_Dataset(data.Dataset):
             return True
         else:
             return False
+
 
     def get_volume_dict(self, series_id, series_dict, exam_dict, pt_metadata, pid, split):
         path = series_dict["path"]
@@ -345,9 +356,23 @@ class PLCO_XRay_Dataset(data.Dataset):
             self.assign_institutions_splits(meta)
         elif self.args.split_type == "random":
             for idx in range(len(meta)):
-                meta[idx]["split"] = np.random.choice(
-                    ["train", "dev", "test"], p=self.args.split_probs
-                )
+                meta[idx]["split"] = np.random.choice(["train", "dev", "test"], p=self.args.split_probs)
+        elif self.args.split_type == "cxr_lc":
+            self.assign_cxr_lc_splits(meta)
+
+    def assign_cxr_lc_splits(self, meta):
+        for idx in range(len(meta)):
+            meta[idx]["split"] = self.CXR_LC_PATIENT_SPLITS[meta[idx]["pid"]]
+
+    @property
+    def CXR_LC_PATIENT_SPLITS(self):
+        return pickle.load(open(CXR_LC_PATIENT_SPLITS_FILENAME, "rb"))
+
+    @property
+    def CXR_LC_IMAGE_SPLITS(self):
+        return pickle.load(open(CXR_LC_IMAGE_SPLITS_FILENAME, "rb"))
+
+    
 
     def assign_institutions_splits(self, meta):
         institutions = set([m["pt_metadata"]["cen"][0] for m in meta])

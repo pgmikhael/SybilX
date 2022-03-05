@@ -45,6 +45,7 @@
     "num_sanity_val_steps": [0],
     "profiler": ["simple"],
     "use_risk_factors": [true],
+    "split_type": ["cxr_lc"],
     "val_check_interval": [1.0],
     "num_classes": [2],
     "ignore_warnings": [false],
