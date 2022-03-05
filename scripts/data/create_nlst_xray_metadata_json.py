@@ -128,6 +128,7 @@ if __name__ == "__main__":
 
         else:
             pid2idx[pid] = len(json_dataset)
+            peid2idx[peid] = 0
 
             pt_dict = {
                 "accessions": [exam_dict],
