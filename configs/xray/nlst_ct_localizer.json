@@ -47,7 +47,8 @@
     "save_dir": ["/Mounts/rbg-storage1/snapshots/lung_xray"],
     "img_dir": ["/Mounts/rbg-storage1/datasets/NLST/nlst-ct-png"],
     "comet_tags": ["nlst_ct_localizer with_risk"],
-    "use_risk_factors": [true]
+    "use_risk_factors": [true],
+    "cache_path": ["/storage/itamar/xray_cache"]
   },
   "available_gpus": ["0","1","2","3","4","5","6","7"]
 }

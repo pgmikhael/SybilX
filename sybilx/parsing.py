@@ -316,7 +316,7 @@ def parse_args(args_strings=None):
         "--split_type",
         type=str,
         default="random",
-        choices=["random", "institution_split"],
+        choices=["random", "institution_split", "cxr_lc"],
         help="How to split dataset if assign_split = True. Usage: ['random', 'institution_split'].",
     )
     parser.add_argument(

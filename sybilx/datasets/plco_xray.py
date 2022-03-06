@@ -118,7 +118,11 @@ class PLCO_XRay_Dataset(data.Dataset):
 
         if self.args.assign_splits:
             np.random.seed(self.args.cross_val_seed)
-            self.assign_splits(self.metadata_json)
+            if self.args.split_type == 'cxr_lc':
+                CXR_LC_PATIENT_SPLITS = pickle.load(open(CXR_LC_PATIENT_SPLITS_FILENAME, "rb"))
+                self.assign_splits(self.metadata_json, CXR_LC_PATIENT_SPLITS)
+            else:
+                self.assign_splits(self.metadata_json)
 
         dataset = []
 
@@ -136,7 +140,11 @@ class PLCO_XRay_Dataset(data.Dataset):
             for exam_dict in exams:
                 for series_dict in exam_dict["image_series"]:
                     filename = series_dict["filename"]
-                    if self.skip_sample(series_dict, pt_metadata, exam_dict, split_group):
+                    if self.args.split_type == 'cxr_lc':
+                        CXR_LC_IMAGE_SPLITS = pickle.load(open(CXR_LC_IMAGE_SPLITS_FILENAME, "rb"))
+                        if self.skip_sample(series_dict, pt_metadata, exam_dict, split_group, CXR_LC_IMAGE_SPLITS):
+                            continue
+                    elif self.skip_sample(series_dict, pt_metadata, exam_dict, split_group):
                         continue
 
                     sample = self.get_volume_dict(
@@ -150,7 +158,7 @@ class PLCO_XRay_Dataset(data.Dataset):
             print(f"Number of samples skipped because they are not in PLCO splits: {self.NUM_SKIPPED_FROM_CXR_LC_SPLIT}")
         return dataset
 
-    def skip_sample(self, series_dict, pt_metadata, exam_dict, split_group):
+    def skip_sample(self, series_dict, pt_metadata, exam_dict, split_group, split_dict=None):
         # check if valid label (info is not missing)
         study_yr = exam_dict["study_yr"] # series_data["study_yr"][0]
         visit_num = exam_dict["visit_num"] # series_data["study_yr"][0]
@@ -174,7 +182,8 @@ class PLCO_XRay_Dataset(data.Dataset):
             return True
 
         if self.args.split_type == 'cxr_lc':
-            if not (series_dict["filename"] in self.CXR_LC_IMAGE_SPLITS):
+            assert split_dict is not None
+            if (not series_dict["filename"] in split_dict) or (split_group == 'skip'):
                 self.NUM_SKIPPED_FROM_CXR_LC_SPLIT += 1
                 return True
 
@@ -351,28 +360,24 @@ class PLCO_XRay_Dataset(data.Dataset):
                 [v for v in risk_factors.values() if not isinstance(v, str)]
             )
 
-    def assign_splits(self, meta):
+    def assign_splits(self, meta, split_dict=None):
         if self.args.split_type == "institution_split":
             self.assign_institutions_splits(meta)
         elif self.args.split_type == "random":
             for idx in range(len(meta)):
                 meta[idx]["split"] = np.random.choice(["train", "dev", "test"], p=self.args.split_probs)
         elif self.args.split_type == "cxr_lc":
-            self.assign_cxr_lc_splits(meta)
+            assert split_dict is not None
+            self.assign_cxr_lc_splits(meta, split_dict)
 
-    def assign_cxr_lc_splits(self, meta):
+    def assign_cxr_lc_splits(self, meta, split_dict):
         for idx in range(len(meta)):
-            meta[idx]["split"] = self.CXR_LC_PATIENT_SPLITS[meta[idx]["pid"]]
+            plco2sybilsplit = {'Tr': 'train', 'Te': 'test', 'Tu': 'dev', 'skip':'skip'}
+            split_set = split_dict.get(meta[idx]["pid"], {'skip',})
+            assert len(split_set) == 1, "patient is assigned multiple splits"
+            (split_type,) = split_set 
+            meta[idx]["split"] = plco2sybilsplit[split_type]
 
-    @property
-    def CXR_LC_PATIENT_SPLITS(self):
-        return pickle.load(open(CXR_LC_PATIENT_SPLITS_FILENAME, "rb"))
-
-    @property
-    def CXR_LC_IMAGE_SPLITS(self):
-        return pickle.load(open(CXR_LC_IMAGE_SPLITS_FILENAME, "rb"))
-
-    
 
     def assign_institutions_splits(self, meta):
         institutions = set([m["pt_metadata"]["cen"][0] for m in meta])
