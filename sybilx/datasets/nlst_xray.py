@@ -126,13 +126,10 @@ class NLST_XRay_Dataset(data.Dataset):
                 mrn_row["pt_metadata"],
             )
 
-            if not split == split_group:
-                continue
-
             for exam_dict in exams:
                 for series_dict in exam_dict["image_series"]:
                     series_id = series_dict["series_id"]
-                    if self.skip_sample(series_dict, pt_metadata, exam_dict):
+                    if self.skip_sample(series_dict, pt_metadata, exam_dict, split_group):
                         continue
 
                     sample = self.get_volume_dict(
@@ -145,7 +142,10 @@ class NLST_XRay_Dataset(data.Dataset):
 
         return dataset
 
-    def skip_sample(self, series_dict, pt_metadata, exam_dict):
+    def skip_sample(self, series_dict, pt_metadata, exam_dict, split_group):
+        if not split == split_group:
+            return True
+
         # check if valid label (info is not missing)
         screen_timepoint = exam_dict["screen_timepoint"] 
         bad_label = not self.check_label(pt_metadata, screen_timepoint)
@@ -453,3 +453,30 @@ class NLST_XRay_Dataset(data.Dataset):
         masks = input_dict["mask"]
 
         return input_dict
+
+
+@register_object("nlst_xray_test", "dataset")
+class NLST_XRay_Test_Dataset(NLST_XRay_Dataset):
+    def __init__(self, args, split_group):
+        assert args.test and not args.train, "This dataset is for testing only"
+        super(NLST_XRay_Test_Dataset, self).__init__()
+
+    def skip_sample(self, series_dict, pt_metadata, exam_dict, split_group):
+        # check if valid label (info is not missing)
+        screen_timepoint = exam_dict["screen_timepoint"] 
+        bad_label = not self.check_label(pt_metadata, screen_timepoint)
+
+        # invalid label
+        if not bad_label:
+            y, _, _, time_at_event = self.get_label(pt_metadata, screen_timepoint)
+            invalid_label = (y == -1) or (time_at_event < 0)
+        else:
+            invalid_label = False
+
+        if (
+            bad_label
+            or invalid_label
+        ):
+            return True
+        else:
+            return False
