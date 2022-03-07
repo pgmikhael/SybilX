@@ -325,9 +325,9 @@ class NLST_XRay_Dataset(data.Dataset):
             # "weight": weight,
             # "height": height,
             # "gender": GENDER_KEYS.get(pt_metadata["gender"][0], "UNK"),
-            "is_female": int(pt_metadata["sex"] == 0),
-            "is_male": int(pt_metadata["sex"] == 1),
-            "gender_unknown": int(pt_metadata["sex"] == -1)
+            "is_female": int(pt_metadata["gender"] == 0),
+            "is_male": int(pt_metadata["gender"] == 1),
+            "gender_unknown": int(pt_metadata["gender"] == -1)
         }
 
         if return_dict:
@@ -459,7 +459,7 @@ class NLST_XRay_Dataset(data.Dataset):
 class NLST_XRay_Test_Dataset(NLST_XRay_Dataset):
     def __init__(self, args, split_group):
         assert args.test and not args.train, "This dataset is for testing only"
-        super(NLST_XRay_Test_Dataset, self).__init__()
+        super(NLST_XRay_Test_Dataset, self).__init__(args, split_group)
 
     def skip_sample(self, series_dict, pt_metadata, exam_dict, split_group):
         # check if valid label (info is not missing)
