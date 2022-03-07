@@ -1,5 +1,4 @@
 import os
-from posixpath import split
 import traceback, warnings
 import pickle, json
 import numpy as np
@@ -74,6 +73,7 @@ class NLST_XRay_Dataset(data.Dataset):
         self.args = args
         self._max_followup = args.max_followup
 
+        import pdb; pdb.set_trace()
         try:
             self.metadata_json = json.load(open(args.dataset_file_path, "r"))
         except Exception as e:
@@ -129,7 +129,7 @@ class NLST_XRay_Dataset(data.Dataset):
             for exam_dict in exams:
                 for series_dict in exam_dict["image_series"]:
                     series_id = series_dict["series_id"]
-                    if self.skip_sample(series_dict, pt_metadata, exam_dict, split_group):
+                    if self.skip_sample(series_dict, pt_metadata, exam_dict, split, split_group):
                         continue
 
                     sample = self.get_volume_dict(
@@ -142,8 +142,8 @@ class NLST_XRay_Dataset(data.Dataset):
 
         return dataset
 
-    def skip_sample(self, series_dict, pt_metadata, exam_dict, split_group):
-        if not split == split_group:
+    def skip_sample(self, series_dict, pt_metadata, exam_dict, pt_split, split_group):
+        if not pt_split == split_group:
             return True
 
         # check if valid label (info is not missing)
@@ -325,9 +325,9 @@ class NLST_XRay_Dataset(data.Dataset):
             # "weight": weight,
             # "height": height,
             # "gender": GENDER_KEYS.get(pt_metadata["gender"][0], "UNK"),
-            "is_female": int(pt_metadata["sex"] == 0),
-            "is_male": int(pt_metadata["sex"] == 1),
-            "gender_unknown": int(pt_metadata["sex"] == -1)
+            "is_female": int(pt_metadata["gender"] == 2),
+            "is_male": int(pt_metadata["gender"] == 1),
+            "gender_unknown": int(pt_metadata["gender"] == -1)
         }
 
         if return_dict:
