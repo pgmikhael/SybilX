@@ -3,7 +3,7 @@
   "grid_search_space": {
     "batch_size": [24],
     "accumulate_grad_batches": [1],
-    "dataset": ["nlst_xray"],
+    "dataset": ["nlst_xray_test"],
     "max_followup": [6],
     "input_loader_name": ["dicom_transform_loader"],
     "lightning_name": ["base"],
@@ -26,8 +26,8 @@
     "train": [false],
     "dev": [false],
     "test": [true],
-    "class_bal": [true],
-    "assign_splits": [true],
+    "class_bal": [false],
+    "assign_splits": [false],
     "split_type": ["random"],
     "train_rawinput_augmentations": ["scale_2d rotate_range/deg=2.5 random_brightness_contrast/brightness=0.2"],
     "train_tnsr_augmentations": ["force_num_chan_2d"],
@@ -49,7 +49,7 @@
     "comet_tags": ["plco_on_nlst_x_ray"],
     "use_risk_factors": [true],
     "from_checkpoint": [true],
-    "snapshot": ["snapshots/0244d3d3aecd65f2f6f4c4b9d8957f67/0244d3d3aecd65f2f6f4c4b9d8957f67epoch=7.ckpt"],
+    "snapshot": ["/Mounts/rbg-storage1/snapshots/lung_xray/7567b205b3c4b7ec3d8bd4ce5ebb6369/7567b205b3c4b7ec3d8bd4ce5ebb6369epoch=15.ckpt"],
     "relax_checkpoint_matching": [true]
   },
   "available_gpus": ["0","1","2","3"]
