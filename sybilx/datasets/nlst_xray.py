@@ -21,8 +21,6 @@ from sybilx.utils.registry import register_object
 from sybilx.datasets.nlst_risk_factors import NLSTRiskFactorVectorizer
 
 
-CORRUPTED_PATHS = "/Mounts/rbg-storage1/datasets/ACRIN_XRAY/NLST/corrupted_img_paths.pkl"
-
 CT_ITEM_KEYS = [
     "pid",
     "exam",
@@ -79,11 +77,6 @@ class NLST_XRay_Dataset(data.Dataset):
             raise Exception(METAFILE_NOTFOUND_ERR.format(args.dataset_file_path, e))
 
         self.input_loader = get_sample_loader(split_group, args)
-
-        if self.args.region_annotations_filepath:
-            self.annotations_metadata = json.load(
-                open(self.args.region_annotations_filepath, "r")
-            )
 
         self.dataset = self.create_dataset(split_group)
         if len(self.dataset) == 0:
@@ -157,7 +150,6 @@ class NLST_XRay_Dataset(data.Dataset):
             invalid_label = False
 
         if (
-            # is_localizer or
             bad_label
             or invalid_label
         ):
@@ -229,14 +221,6 @@ class NLST_XRay_Dataset(data.Dataset):
         )
         assert len(y_mask) == self.args.max_followup
         return y, y_seq.astype("float64"), y_mask.astype("float64"), time_at_event
-
-    def is_localizer(self, series_dict):
-        is_localizer = (
-            (series_dict["imageclass"][0] == 0)
-            or ("LOCALIZER" in series_dict["imagetype"][0])
-            or ("TOP" in series_dict["imagetype"][0])
-        )
-        return is_localizer
 
     def get_cancer_side(self, pt_metadata):
         """
@@ -357,10 +341,6 @@ class NLST_XRay_Dataset(data.Dataset):
         for idx in range(len(meta)):
             meta[idx]["split"] = institute_to_split[meta[idx]["pt_metadata"]["cen"][0]]
 
-    @property
-    def CORRUPTED_PATHS(self):
-        return pickle.load(open(CORRUPTED_PATHS, "rb"))
-
     def get_summary_statement(self, dataset, split_group):
         summary = "Contructed NLST X-Ray Cancer Risk {} dataset with {} records, {} exams, {} patients, and the following class balance \n {}"
         class_balance = Counter([d["y"] for d in dataset])
@@ -374,42 +354,6 @@ class NLST_XRay_Dataset(data.Dataset):
         )
         statement
         return statement
-
-    def get_ct_annotations(self, sample):
-        # correct empty lists of annotations
-        if sample["series"] in self.annotations_metadata:
-            self.annotations_metadata[sample["series"]] = {
-                k: v
-                for k, v in self.annotations_metadata[sample["series"]].items()
-                if len(v) > 0
-            }
-
-        if sample["series"] in self.annotations_metadata:
-            # check if there is an annotation in a slice
-            sample["volume_annotations"] = np.array(
-                [
-                    int(
-                        os.path.splitext(os.path.basename(path))[0]
-                        in self.annotations_metadata[sample["series"]]
-                    )
-                    for path in sample["paths"]
-                ]
-            )
-            # store annotation(s) data (x,y,width,height) for each slice
-            sample["annotations"] = [
-                {
-                    "image_annotations": self.annotations_metadata[
-                        sample["series"]
-                    ].get(os.path.splitext(os.path.basename(path))[0], None)
-                }
-                for path in sample["paths"]
-            ]
-        else:
-            sample["volume_annotations"] = np.array([0 for _ in sample["paths"]])
-            sample["annotations"] = [
-                {"image_annotations": None} for path in sample["paths"]
-            ]
-        return sample
 
     def __len__(self):
         return len(self.dataset)
@@ -442,16 +386,9 @@ class NLST_XRay_Dataset(data.Dataset):
         If cache is used - transformed images will be loaded if available,
         and saved to cache if not.
         """
-        out_dict = {}
-        if self.args.fix_seed_for_multi_image_augmentations:
-            sample["seed"] = np.random.randint(0, 2**32 - 1)
-
         # get images for multi image input
         s = copy.deepcopy(sample)
         input_dict = self.input_loader.get_image(path, s)
-
-        image = input_dict["input"]
-        masks = input_dict["mask"]
 
         return input_dict
 
