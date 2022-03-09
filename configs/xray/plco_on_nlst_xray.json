@@ -29,6 +29,8 @@
     "class_bal": [true],
     "assign_splits": [true],
     "split_type": ["random"],
+    "cross_val_seed": [0],
+    "split_probs": ["0.7 0.15 0.15"],
     "train_rawinput_augmentations": ["scale_2d rotate_range/deg=2.5 random_brightness_contrast/brightness=0.2"],
     "train_tnsr_augmentations": ["force_num_chan_2d"],
     "test_rawinput_augmentations": ["scale_2d"],

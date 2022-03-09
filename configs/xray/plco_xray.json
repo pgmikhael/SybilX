@@ -30,9 +30,9 @@
     "num_workers": [8],
     "optimizer": ["adam"],
     "patience": [5],
-    "train": [true],
+    "train": [false],
     "dev": [false],
-    "test": [false],
+    "test": [true],
     "class_bal": [true],
     "train_rawinput_augmentations": ["scale_2d rotate_range/deg=2.5 random_brightness_contrast/brightness=0.2"],
     "train_tnsr_augmentations": ["force_num_chan_2d"],
@@ -55,7 +55,9 @@
     "save_dir": ["snapshots"],
     "img_dir": ["/Mounts/rbg-storage1/datasets//Mounts/rbg-storage1/datasets/PLCO_XRAY/tifs/"],
     "cache_path": ["/storage/itamar/xray_cache"],
-    "checkpoint_save_top_k": [3]
+    "checkpoint_save_top_k": [3],
+    "from_checkpoint": [true],
+    "snapshot": ["snapshots/0244d3d3aecd65f2f6f4c4b9d8957f67/0244d3d3aecd65f2f6f4c4b9d8957f67epoch=6.ckpt"]
   },
   "available_gpus": [
     0,1,2,3
