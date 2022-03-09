@@ -83,11 +83,6 @@ class PLCO_XRay_Dataset(data.Dataset):
 
         self.input_loader = get_sample_loader(split_group, args)
 
-        if self.args.region_annotations_filepath:
-            self.annotations_metadata = json.load(
-                open(self.args.region_annotations_filepath, "r")
-            )
-
         self.dataset = self.create_dataset(split_group)
         if len(self.dataset) == 0:
             return
@@ -154,6 +149,7 @@ class PLCO_XRay_Dataset(data.Dataset):
                         continue
 
                     dataset.append(sample)
+
         if self.args.split_type == 'cxr_lc':
             print(f"Number of samples skipped because they are not in PLCO splits: {self.NUM_SKIPPED_FROM_CXR_LC_SPLIT}")
         return dataset
@@ -361,9 +357,7 @@ class PLCO_XRay_Dataset(data.Dataset):
             )
 
     def assign_splits(self, meta, split_dict=None):
-        if self.args.split_type == "institution_split":
-            self.assign_institutions_splits(meta)
-        elif self.args.split_type == "random":
+        if self.args.split_type == "random":
             for idx in range(len(meta)):
                 meta[idx]["split"] = np.random.choice(["train", "dev", "test"], p=self.args.split_probs)
         elif self.args.split_type == "cxr_lc":
@@ -377,17 +371,6 @@ class PLCO_XRay_Dataset(data.Dataset):
             assert len(split_set) == 1, "patient is assigned multiple splits"
             (split_type,) = split_set 
             meta[idx]["split"] = plco2sybilsplit[split_type]
-
-
-    def assign_institutions_splits(self, meta):
-        institutions = set([m["pt_metadata"]["cen"][0] for m in meta])
-        institutions = sorted(institutions)
-        institute_to_split = {
-            cen: np.random.choice(["train", "dev", "test"], p=self.args.split_probs)
-            for cen in institutions
-        }
-        for idx in range(len(meta)):
-            meta[idx]["split"] = institute_to_split[meta[idx]["pt_metadata"]["cen"][0]]
 
     def get_summary_statement(self, dataset, split_group):
         summary = "Contructed PLCO X-Ray Cancer Risk {} dataset with {} records, {} exams, {} patients, and the following class balance \n {}"
@@ -403,92 +386,17 @@ class PLCO_XRay_Dataset(data.Dataset):
         statement
         return statement
 
-    def get_ct_annotations(self, sample):
-        # correct empty lists of annotations
-        if sample["series"] in self.annotations_metadata:
-            self.annotations_metadata[sample["series"]] = {
-                k: v
-                for k, v in self.annotations_metadata[sample["series"]].items()
-                if len(v) > 0
-            }
-
-        if sample["series"] in self.annotations_metadata:
-            # check if there is an annotation in a slice
-            sample["volume_annotations"] = np.array(
-                [
-                    int(
-                        os.path.splitext(os.path.basename(path))[0]
-                        in self.annotations_metadata[sample["series"]]
-                    )
-                    for path in sample["paths"]
-                ]
-            )
-            # store annotation(s) data (x,y,width,height) for each slice
-            sample["annotations"] = [
-                {
-                    "image_annotations": self.annotations_metadata[
-                        sample["series"]
-                    ].get(os.path.splitext(os.path.basename(path))[0], None)
-                }
-                for path in sample["paths"]
-            ]
-        else:
-            sample["volume_annotations"] = np.array([0 for _ in sample["paths"]])
-            sample["annotations"] = [
-                {"image_annotations": None} for path in sample["paths"]
-            ]
-        return sample
-
     def __len__(self):
         return len(self.dataset)
 
     def __getitem__(self, index):
         sample = self.dataset[index]
-        # if self.args.use_annotations:
-        #     sample = self.get_ct_annotations(sample)
-        #     sample["annotation_areas"] = get_scaled_annotation_area(sample, self.args)
-        #     sample["has_annotation"] = np.sum(sample["volume_annotations"]) > 0
+        
         try:
             item = {}
             input_dict = self.get_image(sample["path"], sample)
 
             x, mask = input_dict["input"], input_dict["mask"]
-            # if self.args.use_all_images:
-            #     c, n, h, w = x.shape
-            #     x = torch.nn.functional.interpolate(
-            #         x.unsqueeze(0), (self._num_images, h, w), align_corners=True
-            #     )[0]
-            #     if mask is not None:
-            #         mask = torch.nn.functional.interpolate(
-            #             mask.unsqueeze(0), (self._num_images, h, w), align_corners=True
-            #         )[0]
-
-            # if self.args.use_annotations:
-            #     # item['mask'] = mask
-            #     # mask = item.pop('mask')
-            #     mask = torch.abs(mask)
-            #     mask_area = mask.sum(dim=(-1, -2)).unsqueeze(-1).unsqueeze(-1)
-            #     mask_area[mask_area == 0] = 1
-            #     mask = mask / mask_area
-            #     item["image_annotations"] = mask
-            #     if self.args.use_all_images:
-            #         t = torch.from_numpy(sample["annotation_areas"])
-            #         item["annotation_areas"] = F.interpolate(
-            #             t[None, None],
-            #             (self._num_images),
-            #             mode="linear",
-            #             align_corners=True,
-            #         )[0, 0]
-            #         t = torch.from_numpy(sample["volume_annotations"]).float()
-            #         item["volume_annotations"] = F.interpolate(
-            #             t[None, None],
-            #             (self._num_images),
-            #             mode="linear",
-            #             align_corners=True,
-            #         )[0, 0]
-            #     else:
-            #         item["annotation_areas"] = sample["annotation_areas"]
-            #         item["volume_annotations"] = sample["volume_annotations"]
 
             if self.args.use_risk_factors:
                 item["risk_factors"] = sample["risk_factors"]
@@ -509,96 +417,7 @@ class PLCO_XRay_Dataset(data.Dataset):
         If cache is used - transformed images will be loaded if available,
         and saved to cache if not.
         """
-        out_dict = {}
-        if self.args.fix_seed_for_multi_image_augmentations:
-            sample["seed"] = np.random.randint(0, 2**32 - 1)
-
-        # get images for multi image input
         s = copy.deepcopy(sample)
         input_dict = self.input_loader.get_image(path, s)
-        # if self.args.use_annotations:
-        #     s["annotations"] = sample["annotations"][0]
-
-        image = input_dict["input"]
-        masks = input_dict["mask"]
-
-        # out_dict["input"] = self.reshape_images(image)
-        # out_dict["mask"] = (
-        #     self.reshape_images(masks) if self.args.use_annotations else None
-        # )
-
-        # return out_dict
+        
         return input_dict
-
-    def reshape_images(self, images):
-        images = [im.unsqueeze(0) for im in images]
-        images = torch.cat(images, dim=0)
-        # Convert from (T, C, H, W) to (C, T, H, W)
-        images = images.permute(1, 0, 2, 3)
-        return images
-
-
-# @register_object("nlst_plco", "dataset")
-# class NLST_for_PLCO(NLST_Survival_Dataset):
-#     """
-#     Dataset for risk factor-based risk model
-#     """
-
-#     def get_volume_dict(
-#         self, series_id, series_dict, exam_dict, pt_metadata, pid, split
-#     ):
-#         series_data = series_dict["series_data"]
-#         screen_timepoint = series_data["study_yr"][0]
-#         assert screen_timepoint == exam_dict["screen_timepoint"]
-
-#         y, y_seq, y_mask, time_at_event = self.get_label(pt_metadata, screen_timepoint)
-
-#         exam_int = int(
-#             "{}{}{}".format(
-#                 int(pid), int(screen_timepoint), int(series_id.split(".")[-1][-3:])
-#             )
-#         )
-
-#         riskfactors = self.get_risk_factors(
-#             pt_metadata, screen_timepoint, return_dict=True
-#         )
-
-#         riskfactors["education"] = EDUCAT_LEVEL.get(riskfactors["education"], -1)
-#         riskfactors["race"] = RACE_ID_KEYS.get(pt_metadata["race"][0], -1)
-
-#         sample = {
-#             "y": int(y),
-#             "time_at_event": time_at_event,
-#             "y_seq": y_seq,
-#             "y_mask": y_mask,
-#             "exam_str": "{}_{}".format(exam_dict["exam"], series_id),
-#             "exam": exam_int,
-#             "accession": exam_dict["accession_number"],
-#             "series": series_id,
-#             "study": series_data["studyuid"][0],
-#             "screen_timepoint": screen_timepoint,
-#             "pid": pid,
-#         }
-#         sample.update(riskfactors)
-
-#         if (
-#             riskfactors["education"] == -1
-#             or riskfactors["race"] == -1
-#             or pt_metadata["weight"][0] == -1
-#             or pt_metadata["height"][0] == -1
-#         ):
-#             return {}
-
-#         return sample
-
-
-# @register_object("nlst_risk_factors", "dataset")
-# class NLST_Risk_Factor_Task(NLST_Survival_Dataset):
-#     """
-#     Dataset for risk factor-based risk model
-#     """
-
-#     def get_risk_factors(self, pt_metadata, screen_timepoint, return_dict=False):
-#         return self.risk_factor_vectorizer.get_risk_factors_for_sample(
-#             pt_metadata, screen_timepoint
-#         )

@@ -25,7 +25,7 @@ class ChestXRayLungCancer(nn.Module):
         bns = [True] + [True]*len(lin_ftrs[1:])
         ps = [0.75]
         ps = [ps[0]/2] * (len(lin_ftrs)-2) + ps
-        actns = [nn.ReLU(inplace=True)] * (len(lin_ftrs)- 1) # 2) + [None]
+        actns = [nn.ReLU(inplace=True)] * (len(lin_ftrs)- 1)
         
         # pool layers
         self.pool = nn.Sequential(nn.AdaptiveAvgPool2d(1), nn.AdaptiveMaxPool2d(1))
@@ -46,7 +46,7 @@ class ChestXRayLungCancer(nn.Module):
 
         # Age, Sex, Smoking Status
         if args.use_risk_factors:
-            risk_factors_layers = [nn.Linear(7, 32), nn.ReLU(), nn.Dropout(p=args.dropout), nn.Linear(32, 32), nn.ReLU()] # change input dim to 7 if risk factors changes
+            risk_factors_layers = [nn.Linear(7, 32), nn.ReLU(), nn.Dropout(p=args.dropout), nn.Linear(32, 32), nn.ReLU()]
             self.risk_factors_mlp = nn.Sequential(*risk_factors_layers)
 
         # final MLP
@@ -63,7 +63,7 @@ class ChestXRayLungCancer(nn.Module):
         image_hidden = self.pool(image_hidden)
         image_hidden = self.custom_head(image_hidden)
         if self.args.use_risk_factors:
-            risk_factors_hidden = self.risk_factors_mlp( batch['risk_factors'].float() ) # TODO: age, sex, smoking  (currently all risk factors)
+            risk_factors_hidden = self.risk_factors_mlp( batch['risk_factors'].float() )
             output["hidden"] = torch.cat( [risk_factors_hidden, image_hidden], dim=1 )
             output["logit"] = self.final_mlp( output["hidden"] )
         else:
