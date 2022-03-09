@@ -401,7 +401,7 @@ class NLST_XRay_Test_Dataset(NLST_XRay_Dataset):
         assert args.test and not args.train, "This dataset is for testing only"
         super(NLST_XRay_Test_Dataset, self).__init__(args, split_group)
 
-    def skip_sample(self, series_dict, pt_metadata, exam_dict, split_group):
+    def skip_sample(self, series_dict, pt_metadata, exam_dict, pt_split, split_group):
         # check if valid label (info is not missing)
         screen_timepoint = exam_dict["screen_timepoint"] 
         bad_label = not self.check_label(pt_metadata, screen_timepoint)
