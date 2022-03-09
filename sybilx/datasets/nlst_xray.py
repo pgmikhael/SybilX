@@ -304,7 +304,9 @@ class NLST_XRay_Dataset(data.Dataset):
             [pt_metadata[key][0] == 1 for key in pt_metadata if key.startswith("fam")]
         )
         
-        assert pt_metadata["gender"] in [-1, 1, 2], "unrecognized gender"
+        if not pt_metadata["gender"][0] in [-1, 1, 2]:
+            print(pt_metadata["gender"])
+        # assert pt_metadata["gender"] in [-1, 1, 2], "unrecognized gender"
 
         risk_factors = {
             "age": current_age,
