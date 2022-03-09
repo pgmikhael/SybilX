@@ -89,7 +89,7 @@ class DicomTransformLoader(abstract_loader):
         except Exception:
             raise Exception(LOADING_ERROR.format("COULD NOT LOAD DICOM."))
 
-        return {"input": min_max_pixel_array}
+        return {"input": min_max_pixel_array, "mask": None}
 
     def transform_image(self, pixel_array):
         min_val = np.min(pixel_array)
@@ -116,7 +116,7 @@ class CVTransformLoader(DicomTransformLoader):
         img = cv2.imread(path, 0)
         min_max_pixel_array = self.transform_image(img)
 
-        return {"input": min_max_pixel_array}
+        return {"input": min_max_pixel_array, "mask": None}
 
 
 @register_object("dicom_loader", "input_loader")
