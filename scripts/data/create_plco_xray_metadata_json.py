@@ -93,6 +93,7 @@ if __name__ == "__main__":
 
         else:
             pid2idx[pid] = len(json_dataset)
+            peid2idx[peid] = 0
 
             patient_metadata = id_to_metadata_map[pid]
 
