@@ -367,7 +367,11 @@ class NLST_XRay_Dataset(data.Dataset):
             item = {}
             input_dict = self.get_image(sample["path"], sample)
 
-            x, mask = input_dict["input"], input_dict["mask"]
+            try:
+                x, mask = input_dict["input"], input_dict["mask"]
+            except KeyError:
+                x = input_dict["input"]
+                mask = None
 
             if self.args.use_risk_factors:
                 item["risk_factors"] = sample["risk_factors"]
