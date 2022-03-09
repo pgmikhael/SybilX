@@ -459,43 +459,11 @@ class NLSTCTLocalizers(data.Dataset):
             item = {}
             input_dict = self.get_image(sample["path"], sample)
 
-            x, mask = input_dict["input"], input_dict["mask"]
-            # if self.args.use_all_images:
-            #     c, n, h, w = x.shape
-            #     x = torch.nn.functional.interpolate(
-            #         x.unsqueeze(0), (self._num_images, h, w), align_corners=True
-            #     )[0]
-            #     if mask is not None:
-            #         mask = torch.nn.functional.interpolate(
-            #             mask.unsqueeze(0), (self._num_images, h, w), align_corners=True
-            #         )[0]
-
-            # if self.args.use_annotations:
-            #     # item['mask'] = mask
-            #     # mask = item.pop('mask')
-            #     mask = torch.abs(mask)
-            #     mask_area = mask.sum(dim=(-1, -2)).unsqueeze(-1).unsqueeze(-1)
-            #     mask_area[mask_area == 0] = 1
-            #     mask = mask / mask_area
-            #     item["image_annotations"] = mask
-            #     if self.args.use_all_images:
-            #         t = torch.from_numpy(sample["annotation_areas"])
-            #         item["annotation_areas"] = F.interpolate(
-            #             t[None, None],
-            #             (self._num_images),
-            #             mode="linear",
-            #             align_corners=True,
-            #         )[0, 0]
-            #         t = torch.from_numpy(sample["volume_annotations"]).float()
-            #         item["volume_annotations"] = F.interpolate(
-            #             t[None, None],
-            #             (self._num_images),
-            #             mode="linear",
-            #             align_corners=True,
-            #         )[0, 0]
-            #     else:
-            #         item["annotation_areas"] = sample["annotation_areas"]
-            #         item["volume_annotations"] = sample["volume_annotations"]
+            try:
+                x, mask = input_dict["input"], input_dict["mask"]
+            except KeyError:
+                x = input_dict["input"]
+                mask = None
 
             if self.args.use_risk_factors:
                 item["risk_factors"] = sample["risk_factors"]
