@@ -10,7 +10,7 @@ class AlignmentMLP(nn.Module):
         self.args = args
 
         # calculate input size based on chosn layers (default: just 'hidden')
-        discrim_input_size = 512 
+        discrim_input_size = 512 + args.num_classes if args.adv_conditional else 512
 
         # init discriminator
         self.model = nn.Sequential(
@@ -25,7 +25,8 @@ class AlignmentMLP(nn.Module):
 
     def forward(self, model_output, batch=None):
         # concatenate hiddens of chosen layers
-        hiddens = model_output['hidden']
+        label_logit = model_output['logit'].detach()
+        hiddens = torch.cat([model_output['hidden'],label_logit],dim=-1) if self.args.adv_conditional else model_output['hidden'] 
         # pass hiddens through mlp
         output = {
             'logit': self.model(hiddens)

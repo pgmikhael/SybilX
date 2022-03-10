@@ -5,6 +5,8 @@ import pwd
 from pytorch_lightning import Trainer
 import itertools
 from sybilx.utils.registry import md5
+import json
+import copy 
 
 EMPTY_NAME_ERR = 'Name of augmentation or one of its arguments cant be empty\n\
                   Use "name/arg1=value/arg2=value" format'
@@ -90,7 +92,7 @@ def prepare_training_config_for_eval(train_config):
     experiments, flags, experiment_axies = parse_dispatcher_config(eval_args)
 
     for (idx, e), s in zip(enumerate(experiments), stem_names):
-        experiments[idx] += " --checkpointed_path {}".format(
+        experiments[idx] += " --snapshot {}".format(
             os.path.join(train_config["log_dir"], "{}.args".format(s))
         )
 
@@ -526,6 +528,12 @@ def parse_args(args_strings=None):
         type=int,
         default=2,
         help="Number of classes for adversary",
+    )
+    parser.add_argument(
+        "--adv_conditional",
+        action='store_true',
+        default=False,
+        help="Adversarial learning conditioned on output of interest",
     )
 
     # schedule
