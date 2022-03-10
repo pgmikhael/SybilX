@@ -9,10 +9,10 @@ from sybilx.utils.registry import register_object
 
 DEVICE_ID = {
     "GE MEDICAL SYSTEMS": 0,
-    "TOSHIBA": 1,
-    "Philips": 2,
-    "SIEMENS": 3,
-    "Siemens Healthcare": 3,  # note: same id as SIEMENS
+    "Philips": 1,
+    "SIEMENS": 2,
+    "Siemens Healthcare": 2,  # note: same id as SIEMENS
+    "TOSHIBA": 3,
     "Vital Images, Inc.": 4,
     "Hitachi Medical Corporation": 5,
     "LightSpeed16": 6,
