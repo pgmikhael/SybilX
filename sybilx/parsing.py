@@ -384,12 +384,6 @@ def parse_args(args_strings=None):
         help="Target pixel spacing [x,y,z] in mm when resampling.",
     )
     parser.add_argument(
-        "--use_all_images",
-        action="store_true",
-        default=False,
-        help="Whether to use all slices as input. In which case, the num_images arg is used to interpolate volumes to constant depth",
-    )
-    parser.add_argument(
         "--num_images",
         type=int,
         default=200,

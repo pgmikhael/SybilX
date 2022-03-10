@@ -116,7 +116,7 @@ class MGH_Dataset(NLST_Survival_Dataset):
                         ),
                     }
 
-                    if not self.args.use_all_images:
+                    if not self.args.resample_pixel_spacing:
                         sample["paths"] = fit_to_length(
                             sorted_img_paths, self.args.num_images
                         )
@@ -406,7 +406,7 @@ class MGH_Screening(NLST_Survival_Dataset):
             ),
         }
 
-        if not self.args.use_all_images:
+        if not self.args.resample_pixel_spacing:
             sample["paths"] = fit_to_length(sorted_img_paths, self.args.num_images)
             sample["slice_locations"] = fit_to_length(
                 sorted_slice_locs, self.args.num_images, "<PAD>"
