@@ -65,6 +65,7 @@
             true
         ],
         "snapshot": [
+		"/Mounts/rbg-storage1/logs/lung_ct/02e70a6a25b472fe65e92b891c735c9e.args",
             "/Mounts/rbg-storage1/snapshots/lung_ct/36b8fed8790d236fa384e815f632f385/last.ckpt"
         ],
 	"swa_epoch": [
