@@ -109,6 +109,11 @@ class MGH_Dataset(NLST_Survival_Dataset):
                         ),  # has to be int, while cancer_location has to be float
                         "num_original_slices": len(series_dict["paths"]),
                         "annotations": [],
+                        "pixel_spacing": self.get_pixel_spacing(
+                            sorted_img_paths[0]
+                            .replace("pngs", "Data082021")
+                            .replace(".png", ".dcm")
+                        ),
                     }
 
                     if not self.args.use_all_images:
@@ -394,6 +399,11 @@ class MGH_Screening(NLST_Survival_Dataset):
             "laterality1": exam_dict["Laterality"],
             "laterality2": exam_dict["Laterality.1"],
             "icdo3": exam_dict["Histo/Behavior ICD-O-3"],
+            "pixel_spacing": self.get_pixel_spacing(
+                sorted_img_paths[0]
+                .replace("screening_pngs", "Data122021")
+                .replace(".png", ".dcm")
+            ),
         }
 
         if not self.args.use_all_images:
@@ -417,9 +427,13 @@ class MGH_Screening(NLST_Survival_Dataset):
 
         is_cancer_cohort = exam_dict["Future_cancer"].lower().strip() == "yes"
         days_to_cancer = exam_dict["days_before_cancer_dx"]
-        
+
         y = False
-        if is_cancer_cohort and (not np.isnan(days_to_cancer)) and (days_to_cancer > -1):
+        if (
+            is_cancer_cohort
+            and (not np.isnan(days_to_cancer))
+            and (days_to_cancer > -1)
+        ):
             years_to_cancer = int(days_to_cancer // 365)
             y = years_to_cancer < self.args.max_followup
 
@@ -430,7 +444,9 @@ class MGH_Screening(NLST_Survival_Dataset):
             y_seq[years_to_cancer:] = 1
         else:
             if is_cancer_cohort:
-                assert (days_to_cancer < 0) or (years_to_cancer >= self.args.max_followup)
+                assert (days_to_cancer < 0) or (
+                    years_to_cancer >= self.args.max_followup
+                )
                 time_at_event = self.args.max_followup - 1
             else:
                 days_from_init_to_last_neg_fup = max(
@@ -446,7 +462,9 @@ class MGH_Screening(NLST_Survival_Dataset):
                 days_to_last_neg_followup = (
                     days_from_init_to_last_neg_fup - days_since_init
                 )
-                assert days_to_last_neg_followup > -1, "Days to last negative followup is < 0"
+                assert (
+                    days_to_last_neg_followup > -1
+                ), "Days to last negative followup is < 0"
                 years_to_last_neg_followup = days_to_last_neg_followup // 365
                 time_at_event = min(
                     years_to_last_neg_followup, self.args.max_followup - 1

@@ -369,6 +369,20 @@ def parse_args(args_strings=None):
     )
 
     # handling CT slices
+
+    parser.add_argument(
+        "--resample_pixel_spacing",
+        action="store_true",
+        default=False,
+        help="Whether to resample pixel spacing into fixed dimensions",
+    )
+    parser.add_argument(
+        "--ct_pixel_spacing",
+        type=float,
+        nargs=3,
+        default=[1, 1, 1],
+        help="Target pixel spacing [x,y,z] in mm when resampling.",
+    )
     parser.add_argument(
         "--use_all_images",
         action="store_true",
@@ -567,8 +581,18 @@ def parse_args(args_strings=None):
         help="Name of metric to use to decide when to save model",
     )
 
-    parser.add_argument('--checkpoint_save_top_k', type = int, default = 1, help = "the best k models according to the quantity monitored will be saved")
-    parser.add_argument('--checkpoint_save_last', action = 'store_true', default = False, help = "save the last model to last.ckpt")
+    parser.add_argument(
+        "--checkpoint_save_top_k",
+        type=int,
+        default=1,
+        help="the best k models according to the quantity monitored will be saved",
+    )
+    parser.add_argument(
+        "--checkpoint_save_last",
+        action="store_true",
+        default=False,
+        help="save the last model to last.ckpt",
+    )
 
     # stochastic weight averaging
     parser.add_argument(

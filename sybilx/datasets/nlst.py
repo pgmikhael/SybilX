@@ -20,6 +20,9 @@ from sybilx.datasets.utils import (
 )
 from sybilx.utils.registry import register_object
 from sybilx.datasets.nlst_risk_factors import NLSTRiskFactorVectorizer
+import pydicom
+import torch.io as tio
+
 
 GOOGLE_SPLITS_FILENAME = (
     "/Mounts/rbg-storage1/datasets/NLST/Shetty_et_al(Google)/data_splits.p"
@@ -84,6 +87,10 @@ class NLST_Survival_Dataset(data.Dataset):
             raise Exception(METAFILE_NOTFOUND_ERR.format(args.dataset_file_path, e))
 
         self.input_loader = get_sample_loader(split_group, args)
+        if args.resample_pixel_spacing:
+            self.resample_transform = tio.transforms.Resample(
+                target=tuple(args.ct_pixel_spacing)
+            )
 
         if self.args.region_annotations_filepath:
             self.annotations_metadata = json.load(
@@ -299,6 +306,11 @@ class NLST_Survival_Dataset(data.Dataset):
             "institution": pt_metadata["cen"][0],
             "cancer_laterality": self.get_cancer_side(pt_metadata),
             "num_original_slices": len(series_dict["paths"]),
+            "pixel_spacing": self.get_pixel_spacing(
+                sorted_img_paths[0]
+                .replace("nlst-ct-png", "nlst-ct")
+                .replace(".png", "")
+            ),
         }
 
         if self.args.use_risk_factors:
@@ -355,6 +367,21 @@ class NLST_Survival_Dataset(data.Dataset):
             or ("TOP" in series_dict["imagetype"][0])
         )
         return is_localizer
+
+    def get_pixel_spacing(self, dcm_path):
+        """Get slice thickness and row/col spacing
+
+        Args:
+            path (str): path to sample png file in the series
+
+        Returns:
+            pixel spacing: [thickness, spacing[0], spacing[1]]
+                thickness (float): CT slice thickness
+                spacing (list): spacing along x and y axes
+        """
+        dcm = pydicom.dcmread(dcm_path, stop_before_pixels=True)
+        spacing = [float(d) for d in dcm.PixelSpacing] + [float(dcm.SliceThickness)]
+        return spacing
 
     def get_cancer_side(self, pt_metadata):
         """
@@ -617,10 +644,26 @@ class NLST_Survival_Dataset(data.Dataset):
         images = [i["input"] for i in input_dicts]
         masks = [i["mask"] for i in input_dicts]
 
-        out_dict["input"] = self.reshape_images(images)
-        out_dict["mask"] = (
-            self.reshape_images(masks) if self.args.use_annotations else None
-        )
+        input_arr = self.reshape_images(images)
+        mask_arr = self.reshape_images(masks) if self.args.use_annotations else None
+
+        # resample pixel spacing
+        if self.args.resample_pixel_spacing:
+            input_arr = tio.ScalarImage(
+                affine=torch.diag(sample["pixel_spacing"] + [1]),
+                tensor=input_arr.permute(0, 2, 3, 1),
+            )
+            input_arr = self.resample_transform(input_arr)
+
+            if self.args.use_annotations:
+                mask_arr = tio.ScalarImage(
+                    affine=torch.diag(sample["pixel_spacing"] + [1]),
+                    tensor=mask_arr.permute(0, 2, 3, 1),
+                )
+                mask_arr = self.resample_transform(mask_arr)
+
+        out_dict["input"] = input_arr.data.permute(0, 3, 1, 2)
+        out_dict["mask"] = mask_arr.data.permute(0, 3, 1, 2)
 
         return out_dict
 
