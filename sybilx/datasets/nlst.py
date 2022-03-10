@@ -21,7 +21,7 @@ from sybilx.datasets.utils import (
 from sybilx.utils.registry import register_object
 from sybilx.datasets.nlst_risk_factors import NLSTRiskFactorVectorizer
 import pydicom
-import torch.io as tio
+import torchio as tio
 
 
 GOOGLE_SPLITS_FILENAME = (
@@ -220,7 +220,7 @@ class NLST_Survival_Dataset(data.Dataset):
         # check if restricting to specific slice thicknesses
         slice_thickness = series_data["reconthickness"][0]
         wrong_thickness = (self.args.slice_thickness_filter is not None) and (
-            slice_thickness not in self.args.slice_thickness_filter
+            slice_thickness > self.args.slice_thickness_filter
         )
 
         # check if valid label (info is not missing)
@@ -306,11 +306,7 @@ class NLST_Survival_Dataset(data.Dataset):
             "institution": pt_metadata["cen"][0],
             "cancer_laterality": self.get_cancer_side(pt_metadata),
             "num_original_slices": len(series_dict["paths"]),
-            "pixel_spacing": self.get_pixel_spacing(
-                sorted_img_paths[0]
-                .replace("nlst-ct-png", "nlst-ct")
-                .replace(".png", "")
-            ),
+            "pixel_spacing": series_dict["pixel_spacing"] + [ series_dict["slice_thickness"]]
         }
 
         if self.args.use_risk_factors:
