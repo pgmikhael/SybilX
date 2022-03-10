@@ -111,6 +111,9 @@ class PLCO_XRay_Dataset(data.Dataset):
         """
         # self.risk_factor_vectorizer = NLSTRiskFactorVectorizer(self.args)
 
+        if self.args.split_type == 'cxr_lc':
+            CXR_LC_IMAGE_SPLITS = pickle.load(open(CXR_LC_IMAGE_SPLITS_FILENAME, "rb"))
+
         if self.args.assign_splits:
             np.random.seed(self.args.cross_val_seed)
             if self.args.split_type == 'cxr_lc':
@@ -136,7 +139,6 @@ class PLCO_XRay_Dataset(data.Dataset):
                 for series_dict in exam_dict["image_series"]:
                     filename = series_dict["filename"]
                     if self.args.split_type == 'cxr_lc':
-                        CXR_LC_IMAGE_SPLITS = pickle.load(open(CXR_LC_IMAGE_SPLITS_FILENAME, "rb"))
                         if self.skip_sample(series_dict, pt_metadata, exam_dict, split_group, CXR_LC_IMAGE_SPLITS):
                             continue
                     elif self.skip_sample(series_dict, pt_metadata, exam_dict, split_group):
