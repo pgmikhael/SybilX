@@ -57,6 +57,7 @@ class CTLoader(abstract_loader):
     def cached_extension(self):
         return ".png"
 
+
 @register_object("ct_16bit_loader", "input_loader")
 class CT16Loader(abstract_loader):
     def configure_path(self, path, sample):
@@ -88,6 +89,7 @@ class CT16Loader(abstract_loader):
     def cached_extension(self):
         return ".png"
 
+
 @register_object("dicom_loader", "input_loader")
 class DicomLoader(abstract_loader):
     def __init__(self, cache_path, augmentations, args):
@@ -110,6 +112,22 @@ class DicomLoader(abstract_loader):
     @property
     def cached_extension(self):
         return ""
+
+
+def transform_to_hu(self, dcm):
+    """Transform DICOM pixel array to Hounsfield units
+
+    Args:
+        dcm (pydicom Dataset): dcm object read with pydicom
+
+    Returns:
+        np.array: numpy array of the DICOM image in Hounsfield
+    """
+    intercept = dcm.RescaleIntercept
+    slope = dcm.RescaleSlope
+    hu_image = dcm.pixel_array * slope + intercept
+
+    return hu_image
 
 
 def apply_windowing(image, center, width, bit_size=16):
