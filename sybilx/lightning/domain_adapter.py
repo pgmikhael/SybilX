@@ -20,6 +20,7 @@ class DomainAdaptation(Base):
     def __init__(self, args):
         super().__init__(args)
         self.discriminator = AlignmentMLP(args)
+        self.reverse_discrim_loss = False
 
     def step(self, batch, batch_idx, optimizer_idx):
         logged_output = OrderedDict()
