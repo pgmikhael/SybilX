@@ -260,7 +260,7 @@ class Base(pl.LightningModule):
         return logging_dict
 
     def store_in_predictions(self, preds, storage_dict):
-        for m in ["sample_id"]:
+        for m in ["exam"]:
             if m in storage_dict:
                 preds[m] = storage_dict[m]
 
@@ -294,11 +294,11 @@ class Base(pl.LightningModule):
             if (self.args.from_checkpoint and not self.args.train)
             else self.args.experiment_name
         )
-        for idx, sampleid in enumerate(outputs["sample_id"]):
+        for idx, sampleid in enumerate(outputs["exam"]):
             sampledict = {
                 k: v[idx]
                 for k, v in outputs.items()
-                if (len(v) == len(outputs["sample_id"]))
+                if (len(v) == len(outputs["exam"]))
             }
             for k, v in sampledict.items():
                 if isinstance(v, torch.Tensor) and v.is_cuda:
@@ -323,7 +323,7 @@ class Base(pl.LightningModule):
             if (self.args.from_checkpoint and not self.args.train)
             else self.args.experiment_name
         )
-        idx = outputs["sample_id"]
+        idx = outputs["exam"]
         # hiddens = nn.functional.normalize(outputs['hidden'], dim = 1)
         hiddens = [
             {
@@ -341,7 +341,7 @@ class Base(pl.LightningModule):
 
     def log_image(self, model_output, batch):
         # log one sample from each epoch
-        sid = batch["sample_id"][0]
+        sid = batch["exam"][0]
         for k, v in model_output.items():
             if "reconstruction" in k:
                 img = model_output[k][0].detach().cpu()
