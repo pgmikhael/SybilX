@@ -585,7 +585,7 @@ class NLST_Survival_Dataset(data.Dataset):
                 mask_area = mask_area.unsqueeze(-1).unsqueeze(-1)
                 mask_area[mask_area == 0] = 1
                 item["image_annotations"] = mask / mask_area
-                item["has_annotation"] = np.sum(item["volume_annotations"]) > 0
+                item["has_annotation"] = item["volume_annotations"].sum() > 0
 
             if self.args.use_risk_factors:
                 item["risk_factors"] = sample["risk_factors"]
@@ -639,7 +639,7 @@ class NLST_Survival_Dataset(data.Dataset):
                     tensor=mask_arr.permute(0, 2, 3, 1),
                 )
                 mask_arr = self.resample_transform(mask_arr)
-                mask_arr = self.resample_transform(mask_arr.data)
+                mask_arr = self.padding_transform(mask_arr.data)
 
         out_dict["input"] = input_arr.data.permute(0, 3, 1, 2)
         out_dict["mask"] = mask_arr.data.permute(0, 3, 1, 2)
