@@ -625,8 +625,9 @@ class NLST_Survival_Dataset(data.Dataset):
 
         # resample pixel spacing
         if self.args.resample_pixel_spacing:
+            spacing = torch.tensor(sample["pixel_spacing"] + [1])
             input_arr = tio.ScalarImage(
-                affine=torch.diag(sample["pixel_spacing"] + [1]),
+                affine=torch.diag(spacing),
                 tensor=input_arr.permute(0, 2, 3, 1),
             )
             input_arr = self.resample_transform(input_arr)
@@ -634,7 +635,7 @@ class NLST_Survival_Dataset(data.Dataset):
 
             if self.args.use_annotations:
                 mask_arr = tio.ScalarImage(
-                    affine=torch.diag(sample["pixel_spacing"] + [1]),
+                    affine=torch.diag(spacing),
                     tensor=mask_arr.permute(0, 2, 3, 1),
                 )
                 mask_arr = self.resample_transform(mask_arr)
