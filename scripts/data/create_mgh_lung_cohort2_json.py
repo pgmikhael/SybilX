@@ -62,7 +62,7 @@ parser.add_argument(
 parser.add_argument(
     "--cohort1_path",
     type=str,
-    default="/Mounts/rbg-storage1/datasets/MGH_Lung_Fintelmann/mgh_metadata.json",
+    default="/Mounts/rbg-storage1/datasets/MGH_Lung_Fintelmann/mgh_lung_cancer_cohort1.json",
 )
 parser.add_argument(
     "--output_json_path",
@@ -72,7 +72,7 @@ parser.add_argument(
 parser.add_argument(
     "--metadata_csv_path",
     type=str,
-    default="/Mounts/rbg-storage1/datasets/MGH_Lung_Fintelmann/meta012022/MIT_LDCT_key_sheet_anonymized_updated_with_days_before_cancer_dx.csv",
+    default="/Mounts/rbg-storage1/datasets/MGH_Lung_Fintelmann/meta012022/MIT_LDCT_MGH_cohort2_03012022.csv",
 )
 parser.add_argument(
     "--png_path_replace_pattern",
@@ -164,11 +164,10 @@ if __name__ == "__main__":
             continue
 
         slice_location = float(row_dict["dicom_metadata"].get("SliceLocation", -1))
-        image_posn = float(
-            literal_eval(
+        image_posn = literal_eval(
                 row_dict["dicom_metadata"].get("ImagePositionPatient", "[-1]")
-            )[-1]
-        )
+                )
+        
 
         # match metadata by StudyInstanceUID
         exam_meta_rows = patient_metadata[
