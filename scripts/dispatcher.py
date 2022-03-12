@@ -111,7 +111,10 @@ if __name__ == "__main__":
         sys.exit(1)
     experiment_config = json.load(open(args.config_path, "r"))
 
-    experiments, flags, experiment_axies = parsing.parse_dispatcher_config(
+    if args.eval_train_config:
+        experiments, flags, experiment_axies = parsing.prepare_training_config_for_eval(experiment_config)
+    else:
+        experiments, flags, experiment_axies = parsing.parse_dispatcher_config(
         experiment_config
     )
 

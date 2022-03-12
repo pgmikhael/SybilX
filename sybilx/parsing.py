@@ -5,7 +5,8 @@ import pwd
 from pytorch_lightning import Trainer
 import itertools
 from sybilx.utils.registry import md5
-
+import json 
+import itertools, copy
 EMPTY_NAME_ERR = 'Name of augmentation or one of its arguments cant be empty\n\
                   Use "name/arg1=value/arg2=value" format'
 POSS_VAL_NOT_LIST = (
@@ -90,7 +91,7 @@ def prepare_training_config_for_eval(train_config):
     experiments, flags, experiment_axies = parse_dispatcher_config(eval_args)
 
     for (idx, e), s in zip(enumerate(experiments), stem_names):
-        experiments[idx] += " --checkpointed_path {}".format(
+        experiments[idx] += " --snapshot {}".format(
             os.path.join(train_config["log_dir"], "{}.args".format(s))
         )
 
