@@ -5,6 +5,8 @@ import pwd
 from pytorch_lightning import Trainer
 import itertools
 from sybilx.utils.registry import md5
+import json
+import copy
 
 EMPTY_NAME_ERR = 'Name of augmentation or one of its arguments cant be empty\n\
                   Use "name/arg1=value/arg2=value" format'
@@ -90,7 +92,7 @@ def prepare_training_config_for_eval(train_config):
     experiments, flags, experiment_axies = parse_dispatcher_config(eval_args)
 
     for (idx, e), s in zip(enumerate(experiments), stem_names):
-        experiments[idx] += " --checkpointed_path {}".format(
+        experiments[idx] += " --snapshot {}".format(
             os.path.join(train_config["log_dir"], "{}.args".format(s))
         )
 
@@ -567,8 +569,18 @@ def parse_args(args_strings=None):
         help="Name of metric to use to decide when to save model",
     )
 
-    parser.add_argument('--checkpoint_save_top_k', type = int, default = 1, help = "the best k models according to the quantity monitored will be saved")
-    parser.add_argument('--checkpoint_save_last', action = 'store_true', default = False, help = "save the last model to last.ckpt")
+    parser.add_argument(
+        "--checkpoint_save_top_k",
+        type=int,
+        default=1,
+        help="the best k models according to the quantity monitored will be saved",
+    )
+    parser.add_argument(
+        "--checkpoint_save_last",
+        action="store_true",
+        default=False,
+        help="save the last model to last.ckpt",
+    )
 
     # stochastic weight averaging
     parser.add_argument(
