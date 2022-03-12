@@ -45,24 +45,20 @@ class MGH_Dataset(NLST_Survival_Dataset):
             pid, split, exams = mrn_row["pid"], mrn_row["split"], mrn_row["accessions"]
             # pt_metadata missing
 
-            if not split == split_group:
-                continue
-
             for exam_dict in exams:
                 studyuid = exam_dict["StudyInstanceUID"]
                 bridge_uid = exam_dict["bridge_uid"]
-                diff_days = int(
+                days_to_last_exam = -int(
                     exam_dict["diff_days"]
                 )  # no. of days to the oldest exam (0 or a negative int)
-                days_since_start = -diff_days
 
-                exam_no = self.get_exam_no(diff_days, exams)
+                exam_no = self.get_exam_no(days_to_last_exam, exams)
 
                 y, y_seq, y_mask, time_at_event = self.get_label(exam_dict, exams)
 
                 for series_id, series_dict in exam_dict["image_series"].items():
 
-                    if self.skip_sample(series_dict, exam_dict):
+                    if self.skip_sample(series_dict, exam_dict, mrn_row, split_group):
                         continue
 
                     img_paths = series_dict["paths"]
@@ -92,7 +88,7 @@ class MGH_Dataset(NLST_Survival_Dataset):
                                 series_id.replace(".", "")[-5:],
                             )
                         ),  # last 5 of study id + last 5 of series id
-                        "exam_str": "{}_{}".format(bridge_uid, days_since_start),
+                        "exam_str": "{}_{}".format(bridge_uid, exam_no),
                         "accession": exam_no,
                         "study": studyuid,
                         "series": series_id,
@@ -142,7 +138,10 @@ class MGH_Dataset(NLST_Survival_Dataset):
 
         return dataset
 
-    def skip_sample(self, series_dict, exam_dict):
+    def skip_sample(self, series_dict, exam_dict, mrn_row, split):
+        if not mrn_row['split'] == split_group:
+            return True
+
         # check if screen is localizer screen or not enough images
         if self.is_localizer(series_dict["series_data"]):
             return True
@@ -169,16 +168,12 @@ class MGH_Dataset(NLST_Survival_Dataset):
 
     def get_exam_no(self, diff_days, exams):
         """Gets the index of the exam, compared to the other exams"""
-        sorted_days = sorted([exam["diff_days"] for exam in exams], reverse=True)
+        sorted_days = sorted([-exam["diff_days"] for exam in exams], reverse=True)
         return sorted_days.index(diff_days)
 
     def get_label(self, exam_dict, exams):
         is_cancer_cohort = exam_dict["cancer_cohort_yes_no"] == "yes"
-        diff_days = exam_dict["diff_days"]
-
-        days_since_start = -diff_days
-        days_to_last_exam_from_start = -min(exam["diff_days"] for exam in exams)
-        days_to_last_followup = int(days_to_last_exam_from_start - days_since_start)
+        days_to_last_followup = -exam_dict["diff_days"]
         years_to_last_followup = days_to_last_followup // 365
 
         y = 0
@@ -293,15 +288,12 @@ class MGH_Screening(NLST_Survival_Dataset):
         dataset = []
 
         for mrn_row in tqdm(self.metadata_json):
-            if mrn_row["in_cohort1"]:
-                continue
-
             pid, exams = mrn_row["pid"], mrn_row["accessions"]
 
             for exam_dict in exams:
 
                 for series_id, series_dict in exam_dict["image_series"].items():
-                    if self.skip_sample(series_dict, exam_dict):
+                    if self.skip_sample(series_dict, exam_dict, mrn_row):
                         continue
 
                     sample = self.get_volume_dict(
@@ -314,7 +306,10 @@ class MGH_Screening(NLST_Survival_Dataset):
 
         return dataset
 
-    def skip_sample(self, series_dict, exam_dict):
+    def skip_sample(self, series_dict, exam_dict, mrn_row):
+        if mrn_row["in_cohort1"]:
+            return True
+
         # unknown cancer status
         if exam_dict["Future_cancer"] == "unkown":
             return True
@@ -548,3 +543,54 @@ class MGH_Screening(NLST_Survival_Dataset):
         out_dict["mask"] = None
 
         return out_dict
+    
+@register_object("mgh_cohort2-1", "dataset")
+class MGH_ScreeningExclude1(MGH_Screening):
+    """
+    MGH Dataset Cohort 2 without patients in cohort 1
+    """
+    def skip_sample(self, series_dict, exam_dict, mrn_row):
+        if mrn_row["in_cohort1"]:
+            return True
+        return super().skip_sample(series_dict, exam_dict, mrn_row)
+
+@register_object("mgh_cohort_outpatient", "dataset")
+class MGH_Cohort1Outpatient(MGH_Dataset):
+    """
+    MGH Dataset Cohort 1 with outpatients only
+    """
+    def skip_sample(self, series_dict, exam_dict, mrn_row, split):
+        if exam_dict["cohort1_meta"]["patient_location"] != "Outpatient":
+            return True
+        return super().skip_sample(series_dict, exam_dict, mrn_row, split)
+
+@register_object("mgh_cohort1_eval", "dataset")
+class MGH_Cohort1Eval(MGH_Dataset):
+    """
+    MGH Dataset Cohort 1 with eval
+    """
+    def skip_sample(self, series_dict, exam_dict, mrn_row, split):
+        # check if screen is localizer screen or not enough images
+        if self.is_localizer(series_dict["series_data"]):
+            return True
+
+        slice_thickness = (
+            series_dict["series_data"]["SliceThickness"]
+            if series_dict["series_data"]["SliceThickness"] == ""
+            else float(series_dict["series_data"]["SliceThickness"])
+        )
+        # check if restricting to specific slice thicknesses
+        if (self.args.slice_thickness_filter is not None) and (
+            (slice_thickness not in self.args.slice_thickness_filter)
+            or (slice_thickness == "")
+        ):
+            return True
+
+        # remove where slice location doesn't change (different axis):
+        if len(set(series_dict["image_posn"])) < 2:
+            return True
+
+        if len(series_dict["paths"]) < self.args.min_num_images:
+            return True
+
+        return False
