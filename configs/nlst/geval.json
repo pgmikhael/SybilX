@@ -1,5 +1,5 @@
 {
-	"train_config": "configs/nlst/device_discrim.json",
+	"train_config": "configs/nlst/fixed_spacing.json",
 	"log_dir": "/Mounts/rbg-storage1/logs/lung_ct",
 	"eval_args": {
 		"save_predictions": [true],
