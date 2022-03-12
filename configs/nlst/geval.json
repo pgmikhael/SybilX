@@ -2,9 +2,9 @@
 	"train_config": "configs/nlst/device_discrim.json",
 	"log_dir": "/Mounts/rbg-storage1/logs/lung_ct",
 	"eval_args": {
-		"save_hiddens": [false],
+		"save_predictions": [true],
 		"hiddens_dir": ["/Mounts/rbg-storage1/results/lung_ct"]
 	},
-	"available_gpus": [0,1],
+	"available_gpus": [7],
 	"script": "main"
 }
