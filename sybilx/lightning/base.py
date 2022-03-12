@@ -55,7 +55,7 @@ class Base(pl.LightningModule):
             "mse",
             "mae",
             "r2",
-            "c_index"
+            "c_index",
         ]
 
     @property
@@ -77,7 +77,7 @@ class Base(pl.LightningModule):
                 keys_to_unlog.append(k)
         return keys_to_unlog
 
-    def step(self, batch, batch_idx):
+    def step(self, batch, batch_idx, optimizer_idx):
         """
         Defines a single training or validation step:
             Computes losses given batch and model outputs
@@ -135,20 +135,20 @@ class Base(pl.LightningModule):
             self.log_image(model_output, batch)
         return logged_output
 
-    def training_step(self, batch, batch_idx):
+    def training_step(self, batch, batch_idx, optimizer_idx=None):
         """
         Single training step
         """
         self.phase = "train"
-        output = self.step(batch, batch_idx)
+        output = self.step(batch, batch_idx, optimizer_idx)
         return output
 
-    def validation_step(self, batch, batch_idx):
+    def validation_step(self, batch, batch_idx, optimizer_idx=None):
         """
         Single validation step
         """
         self.phase = "val"
-        output = self.step(batch, batch_idx)
+        output = self.step(batch, batch_idx, optimizer_idx)
         return output
 
     def test_step(self, batch, batch_idx):
@@ -246,7 +246,7 @@ class Base(pl.LightningModule):
         total_loss = 0
         logging_dict, predictions = OrderedDict(), OrderedDict()
         for loss_fn in self.loss_fns[self.phase]:
-            loss, l_dict, p_dict = loss_fn(model_output, batch, self.model, self.args)
+            loss, l_dict, p_dict = loss_fn(model_output, batch, self, self.args)
             total_loss += loss
             logging_dict.update(l_dict)
             predictions.update(p_dict)
@@ -260,7 +260,7 @@ class Base(pl.LightningModule):
         return logging_dict
 
     def store_in_predictions(self, preds, storage_dict):
-        for m in ["sample_id"]:
+        for m in ["exam"]:
             if m in storage_dict:
                 preds[m] = storage_dict[m]
 
@@ -290,15 +290,15 @@ class Base(pl.LightningModule):
         * Requires outputs to contain the keys ['sample_id']
         """
         experiment_name = (
-            os.path.splitext(os.path.basename(self.args.checkpointed_path))[0]
+            os.path.splitext(os.path.basename(self.args.snapshot))[0]
             if (self.args.from_checkpoint and not self.args.train)
             else self.args.experiment_name
         )
-        for idx, sampleid in enumerate(outputs["sample_id"]):
+        for idx, sampleid in enumerate(outputs["exam"]):
             sampledict = {
                 k: v[idx]
                 for k, v in outputs.items()
-                if (len(v) == len(outputs["sample_id"]))
+                if (len(v) == len(outputs["exam"]))
             }
             for k, v in sampledict.items():
                 if isinstance(v, torch.Tensor) and v.is_cuda:
@@ -319,11 +319,11 @@ class Base(pl.LightningModule):
         * Requires outputs to contain the keys ['sample_id', 'hidden]
         """
         experiment_name = (
-            os.path.splitext(os.path.basename(self.args.checkpointed_path))[0]
+            os.path.splitext(os.path.basename(self.args.snapshot))[0]
             if (self.args.from_checkpoint and not self.args.train)
             else self.args.experiment_name
         )
-        idx = outputs["sample_id"]
+        idx = outputs["exam"]
         # hiddens = nn.functional.normalize(outputs['hidden'], dim = 1)
         hiddens = [
             {
@@ -341,7 +341,7 @@ class Base(pl.LightningModule):
 
     def log_image(self, model_output, batch):
         # log one sample from each epoch
-        sid = batch["sample_id"][0]
+        sid = batch["exam"][0]
         for k, v in model_output.items():
             if "reconstruction" in k:
                 img = model_output[k][0].detach().cpu()
@@ -373,6 +373,8 @@ def gather_step_outputs(outputs):
     """
 
     output_dict = OrderedDict()
+    if isinstance(outputs[-1], list): # adversarial setting with two optimizers
+        outputs = outputs[0]
 
     for k in outputs[-1].keys():
         if k == "preds_dict":
