@@ -105,7 +105,8 @@ class MGH_Dataset(NLST_Survival_Dataset):
                         ),  # has to be int, while cancer_location has to be float
                         "num_original_slices": len(series_dict["paths"]),
                         "annotations": [],
-                        "pixel_spacing": series_dict["pixel_spacing"] + [ series_dict["slice_thickness"] ]
+                        "pixel_spacing": series_dict["pixel_spacing"]
+                        + [series_dict["slice_thickness"]],
                     }
 
                     if not self.args.resample_pixel_spacing:
@@ -135,22 +136,22 @@ class MGH_Dataset(NLST_Survival_Dataset):
         return dataset
 
     def skip_sample(self, series_dict, exam_dict, mrn_row, split):
-        if not mrn_row['split'] == split_group:
+        if not mrn_row["split"] == split:
             return True
 
         # check if screen is localizer screen or not enough images
         if self.is_localizer(series_dict["series_data"]):
             return True
 
-        slice_thickness = (
-            series_dict["series_data"]["SliceThickness"]
-            if series_dict["series_data"]["SliceThickness"] in ["", None]
-            else float(series_dict["series_data"]["SliceThickness"])
-        )
+        slice_thickness = series_dict["slice_thickness"]
         # check if restricting to specific slice thicknesses
         if (self.args.slice_thickness_filter is not None) and (
-            (slice_thickness in ["", None]) or (slice_thickness > self.args.slice_thickness_filter)
+            (slice_thickness in ["", None])
+            or (slice_thickness > self.args.slice_thickness_filter)
         ):
+            return True
+
+        if series_dict["pixel_spacing"] is None:
             return True
 
         # remove where slice location doesn't change (different axis):
@@ -314,16 +315,15 @@ class MGH_Screening(NLST_Survival_Dataset):
         if self.is_localizer(series_dict["series_data"]):
             return True
 
+        slice_thickness = series_dict["slice_thickness"]
         # check if restricting to specific slice thicknesses
-        slice_thickness = (
-            series_dict["series_data"]["SliceThickness"]
-            if series_dict["series_data"]["SliceThickness"] in ["", None]
-            else float(series_dict["series_data"]["SliceThickness"])
-        )
-
         if (self.args.slice_thickness_filter is not None) and (
-            (slice_thickness in ["", None] ) or (slice_thickness > self.args.slice_thickness_filter)
+            (slice_thickness in ["", None])
+            or (slice_thickness > self.args.slice_thickness_filter)
         ):
+            return True
+
+        if series_dict["pixel_spacing"] is None:
             return True
 
         if len(series_dict["paths"]) < self.args.min_num_images:
@@ -388,7 +388,8 @@ class MGH_Screening(NLST_Survival_Dataset):
             "laterality1": exam_dict["Laterality"],
             "laterality2": exam_dict["Laterality.1"],
             "icdo3": exam_dict["Histo/Behavior ICD-O-3"],
-            "pixel_spacing": series_dict["pixel_spacing"] + [ series_dict["slice_thickness"] ]
+            "pixel_spacing": series_dict["pixel_spacing"]
+            + [series_dict["slice_thickness"]],
         }
 
         if not self.args.resample_pixel_spacing:
@@ -535,47 +536,52 @@ class MGH_Screening(NLST_Survival_Dataset):
         out_dict["mask"] = None
 
         return out_dict
-    
+
+
 @register_object("mgh_cohort2-1", "dataset")
 class MGH_ScreeningExclude1(MGH_Screening):
     """
     MGH Dataset Cohort 2 without patients in cohort 1
     """
+
     def skip_sample(self, series_dict, exam_dict, mrn_row):
         if mrn_row["in_cohort1"]:
             return True
         return super().skip_sample(series_dict, exam_dict, mrn_row)
+
 
 @register_object("mgh_cohort_outpatient", "dataset")
 class MGH_Cohort1Outpatient(MGH_Dataset):
     """
     MGH Dataset Cohort 1 with outpatients only
     """
+
     def skip_sample(self, series_dict, exam_dict, mrn_row, split):
         if exam_dict["cohort1_meta"]["patient_location"] != "Outpatient":
             return True
         return super().skip_sample(series_dict, exam_dict, mrn_row, split)
+
 
 @register_object("mgh_cohort1_eval", "dataset")
 class MGH_Cohort1Eval(MGH_Dataset):
     """
     MGH Dataset Cohort 1 with eval
     """
+
     def skip_sample(self, series_dict, exam_dict, mrn_row, split):
         # check if screen is localizer screen or not enough images
         if self.is_localizer(series_dict["series_data"]):
             return True
 
-        slice_thickness = (
-            series_dict["series_data"]["SliceThickness"]
-            if series_dict["series_data"]["SliceThickness"] in ["", None]
-            else float(series_dict["series_data"]["SliceThickness"])
-        )
+        slice_thickness = series_dict["slice_thickness"]
         # check if restricting to specific slice thicknesses
         if (self.args.slice_thickness_filter is not None) and (
-            (slice_thickness in ["", None]) or
-            (slice_thickness > self.args.slice_thickness_filter)
+            (slice_thickness in ["", None])
+            or (slice_thickness > self.args.slice_thickness_filter)
         ):
+            return True
+
+        if series_dict["pixel_spacing"] is None:
             return True
 
         # remove where slice location doesn't change (different axis):
