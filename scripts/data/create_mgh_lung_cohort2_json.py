@@ -6,7 +6,7 @@ from tqdm import tqdm
 import argparse
 import numpy as np
 import pandas as pd
-
+import ijson
 # import ijson
 import time
 from collections import defaultdict
@@ -38,47 +38,46 @@ SERIES_DICOMKEYS = [
 # keys to extract from the metadata csv
 # The following should possibly be move to the series_metakeys: download, IV_contrast, comment_AT
 EXAM_METAKEYS = [
-    "pn_patient_ID",
-    "pn_study",
-    "pn_study_desc",
-    "pn_studyuid",
-    "dicom_patient_ID",
-    "dicom_studyuid",
-    "studyuid_pn_dicom",
-    "seriesuid_pn_dicom",
-    "patient_ID",
-    "studyinstance_uid",
-    "c_patient_ID_pn_dicom",
-    "c_studyuid_pn_dicom",
-    "c_patient_ID_pn_keys",
-    "c_studyuid_pn_keys",
-    "c_patient_ID_dicom_keys",
-    "c_studyuid_dicom_keys",
-    "age_at_exam",
-    "sex",
-    "patient_location",
-    "pack_years",
+    "patient_ID", 
+    "bridge_uid", 
+    "patient_IDs used in cohort 1",
+    "LR Score",
+    "Smodifier",
+    "Lung RadsS Mod Findings",
+    "NonACRS Mod",
+    "Lung RadsS Mod Mass",
+    "Other Interstitial Lung Disease",  
+    "Other Interstitial Lung Disease Specified",    
+    "exam Status",
+    "indication",   
+    "Smoking Status",   
+    "Year Since Last Smoked",
+    "Smoking Cessation Guidance Provided",
+    "Packs Years",
+    "gender",
+    "age at the exam",
+    "language",
     "race",
-    "smoking_status",
-    "cancer_cohort_yes_no",
-    "lung_rads",
-    "lung_cancer_screening",
-    "diff_days_exam_lung_cancer_diagnosis",
-    "exam_description",
-    "download",
-    "bridge_uid",
-    "diff_days",
-    "IV_contrast",
-    "comment_AT",
+    "marital_status",
+    "religion",
+    "exam Year",    
+    "procedurecode",
+    "proceduredesc",
+    "number of days after the oldest study of the patient",
+    "Study Description",
+    "Study Instance UID",   
+    "Future_cancer",
+    "days_before_cancer_dx",
+    "days_to_last_follow_up",   
+    "Age at Diagnosis",
+    "Date of Initial Diagnosis",
+    "Primary Site",
+    "Laterality",
+    "Histology/Behavior ICD-O-2",
+    "Vital Status"
 ]
 SERIES_METAKEYS = [
-    "pn_series",
-    "pn_slice",
-    "pn_seriesuid",
-    "dicom_seriesuid",
-    "seriesinstance_uid",
-    "c_seriesuid_pn_dicom",
-    "study_series",
+    "series downloaded"
 ]
 
 
@@ -108,20 +107,20 @@ parser = argparse.ArgumentParser()
 parser.add_argument(
     "--source_json_path",
     type=str,
-    default="/Mounts/rbg-storage1/datasets/MGH_Lung_Fintelmann/dicom_metadata.json",
+    default="/Mounts/rbg-storage1/datasets/MGH_Lung_Fintelmann/meta012022/mgh_screening_metadata.json",
 )
 parser.add_argument(
     "--output_json_path",
     type=str,
-    default="/Mounts/rbg-storage1/datasets/MGH_Lung_Fintelmann/mgh_lung_dataset_june21.json",
+    default="/Mounts/rbg-storage1/datasets/MGH_Lung_Fintelmann/mgh_lung_cancer_cohort2v2.json",
 )
 parser.add_argument(
     "--metadata_csv_path",
     type=str,
-    default="/Mounts/rbg-storage1/datasets/MGH_Lung_Fintelmann/key_footbridge_20210528",
+    default="/Mounts/rbg-storage1/datasets/MGH_Lung_Fintelmann/meta012022/MIT_LDCT_key_sheet_anonymized_update_with_days_before_cancer_dx_and_last_follow_up_v3.csv",
 )
 parser.add_argument(
-    "--png_path_replace_pattern", type=str, nargs=2, default=["dicoms", "pngs"]
+    "--png_path_replace_pattern", type=str, nargs=2, default=["MIT_Lung_Cancer_Screening", "screening_pngs"]
 )
 parser.add_argument("--error_json_path", type=str, default=None)
 
@@ -160,13 +159,13 @@ if __name__ == "__main__":
 
     patient_metadata = pd.read_csv(args.metadata_csv_path)
     # patient_metadata.fillna(-1, inplace = True)
-    study_instance_uids = set(patient_metadata.studyinstance_uid)
+    study_instance_uids = set(patient_metadata['Study Instance UID'] )
 
     # Source json, output of OncoData ..
     print("> loading json")
     start = time.time()
-    source_json = json.load(open(args.source_json_path, "r"))
-    # source_json = ijson.items(open(args.source_json_path, 'rb'), prefix='item') # streaming - slower, but skips initial wait which is better for debugging
+    #source_json = json.load(open(args.source_json_path, "r"))
+    source_json = ijson.items(open(args.source_json_path, 'rb'), prefix='item') # streaming - slower, but skips initial wait which is better for debugging
     print("Took", time.time() - start, "seconds")
 
     for row_dict in tqdm(
@@ -215,25 +214,11 @@ if __name__ == "__main__":
 
         # match metadata by StudyInstanceUID
         exam_meta_rows = patient_metadata[
-            patient_metadata["studyinstance_uid"] == study_instance_uid
+            patient_metadata["Study Instance UID"] == study_instance_uid
         ]
-        series_meta_rows = exam_meta_rows[
-            exam_meta_rows["seriesinstance_uid"] == series_id
-        ]
-        has_series_meta_row = len(series_meta_rows) > 0
-        if not has_series_meta_row:
-            log_error(
-                errors,
-                "No rows with given studyuid and seriesuid found in metadata CSV!",
-                studyuid=study_instance_uid,
-                seriesuid=series_id,
-                path=path,
-            )
-            continue
 
         # select specific columns
         exam_meta_rows = exam_meta_rows.loc[:, EXAM_METAKEYS]
-        series_meta_rows = series_meta_rows.loc[:, SERIES_METAKEYS]
         # TODO: Ensure that exam keys have the same values in all rows
 
         exam_dict = extract_from_dict(
@@ -247,10 +232,6 @@ if __name__ == "__main__":
         series_dict = extract_from_dict(
             row_dict["dicom_metadata"], SERIES_DICOMKEYS, replace_missing_with=-1
         )
-        if has_series_meta_row:
-            series_dict.update(
-                extract_from_series(series_meta_rows.iloc[0], SERIES_METAKEYS)
-            )
 
         img_series_dict = {
             "paths": [path],
