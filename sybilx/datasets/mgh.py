@@ -287,6 +287,11 @@ class MGH_Screening(NLST_Survival_Dataset):
         if exam_dict["Future_cancer"] == "unkown":
             return True
 
+        if (exam_dict["days_before_cancer_dx"] < 0) or (
+            exam_dict["days_to_last_follow_up"] < 0
+        ):
+            return True
+
         # check if screen is localizer screen or not enough images
         if self.is_localizer(series_dict["series_data"]):
             return True
@@ -318,6 +323,7 @@ class MGH_Screening(NLST_Survival_Dataset):
         ]
         slice_locations = series_dict["slice_location"]
         series_data = series_dict["series_data"]
+        pixel_spacing = series_dict["pixel_spacing"] + [series_dict["slice_thickness"]]
 
         sorted_img_paths, sorted_slice_locs = self.order_slices(
             img_paths, slice_locations
@@ -386,7 +392,6 @@ class MGH_Screening(NLST_Survival_Dataset):
         return sample
 
     def get_label(self, exam_dict, mrn_row):
-
         is_cancer_cohort = exam_dict["Future_cancer"].lower().strip() == "yes"
         days_to_cancer = exam_dict["days_before_cancer_dx"]
 
@@ -411,22 +416,7 @@ class MGH_Screening(NLST_Survival_Dataset):
                 )
                 time_at_event = self.args.max_followup - 1
             else:
-                days_from_init_to_last_neg_fup = max(
-                    [
-                        e["number of days after the oldest study of the patient"]
-                        for e in mrn_row["accessions"]
-                        if e["Future_cancer"].lower() == "no"
-                    ]
-                )
-                days_since_init = exam_dict[
-                    "number of days after the oldest study of the patient"
-                ]
-                days_to_last_neg_followup = (
-                    days_from_init_to_last_neg_fup - days_since_init
-                )
-                assert (
-                    days_to_last_neg_followup > -1
-                ), "Days to last negative followup is < 0"
+                days_to_last_neg_followup = exam_dict["days_to_last_follow_up"]
                 years_to_last_neg_followup = days_to_last_neg_followup // 365
                 time_at_event = min(
                     years_to_last_neg_followup, self.args.max_followup - 1
