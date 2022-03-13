@@ -105,11 +105,7 @@ class MGH_Dataset(NLST_Survival_Dataset):
                         ),  # has to be int, while cancer_location has to be float
                         "num_original_slices": len(series_dict["paths"]),
                         "annotations": [],
-                        "pixel_spacing": self.get_pixel_spacing(
-                            sorted_img_paths[0]
-                            .replace("pngs", "Data082021")
-                            .replace(".png", ".dcm")
-                        ),
+                        "pixel_spacing": series_dict["pixel_spacing"] + [ series_dict["slice_thickness"] ]
                     }
 
                     if not self.args.resample_pixel_spacing:
@@ -148,12 +144,12 @@ class MGH_Dataset(NLST_Survival_Dataset):
 
         slice_thickness = (
             series_dict["series_data"]["SliceThickness"]
-            if series_dict["series_data"]["SliceThickness"] == ""
+            if series_dict["series_data"]["SliceThickness"] in ["", None]
             else float(series_dict["series_data"]["SliceThickness"])
         )
         # check if restricting to specific slice thicknesses
         if (self.args.slice_thickness_filter is not None) and (
-            (slice_thickness == "") or (slice_thickness > self.args.slice_thickness_filter)
+            (slice_thickness in ["", None]) or (slice_thickness > self.args.slice_thickness_filter)
         ):
             return True
 
@@ -321,12 +317,12 @@ class MGH_Screening(NLST_Survival_Dataset):
         # check if restricting to specific slice thicknesses
         slice_thickness = (
             series_dict["series_data"]["SliceThickness"]
-            if series_dict["series_data"]["SliceThickness"] == ""
+            if series_dict["series_data"]["SliceThickness"] in ["", None]
             else float(series_dict["series_data"]["SliceThickness"])
         )
 
         if (self.args.slice_thickness_filter is not None) and (
-            (slice_thickness == "") or (slice_thickness > self.args.slice_thickness_filter)
+            (slice_thickness in ["", None] ) or (slice_thickness > self.args.slice_thickness_filter)
         ):
             return True
 
@@ -392,11 +388,7 @@ class MGH_Screening(NLST_Survival_Dataset):
             "laterality1": exam_dict["Laterality"],
             "laterality2": exam_dict["Laterality.1"],
             "icdo3": exam_dict["Histo/Behavior ICD-O-3"],
-            "pixel_spacing": self.get_pixel_spacing(
-                sorted_img_paths[0]
-                .replace("screening_pngs", "Data122021")
-                .replace(".png", ".dcm")
-            ),
+            "pixel_spacing": series_dict["pixel_spacing"] + [ series_dict["slice_thickness"] ]
         }
 
         if not self.args.resample_pixel_spacing:
@@ -576,13 +568,13 @@ class MGH_Cohort1Eval(MGH_Dataset):
 
         slice_thickness = (
             series_dict["series_data"]["SliceThickness"]
-            if series_dict["series_data"]["SliceThickness"] == ""
+            if series_dict["series_data"]["SliceThickness"] in ["", None]
             else float(series_dict["series_data"]["SliceThickness"])
         )
         # check if restricting to specific slice thicknesses
         if (self.args.slice_thickness_filter is not None) and (
-            (slice_thickness not in self.args.slice_thickness_filter)
-            or (slice_thickness == "")
+            (slice_thickness in ["", None]) or
+            (slice_thickness > self.args.slice_thickness_filter)
         ):
             return True
 
