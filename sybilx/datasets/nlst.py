@@ -573,10 +573,10 @@ class NLST_Survival_Dataset(data.Dataset):
             item = {}
             input_dict = self.get_images(sample["paths"], sample)
 
-            x, mask = input_dict["input"], input_dict["mask"]
+            x = input_dict["input"]
 
             if self.args.use_annotations:
-                mask = torch.abs(mask)
+                mask = torch.abs(input_dict["mask"])
                 mask_area = mask.sum(dim=(-1, -2))
                 item["volume_annotations"] = mask_area[0] / max(1, mask_area.sum())
                 item["annotation_areas"] = mask_area[0] / (
@@ -614,15 +614,16 @@ class NLST_Survival_Dataset(data.Dataset):
         s = copy.deepcopy(sample)
         input_dicts = []
         for e, path in enumerate(paths):
-            s["annotations"] = sample["annotations"][e]
+            if self.args.use_annotations:
+                s["annotations"] = sample["annotations"][e]
             input_dicts.append(self.input_loader.get_image(path, s))
 
         images = [i["input"] for i in input_dicts]
-        masks = [i["mask"] for i in input_dicts]
-
         input_arr = self.reshape_images(images)
-        mask_arr = self.reshape_images(masks) if self.args.use_annotations else None
-
+        if self.args.use_annotations:
+            masks = [i["mask"] for i in input_dicts]
+            mask_arr = self.reshape_images(masks) if self.args.use_annotations else None
+        
         # resample pixel spacing
         if self.args.resample_pixel_spacing:
             spacing = torch.tensor(sample["pixel_spacing"] + [1])
@@ -642,7 +643,8 @@ class NLST_Survival_Dataset(data.Dataset):
                 mask_arr = self.padding_transform(mask_arr.data)
 
         out_dict["input"] = input_arr.data.permute(0, 3, 1, 2)
-        out_dict["mask"] = mask_arr.data.permute(0, 3, 1, 2)
+        if self.args.use_annotations:
+            out_dict["mask"] = mask_arr.data.permute(0, 3, 1, 2)
 
         return out_dict
 
