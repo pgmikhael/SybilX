@@ -110,10 +110,10 @@ if __name__ == "__main__":
     # Source json, output of OncoData ..
     print("> loading json")
     start = time.time()
-    # source_json = json.load(open(args.source_json_path, "r"))
-    source_json = ijson.items(
-        open(args.source_json_path, "rb"), prefix="item"
-    )  # streaming - slower, but skips initial wait which is better for debugging
+    source_json = json.load(open(args.source_json_path, "r"))
+    #source_json = ijson.items(
+    #    open(args.source_json_path, "rb"), prefix="item"
+    #)  # streaming - slower, but skips initial wait which is better for debugging
     print("Took", time.time() - start, "seconds")
 
     for row_dict in tqdm(
@@ -154,19 +154,16 @@ if __name__ == "__main__":
             continue
 
         slice_location = float(row_dict["dicom_metadata"].get("SliceLocation", -1))
-        image_posn = [
-            float(d) for d in row_dict["dicom_metadata"]["ImagePositionPatient"]
-        ]
 
         # match metadata by StudyInstanceUID
         exam_meta_rows = patient_metadata[
             patient_metadata["Study Instance UID"] == study_instance_uid
         ]
-        exam_meta_rows = exam_meta_rows.to_dict()
 
         exam_dict = extract_from_dict(
             row_dict["dicom_metadata"], EXAM_DICOMKEYS, replace_missing_with=-1
         )
+        exam_dict.update( exam_meta_rows.to_dict('records')[0] )
 
         pid = exam_dict["bridge_uid"]
 
@@ -178,7 +175,6 @@ if __name__ == "__main__":
         img_series_dict = {
             "paths": [path],
             "slice_location": [slice_location],
-            "image_posn": [image_posn],
             "series_data": series_dict
             #'slice_number': # filled in by post-processing step
         }
@@ -187,7 +183,7 @@ if __name__ == "__main__":
             # if we have already inserted an exam for a patient
             pt_idx = pid_list.index(pid)
             existing_exams = [
-                exam["studyinstance_uid"] for exam in json_dataset[pt_idx]["accessions"]
+                exam['StudyInstanceUID'] for exam in json_dataset[pt_idx]["accessions"]
             ]
             # check if the exam for the current image already exists in the data
             if study_instance_uid in existing_exams:
@@ -213,9 +209,6 @@ if __name__ == "__main__":
                     json_dataset[pt_idx]["accessions"][exam_idx]["image_series"][
                         series_id
                     ]["slice_location"].append(slice_location)
-                    json_dataset[pt_idx]["accessions"][exam_idx]["image_series"][
-                        series_id
-                    ]["image_posn"].append(image_posn)
             else:
                 # if the exam doesn't exists, create a new one
                 exam_dict["image_series"] = {series_id: img_series_dict}
@@ -233,22 +226,6 @@ if __name__ == "__main__":
             json_dataset.append(pt_dict)
             pid_list.append(pid)
 
-    for pt_idx, pt_dict in tqdm(enumerate(json_dataset), desc="Post-Processing"):
-        cancer_cohort_yes_no = []
-        diff_days = []
-        diff_days_diagnosis = []
-        for exam_idx, exam_dict in enumerate(pt_dict["accessions"]):
-            for series_id in json_dataset[pt_idx]["accessions"][exam_idx][
-                "image_series"
-            ].keys():
-                # calculate slice numbering
-                slice_locations = json_dataset[pt_idx]["accessions"][exam_idx][
-                    "image_series"
-                ][series_id]["slice_location"]
-                # TODO: should maybe be sorted in reverse direction instead
-                json_dataset[pt_idx]["accessions"][exam_idx]["image_series"][series_id][
-                    "slice_number"
-                ] = np.argsort(slice_locations).tolist()
 
     json.dump(json_dataset, open(args.output_json_path, "w"))
     print("Saved output json to ", args.output_json_path)
