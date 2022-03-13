@@ -7,18 +7,12 @@ import argparse
 import numpy as np
 import pandas as pd
 import ijson
+
 # import ijson
 import time
 from collections import defaultdict
 from ast import literal_eval
 
-"""
-Script to create MGH Lung dataset json.
-
-python scripts/dicom_to_png/dicom_to_png.py --dicom_dir /Mounts/rbg-storage1/datasets/MGH_Lung_Fintelmann/dicoms/ --png_dir /Mounts/rbg-storage1/datasets/MGH_Lung_Fintelmann/pngs/ --dcmtk --dicom_types generic --window
-
-python scripts/dicom_metadata/dicom_metadata_to_json.py --directory /Mounts/rbg-storage1/datasets/MGH_Lung_Fintelmann/dicoms --results_path /Mounts/rbg-storage1/datasets/MGH_Lung_Fintelmann/dicom_metadata.json
-"""
 
 SPLIT_PROBS = [0.7, 0.15, 0.15]
 
@@ -33,51 +27,6 @@ SERIES_DICOMKEYS = [
     "SliceThickness",
     "ImageType",
     "PixelSpacing",
-]
-
-# keys to extract from the metadata csv
-# The following should possibly be move to the series_metakeys: download, IV_contrast, comment_AT
-EXAM_METAKEYS = [
-    "patient_ID", 
-    "bridge_uid", 
-    "patient_IDs used in cohort 1",
-    "LR Score",
-    "Smodifier",
-    "Lung RadsS Mod Findings",
-    "NonACRS Mod",
-    "Lung RadsS Mod Mass",
-    "Other Interstitial Lung Disease",  
-    "Other Interstitial Lung Disease Specified",    
-    "exam Status",
-    "indication",   
-    "Smoking Status",   
-    "Year Since Last Smoked",
-    "Smoking Cessation Guidance Provided",
-    "Packs Years",
-    "gender",
-    "age at the exam",
-    "language",
-    "race",
-    "marital_status",
-    "religion",
-    "exam Year",    
-    "procedurecode",
-    "proceduredesc",
-    "number of days after the oldest study of the patient",
-    "Study Description",
-    "Study Instance UID",   
-    "Future_cancer",
-    "days_before_cancer_dx",
-    "days_to_last_follow_up",   
-    "Age at Diagnosis",
-    "Date of Initial Diagnosis",
-    "Primary Site",
-    "Laterality",
-    "Histology/Behavior ICD-O-2",
-    "Vital Status"
-]
-SERIES_METAKEYS = [
-    "series downloaded"
 ]
 
 
@@ -120,7 +69,10 @@ parser.add_argument(
     default="/Mounts/rbg-storage1/datasets/MGH_Lung_Fintelmann/meta012022/MIT_LDCT_key_sheet_anonymized_update_with_days_before_cancer_dx_and_last_follow_up_v3.csv",
 )
 parser.add_argument(
-    "--png_path_replace_pattern", type=str, nargs=2, default=["MIT_Lung_Cancer_Screening", "screening_pngs"]
+    "--png_path_replace_pattern",
+    type=str,
+    nargs=2,
+    default=["MIT_Lung_Cancer_Screening", "screening_pngs"],
 )
 parser.add_argument("--error_json_path", type=str, default=None)
 
@@ -149,23 +101,19 @@ if __name__ == "__main__":
         args.png_path_replace_pattern[1],
     )
 
-    # Dataset json, create new or update existing
-    if os.path.exists(args.output_json_path):
-        json_dataset = json.load(open(args.output_json_path, "r"))
-        pid_list = [d["pid"] for d in json_dataset]
-    else:
-        json_dataset, pid_list = [], []
-    processed_len = len(pid_list)
+    json_dataset, pid_list = [], []
 
     patient_metadata = pd.read_csv(args.metadata_csv_path)
-    # patient_metadata.fillna(-1, inplace = True)
-    study_instance_uids = set(patient_metadata['Study Instance UID'] )
+    patient_metadata.fillna(-1, inplace=True)
+    study_instance_uids = set(patient_metadata["Study Instance UID"])
 
     # Source json, output of OncoData ..
     print("> loading json")
     start = time.time()
-    #source_json = json.load(open(args.source_json_path, "r"))
-    source_json = ijson.items(open(args.source_json_path, 'rb'), prefix='item') # streaming - slower, but skips initial wait which is better for debugging
+    # source_json = json.load(open(args.source_json_path, "r"))
+    source_json = ijson.items(
+        open(args.source_json_path, "rb"), prefix="item"
+    )  # streaming - slower, but skips initial wait which is better for debugging
     print("Took", time.time() - start, "seconds")
 
     for row_dict in tqdm(
@@ -206,25 +154,19 @@ if __name__ == "__main__":
             continue
 
         slice_location = float(row_dict["dicom_metadata"].get("SliceLocation", -1))
-        image_posn = float(
-            literal_eval(
-                row_dict["dicom_metadata"].get("ImagePositionPatient", "[-1]")
-            )[-1]
-        )
+        image_posn = [
+            float(d) for d in row_dict["dicom_metadata"]["ImagePositionPatient"]
+        ]
 
         # match metadata by StudyInstanceUID
         exam_meta_rows = patient_metadata[
             patient_metadata["Study Instance UID"] == study_instance_uid
         ]
-
-        # select specific columns
-        exam_meta_rows = exam_meta_rows.loc[:, EXAM_METAKEYS]
-        # TODO: Ensure that exam keys have the same values in all rows
+        exam_meta_rows = exam_meta_rows.to_dict()
 
         exam_dict = extract_from_dict(
             row_dict["dicom_metadata"], EXAM_DICOMKEYS, replace_missing_with=-1
         )
-        exam_dict.update(extract_from_series(exam_meta_rows.iloc[0], EXAM_METAKEYS))
 
         pid = exam_dict["bridge_uid"]
 
