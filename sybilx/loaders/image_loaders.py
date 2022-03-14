@@ -82,8 +82,15 @@ class DicomTransformLoader(abstract_loader):
     def load_input(self, path, sample):
         try:
             dcm = pydicom.dcmread(path)
-            min_max_pixel_array = self.transform_image(dcm.pixel_array)
-            if hasattr(dcm, 'PhotometricInterpretation') and 'MONOCHROME2' in dcm.PhotometricInterpretation:
+            pixel_array = apply_modality_lut(dcm.pixel_array, dcm)
+            # below should do the same as 'apply_modality_lut'
+            # if hasattr(dcm, 'RescaleSlope') and hasattr(dcm, 'RescaleIntercept'):
+            #     pixel_array = dcm.pixel_array * dcm.RescaleSlope + dcm.RescaleIntercept
+            # else:
+            #     pixel_array = dcm.pixel_array
+
+            min_max_pixel_array = self.transform_image(pixel_array)
+            if hasattr(dcm, 'PhotometricInterpretation') and not 'MONOCHROME2' in dcm.PhotometricInterpretation:
                 min_max_pixel_array = 255 - min_max_pixel_array
 
         except Exception:
@@ -102,6 +109,31 @@ class DicomTransformLoader(abstract_loader):
     @property
     def cached_extension(self):
         return ""
+
+# @register_object("dicom_tio_loader", "input_loader")
+# class DicomTorchIOLoader(abstract_loader):
+#     """
+#     Expects sample["paths"] 
+#     """
+#     def __init__(self, cache_path, augmentations, args):
+#         super(DicomTorchIOLoader, self).__init__(cache_path, augmentations, args)
+
+#     def configure_path(self, path, sample):
+#         return path
+
+#     def load_input(self, path, sample):
+#         try:
+            
+
+#         except Exception:
+#             raise Exception(LOADING_ERROR.format("COULD NOT LOAD DICOM."))
+
+#         return {"input": min_max_pixel_array, "mask": None}
+
+#     @property
+#     def cached_extension(self):
+#         return ""
+
 
 @register_object("cv_transform_loader", "input_loader")
 class CVTransformLoader(DicomTransformLoader):
