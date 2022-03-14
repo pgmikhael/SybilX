@@ -23,13 +23,18 @@ def get_survival_loss(model_output, batch, model, args):
     logging_dict, predictions = OrderedDict(), OrderedDict()
     logit = model_output["logit"]
     y_seq, y_mask = batch["y_seq"], batch["y_mask"]
-    loss = F.binary_cross_entropy_with_logits(
+    sur_loss = F.binary_cross_entropy_with_logits(
         logit, y_seq.float(), weight=y_mask.float(), reduction="sum"
     ) / torch.sum(y_mask.float())
-    logging_dict["survival_loss"] = loss.detach()
+    logging_dict["survival_loss"] = sur_loss.detach()
     predictions["probs"] = torch.sigmoid(logit).detach()
     predictions["golds"] = batch["y"]
     predictions["censors"] = batch["time_at_event"]
+    
+    celoss = F.cross_entropy(logit[:,-1], batch["y"].long())
+    logging_dict["cross_entropy_loss"] = celoss.detach()
+
+    loss = sur_loss + celoss
     return loss, logging_dict, predictions
 
 
