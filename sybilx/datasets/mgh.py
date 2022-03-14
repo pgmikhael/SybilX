@@ -296,7 +296,7 @@ class MGH_Screening(NLST_Survival_Dataset):
         if self.is_localizer(series_dict["series_data"]):
             return True
 
-        slice_thickness = series_dict["slice_thickness"]
+        slice_thickness = series_dict["SliceThickness"]
         # check if restricting to specific slice thicknesses
         if (self.args.slice_thickness_filter is not None) and (
             (slice_thickness in ["", None])
@@ -304,7 +304,7 @@ class MGH_Screening(NLST_Survival_Dataset):
         ):
             return True
 
-        if series_dict["pixel_spacing"] is None:
+        if series_dict["PixelSpacing"] is None:
             return True
 
         if len(series_dict["paths"]) < self.args.min_num_images:
@@ -323,8 +323,7 @@ class MGH_Screening(NLST_Survival_Dataset):
         ]
         slice_locations = series_dict["slice_location"]
         series_data = series_dict["series_data"]
-        pixel_spacing = series_dict["pixel_spacing"] + [series_dict["slice_thickness"]]
-
+        pixel_spacing = series_dict["PixelSpacing"] + [series_dict["SliceThickness"]]
         sorted_img_paths, sorted_slice_locs = self.order_slices(
             img_paths, slice_locations, reverse = True
         )
@@ -370,8 +369,7 @@ class MGH_Screening(NLST_Survival_Dataset):
             "laterality1": exam_dict["Laterality"],
             "laterality2": exam_dict["Laterality.1"],
             "icdo3": exam_dict["Histo/Behavior ICD-O-3"],
-            "pixel_spacing": series_dict["pixel_spacing"]
-            + [series_dict["slice_thickness"]],
+            "pixel_spacing": pixel_spacing
         }
 
         if not self.args.resample_pixel_spacing:
@@ -417,7 +415,7 @@ class MGH_Screening(NLST_Survival_Dataset):
                 time_at_event = self.args.max_followup - 1
             else:
                 days_to_last_neg_followup = exam_dict["days_to_last_follow_up"]
-                years_to_last_neg_followup = days_to_last_neg_followup // 365
+                years_to_last_neg_followup = int( days_to_last_neg_followup // 365 )
                 time_at_event = min(
                     years_to_last_neg_followup, self.args.max_followup - 1
                 )
