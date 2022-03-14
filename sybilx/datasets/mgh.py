@@ -326,7 +326,7 @@ class MGH_Screening(NLST_Survival_Dataset):
         pixel_spacing = series_dict["pixel_spacing"] + [series_dict["slice_thickness"]]
 
         sorted_img_paths, sorted_slice_locs = self.order_slices(
-            img_paths, slice_locations
+            img_paths, slice_locations, reverse = True
         )
 
         device = (

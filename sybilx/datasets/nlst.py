@@ -400,8 +400,10 @@ class NLST_Survival_Dataset(data.Dataset):
 
         return np.array([int(right), int(left), int(other)])
 
-    def order_slices(self, img_paths, slice_locations):
+    def order_slices(self, img_paths, slice_locations, reverse = False):
         sorted_ids = np.argsort(slice_locations)
+        if reverse:
+            sorted_ids = sorted_ids[::-1]
         sorted_img_paths = np.array(img_paths)[sorted_ids].tolist()
         sorted_slice_locs = np.sort(slice_locations).tolist()
 
