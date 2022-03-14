@@ -9,6 +9,7 @@ from collections import Counter
 import copy
 import torch
 import torch.nn.functional as F
+import cv2
 from torch.utils import data
 from sybilx.serie import Serie
 from sybilx.utils.loading import get_sample_loader
@@ -696,3 +697,61 @@ class NLST_Risk_Factor_Task(NLST_Survival_Dataset):
         return self.risk_factor_vectorizer.get_risk_factors_for_sample(
             pt_metadata, screen_timepoint
         )
+
+
+
+@register_object("nlst_ct_projections", "dataset")
+class NLSTCTProjectionsDataset(NLST_Survival_Dataset):
+    def __init__(self, args, split_group):
+        """
+        NLST CT Dataset with adapted get_images to project CT to 2D
+        """
+        super(NLST_Survival_Dataset, self).__init__(args, split_group)
+
+    def get_images(self, paths, sample):
+            """
+            Returns a stack of transformed images by their absolute paths.
+            If cache is used - transformed images will be loaded if available,
+            and saved to cache if not.
+            """
+            out_dict = {}
+            if self.args.fix_seed_for_multi_image_augmentations:
+                sample["seed"] = np.random.randint(0, 2**32 - 1)
+
+            # get images for multi image input
+            s = copy.deepcopy(sample)
+            input_dicts = []
+            for e, path in enumerate(paths):
+                s["annotations"] = sample["annotations"][e]
+                input_dicts.append(self.input_loader.get_image(path, s))
+
+            images = [i["input"] for i in input_dicts]
+            masks = [i["mask"] for i in input_dicts]
+
+            out_dict["input"] = self.project_ct(self.reshape_images(images))
+            out_dict["mask"] = (
+                self.project_ct(self.reshape_images(masks)) if self.args.use_annotations else None
+            )
+
+            return out_dict
+
+    def reshape_images(self, images):
+        if isinstance(images, np.ndarray):
+            images = [np.expand_dims(im, axis=0) for im in images]
+            images = np.concatenate(images, axis=0)
+            # Convert from (T, C, H, W) to (C, T, H, W)
+            images = images.transpose((1, 0, 2, 3))
+        elif torch.is_tensor(images):
+            images = [im.unsqueeze(0) for im in images]
+            images = torch.cat(images, dim=0)
+            # Convert from (T, C, H, W) to (C, T, H, W)
+            images = images.permute(1, 0, 2, 3)
+        return images
+
+    def project_ct(self, images):
+        """
+        Returns resized (to image dims in args), flipped and mean of images in the last dim
+        """
+        # axis of mean is height (H)
+        assert isinstance(images, np.ndarray), "expected a numpy array but got something else"
+        return torch.tensor(cv2.resize(np.flipud(np.mean(images, axis=2)), self.args.img_size))
