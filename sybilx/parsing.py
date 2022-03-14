@@ -91,10 +91,11 @@ def prepare_training_config_for_eval(train_config):
 
     experiments, flags, experiment_axies = parse_dispatcher_config(eval_args)
 
-    for (idx, e), s in zip(enumerate(experiments), stem_names):
-        experiments[idx] += " --snapshot {}".format(
-            os.path.join(train_config["log_dir"], "{}.args".format(s))
-        )
+    if "snapshot" not in eval_args["grid_search_space"]:
+        for (idx, e), s in zip(enumerate(experiments), stem_names):
+            experiments[idx] += " --snapshot {}".format(
+                os.path.join(train_config["log_dir"], "{}.args".format(s))
+            )
 
     return experiments, flags, experiment_axies
 
