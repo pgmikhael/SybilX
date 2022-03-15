@@ -131,7 +131,6 @@ class ChestXRayLungCancerAttn(nn.Module):
         image_hidden = self.image_encoder( x )
         #output["image_hidden"] = image_hidden
 
-        import pdb; pdb.set_trace()
         pool_output = self.pool(image_hidden)
         pool_output = self.custom_head(pool_output)
 

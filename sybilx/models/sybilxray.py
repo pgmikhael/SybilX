@@ -1,6 +1,7 @@
 import torch
 import torch.nn as nn
 import pretrainedmodels
+from torchvision.models import resnet50, resnet152#, vit_l_32, convnext_large
 
 from sybilx.models.cumulative_probability_layer import Cumulative_Probability_Layer
 from sybilx.utils.registry import register_object
@@ -61,7 +62,6 @@ class SybilXrayInception(nn.Module):
 
     def forward(self, x, batch = None):
         output = {}
-        import pdb; pdb.set_trace()
         x = self.image_encoder(x)
         pool_output = self.aggregate_and_classify(x)
         output["activ"] = x
@@ -81,27 +81,39 @@ class SybilXrayInception(nn.Module):
 @register_object("sybilxray_r50", "model")
 class SybilXrayR50(SybilXrayInception):
     def get_image_encoder(self):
-        encoder = torch.hub.load('pytorch/vision', 'resnet50')
-        import pdb; pdb.set_trace()
+        encoder = resnet50(pretrained=True)
         return nn.Sequential(*list(encoder.children())[:-2])
+
+    @property
+    def HIDDEN_DIM(self):
+        return 2048
 
 @register_object("sybilxray_r152", "model")
 class SybilXrayR152(SybilXrayInception):
     def get_image_encoder(self):
-        encoder = torch.hub.load('pytorch/vision', 'resnet152')
-        import pdb; pdb.set_trace()
+        encoder = resnet152(pretrained=True)
         return nn.Sequential(*list(encoder.children())[:-2])
 
-@register_object("sybilxray_vit", "model")
-class SybilXrayViT(SybilXrayInception):
-    def get_image_encoder(self):
-        encoder = torch.hub.load('pytorch/vision', 'vit_l_32')
-        import pdb; pdb.set_trace()
-        return nn.Sequential(*list(encoder.children())[:-2])
+    @property
+    def HIDDEN_DIM(self):
+        return 1568
 
-@register_object("sybilxray_convnext", "model")
-class SybilXrayConvNext(SybilXrayInception):
-    def get_image_encoder(self):
-        encoder = torch.hub.load('pytorch/vision', 'convnext_large')
-        import pdb; pdb.set_trace()
-        return nn.Sequential(*list(encoder.children())[:-2])
+#@register_object("sybilxray_vit", "model")
+#class SybilXrayViT(SybilXrayInception):
+#    def get_image_encoder(self):
+#        encoder = vit_l_32(pretrained=True)
+#        return nn.Sequential(*list(encoder.children())[:-1])
+#
+#    @property
+#    def HIDDEN_DIM(self):
+#        return 3
+#
+#@register_object("sybilxray_convnext", "model")
+#class SybilXrayConvNext(SybilXrayInception):
+#    def get_image_encoder(self):
+#        encoder = convnext_large(pretrained=True)
+#        return nn.Sequential(*list(encoder.children())[:-2])
+#
+#    @property
+#    def HIDDEN_DIM(self):
+#        return 1536
