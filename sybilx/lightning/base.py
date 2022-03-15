@@ -1,6 +1,7 @@
 import torch
 import pytorch_lightning as pl
 import torch.nn.functional as F
+import numpy as np
 from collections import OrderedDict
 import pickle
 import os
@@ -279,7 +280,31 @@ class Base(pl.LightningModule):
         for k, v in outputs.items():
             if isinstance(v, torch.Tensor) and any([i in k for i in self.LOG_KEYS]):
                 logging_dict["{}_{}".format(key, k)] = v.mean()
+        # log clocktime of methods for epoch
+        if self.args.profiler is not None:
+            logging_dict.update(self.get_time_profile(key))
         self.log_dict(logging_dict, prog_bar=True, logger=True)
+
+    def get_time_profile(self, key):
+        """Obtain trainer method times
+
+        Args:
+            key (str): one of ['train', 'val', 'test]
+
+        Returns:
+            dict: mean of clocktime of each method for past epoch
+        """
+        if key == "train":
+            num_steps = self.trainer.num_training_batches
+        if key == "val":
+            num_steps = self.trainer.num_val_batches[0]
+        if key == "test":
+            num_steps = self.trainer.num_test_batches[0]
+
+        time_profile = {}
+        for k, v in self.trainer.profiler.recorded_durations.items():
+            time_profile[k] = np.mean(v[-num_steps:])
+        return time_profile
 
     def save_predictions(self, outputs):
         """
@@ -373,7 +398,7 @@ def gather_step_outputs(outputs):
     """
 
     output_dict = OrderedDict()
-    if isinstance(outputs[-1], list): # adversarial setting with two optimizers
+    if isinstance(outputs[-1], list):  # adversarial setting with two optimizers
         outputs = outputs[0]
 
     for k in outputs[-1].keys():
