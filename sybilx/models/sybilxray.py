@@ -1,7 +1,6 @@
 import torch
 import torch.nn as nn
 import pretrainedmodels
-from torchvision.models import resnet50, resnet152, vit_l_32, convnext_base
 
 from sybilx.models.cumulative_probability_layer import Cumulative_Probability_Layer
 from sybilx.utils.registry import register_object
@@ -73,23 +72,23 @@ class SybilXrayInception(nn.Module):
 @register_object("sybilxray_r50", "model")
 class SybilXrayR50(nn.Module):
     def get_image_encoder():
-        encoder = resnet50(pretrained=True)
+        encoder = torch.hub.load('pytorch/vision', 'resnet50')
         return nn.Sequential(*list(encoder.children())[:-2])
 
 @register_object("sybilxray_r152", "model")
 class SybilXrayR152(nn.Module):
     def get_image_encoder():
-        encoder = resnet152(pretrained=True)
+        encoder = torch.hub.load('pytorch/vision', 'resnet152')
         return nn.Sequential(*list(encoder.children())[:-2])
 
 @register_object("sybilxray_vit", "model")
 class SybilXrayViT(nn.Module):
     def get_image_encoder():
-        encoder = vit_l_32(pretrained=True)
+        encoder = torch.hub.load('pytorch/vision', 'vit_l_32')
         return nn.Sequential(*list(encoder.children())[:-2])
 
 @register_object("sybilxray_convnext", "model")
 class SybilXrayConvNext(nn.Module):
     def get_image_encoder():
-        encoder = convnext_base(pretrained=True)
+        encoder = torch.hub.load('pytorch/vision', 'convnext_large')
         return nn.Sequential(*list(encoder.children())[:-2])
