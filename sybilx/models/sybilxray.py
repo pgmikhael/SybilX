@@ -24,6 +24,8 @@ class AttentionPool2D(nn.Module):
     
         output['image_attention'] = self.logsoftmax(attention_scores.transpose(1,2)).view(B, -1) 
 
+        attention_scores = self.softmax(attention_scores.transpose(1,2)) #B, 1, N
+
         x = x * attention_scores #B, C, WH
         x = torch.sum(x, dim=-1)
         output['hidden'] = x.view(B, C)
@@ -34,25 +36,32 @@ class SybilXrayInception(nn.Module):
     def __init__(self, args):
         super(SybilXrayInception, self).__init__()
 
-        self.hidden_dim = 512 # TODO: args?
+        self.image_encoder = self.get_image_encoder()
 
-        self.image_encoder = self.get_image_encoder(args)
-
-        self.pool = AttentionPool2D(num_chan=512) # output of image encoder?
+        self.pool = AttentionPool2D(num_chan=self.HIDDEN_DIM)
 
         self.relu = nn.ReLU(inplace=False)
         self.dropout = nn.Dropout(p=args.dropout)
 
         self.prob_of_failure_layer = Cumulative_Probability_Layer(
-            self.hidden_dim, args, max_followup=args.max_followup
+            self.HIDDEN_DIM, args, max_followup=args.max_followup
         )
 
-    def get_image_encoder():
+    def get_image_encoder(self):
         encoder = pretrainedmodels.__dict__['inceptionv4'](num_classes=1000, pretrained='imagenet')
         return nn.Sequential(*list(encoder.children())[:-2])
+    
+    @property
+    def HIDDEN_DIM(self):
+        """Size of input to cumulative prob. layer. 
+
+        Must match no. of channels in image encoder hidden output.
+        """
+        return 1536
 
     def forward(self, x, batch = None):
         output = {}
+        import pdb; pdb.set_trace()
         x = self.image_encoder(x)
         pool_output = self.aggregate_and_classify(x)
         output["activ"] = x
@@ -70,25 +79,29 @@ class SybilXrayInception(nn.Module):
         return pool_output
 
 @register_object("sybilxray_r50", "model")
-class SybilXrayR50(nn.Module):
-    def get_image_encoder():
+class SybilXrayR50(SybilXrayInception):
+    def get_image_encoder(self):
         encoder = torch.hub.load('pytorch/vision', 'resnet50')
+        import pdb; pdb.set_trace()
         return nn.Sequential(*list(encoder.children())[:-2])
 
 @register_object("sybilxray_r152", "model")
-class SybilXrayR152(nn.Module):
-    def get_image_encoder():
+class SybilXrayR152(SybilXrayInception):
+    def get_image_encoder(self):
         encoder = torch.hub.load('pytorch/vision', 'resnet152')
+        import pdb; pdb.set_trace()
         return nn.Sequential(*list(encoder.children())[:-2])
 
 @register_object("sybilxray_vit", "model")
-class SybilXrayViT(nn.Module):
-    def get_image_encoder():
+class SybilXrayViT(SybilXrayInception):
+    def get_image_encoder(self):
         encoder = torch.hub.load('pytorch/vision', 'vit_l_32')
+        import pdb; pdb.set_trace()
         return nn.Sequential(*list(encoder.children())[:-2])
 
 @register_object("sybilxray_convnext", "model")
-class SybilXrayConvNext(nn.Module):
-    def get_image_encoder():
+class SybilXrayConvNext(SybilXrayInception):
+    def get_image_encoder(self):
         encoder = torch.hub.load('pytorch/vision', 'convnext_large')
+        import pdb; pdb.set_trace()
         return nn.Sequential(*list(encoder.children())[:-2])

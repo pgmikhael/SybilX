@@ -45,6 +45,7 @@ import sybilx.learning.schedulers.basic
 
 # models
 import sybilx.models.cxr_lc
+import sybilx.models.sybilxray
 
 # losses
 import sybilx.learning.losses.basic

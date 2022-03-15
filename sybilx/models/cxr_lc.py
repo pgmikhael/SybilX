@@ -51,11 +51,12 @@ class ChestXRayLungCancer(nn.Module):
             self.risk_factors_mlp = nn.Sequential(*risk_factors_layers)
 
         # final MLP
+        final_hidden_size = 32
         if args.use_risk_factors:
-            final_layers = [nn.Linear(64, 32), nn.ReLU(), nn.Dropout(p=args.dropout), nn.Linear(32, args.num_classes)]
-        else:
-            final_layers = [nn.Linear(32, 32), nn.ReLU(), nn.Dropout(p=args.dropout), nn.Linear(32, args.num_classes)]
+            final_hidden_size += 32
         
+        final_layers = [nn.Linear(final_hidden_size, 32), nn.ReLU(), nn.Dropout(p=args.dropout), nn.Linear(32, args.num_classes)]
+
         self.final_mlp = nn.Sequential(*final_layers)
 
     def forward(self, x, batch = None):
@@ -84,7 +85,7 @@ class ChestXRayLungCancerAttn(nn.Module):
         encoder = pretrainedmodels.__dict__[model_name](num_classes=1000, pretrained='imagenet')
 
         # attention
-        self.attn_pool = AttentionPool2D(num_chan=512)
+        self.attn_pool = AttentionPool2D(num_chan=1536)
         self.relu = nn.ReLU(inplace=False)
         self.dropout = nn.Dropout(p=args.dropout)
 
@@ -118,28 +119,33 @@ class ChestXRayLungCancerAttn(nn.Module):
             self.risk_factors_mlp = nn.Sequential(*risk_factors_layers)
 
         # final MLP
+        final_hidden_size = 32 + 1536
         if args.use_risk_factors:
-            final_layers = [nn.Linear(64, 32), nn.ReLU(), nn.Dropout(p=args.dropout), nn.Linear(32, args.num_classes)]
-        else:
-            final_layers = [nn.Linear(32, 32), nn.ReLU(), nn.Dropout(p=args.dropout), nn.Linear(32, args.num_classes)]
+            final_hidden_size += 32
+        final_layers = [nn.Linear(final_hidden_size, 32), nn.ReLU(), nn.Dropout(p=args.dropout), nn.Linear(32, args.num_classes)]
         
         self.final_mlp = nn.Sequential(*final_layers)
 
     def forward(self, x, batch = None):
         output = {}
         image_hidden = self.image_encoder( x )
-        image_hidden = self.pool(image_hidden)
-        image_hidden = self.custom_head(image_hidden)
         #output["image_hidden"] = image_hidden
 
-        pool_output = self.attn_pool(image_hidden)
-        output.update(pool_output) # sets "image_attention" and "hidden"
-        output["hidden"] = self.relu(pool_output["hidden"])
-        output["hidden"] = self.dropout(output["hidden"])
+        import pdb; pdb.set_trace()
+        pool_output = self.pool(image_hidden)
+        pool_output = self.custom_head(pool_output)
+
+        attn_output = self.attn_pool(image_hidden)
+        output["image_attention"] = attn_output["image_attention"]
 
         if self.args.use_risk_factors:
             risk_factors_hidden = self.risk_factors_mlp( batch['risk_factors'].float() )
-            output["hidden"] = torch.cat( [risk_factors_hidden, output["hidden"]], dim=1 )
+            output["hidden"] = torch.cat( [risk_factors_hidden, pool_output, attn_output["hidden"]], dim=1 )
+        else:
+            output["hidden"] = torch.cat( [pool_output, attn_output["hidden"]], dim=1 )
 
+        output["hidden"] = self.relu(output["hidden"])
+        output["hidden"] = self.dropout(output["hidden"])
         output["logit"] = self.final_mlp( output["hidden"] )
+
         return output
