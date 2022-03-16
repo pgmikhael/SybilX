@@ -4,7 +4,6 @@ import torch.nn.functional as F
 import torch.nn as nn
 from collections import OrderedDict
 
-
 @register_object("guided_attention", "loss")
 def get_annotation_loss(model_output, batch, model, args):
     total_loss, logging_dict, predictions = 0, OrderedDict(), OrderedDict()
@@ -144,5 +143,59 @@ def get_annotation_loss(model_output, batch, model, args):
                     "volume_side_attention_loss_{}".format(attn_num)
                 ] = loss.detach()
                 total_loss += args.volume_attention_loss_lambda * loss
+
+    return total_loss * args.annotation_loss_lambda, logging_dict, predictions
+
+@register_object("guided_attention_2d", "loss")
+def get_2d_annotation_loss(model_output, batch, model, args):
+    total_loss, logging_dict, predictions = 0, OrderedDict(), OrderedDict()
+
+    B, C, H, W = model_output["activ"].shape
+
+    batch_mask = batch["has_annotation"]
+
+    if model_output.get("image_attention", None) is not None:
+        if len(batch["image_annotations"].shape) == 4:
+            batch["image_annotations"] = batch["image_annotations"].unsqueeze(1)
+
+        # resize annotation to 'activ' size
+        annotation_gold = F.interpolate(batch["image_annotations"], (H, W), mode="area")
+        annotation_gold = annotation_gold * batch_mask[:, None, None, None] # TODO: check this, removed one dim
+
+        # renormalize scores
+        mask_area = annotation_gold.sum(dim=(-1, -2)).unsqueeze(-1).unsqueeze(-1)
+        mask_area[mask_area == 0] = 1
+        annotation_gold /= mask_area
+
+        # reshape annotation into 1D vector 
+        annotation_gold = annotation_gold.view(B, -1).float() # TODO: check this
+
+        # get mask over annotation boxes in order to weigh
+        # non-annotated scores with zero when computing loss
+        annotation_gold_mask = (annotation_gold > 0).float()
+
+        num_annotated_samples = batch_mask.sum() # TODO: check this
+        num_annotated_samples = max(1, num_annotated_samples)
+
+        pred_attn = model_output["image_attention"] * batch_mask[:, None] # TODO: check this, removed one dim
+        kldiv = F.kl_div(pred_attn, annotation_gold, reduction="none") * annotation_gold_mask
+
+        # sum loss per slice and average over batches
+        loss = kldiv.sum() / num_annotated_samples
+        logging_dict["image_attention_loss"] = loss.detach()
+        total_loss += args.image_attention_loss_lambda * loss
+
+        # attend to cancer side
+        cancer_side_mask = (batch["cancer_laterality"][:, :2].sum(-1) == 1).float()[:, None]  # only one side is positive
+        cancer_side_gold = batch["cancer_laterality"][:, 1].unsqueeze(1) # .repeat(1, N)  # left side (seen as lung on right) is positive class
+        num_annotated_samples = max(cancer_side_mask.sum(), 1)
+        side_attn = torch.exp(model_output["image_attention"])
+        side_attn = side_attn.view(B, H, W)
+        side_attn = torch.stack([side_attn[:, :, : W // 2].sum((1, 2)), side_attn[:, :, W // 2 :].sum((1, 2)),], dim=-1,)
+        side_attn_log = F.log_softmax(side_attn, dim=-1).transpose(1, 2) # TODO: check this
+
+        loss = (F.cross_entropy(side_attn_log, cancer_side_gold, reduction="none") * cancer_side_mask).sum() / num_annotated_samples
+        logging_dict["image_side_attention_loss"] = loss.detach()
+        total_loss += args.image_attention_loss_lambda * loss
 
     return total_loss * args.annotation_loss_lambda, logging_dict, predictions
