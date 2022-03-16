@@ -174,8 +174,8 @@ class abstract_loader:
                 input_dict = self.composed_all_augmentations(input_dict, sample)
             return input_dict
         
-        if self.args.use_annotations: 
-            input_dict['mask'] = get_scaled_annotation_mask(sample["annotations"], self.args)
+        # if self.args.use_annotations: 
+        #     input_dict['mask'] = get_scaled_annotation_mask(sample["annotations"], self.args)
         
         for key, post_augmentations in self.split_augmentations:
             base_key = (

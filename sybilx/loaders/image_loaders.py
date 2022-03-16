@@ -6,6 +6,7 @@ import pydicom
 from pydicom.pixel_data_handlers.util import apply_modality_lut
 import numpy as np
 from sybilx.datasets.utils import get_scaled_annotation_mask, IMG_PAD_TOKEN
+import copy
 
 LOADING_ERROR = "LOADING ERROR! {}"
 
@@ -52,6 +53,67 @@ class CTLoader(abstract_loader):
             x = cv2.imread(path, 0)
 
         return {"input": x, "mask": mask}
+
+    @property
+    def cached_extension(self):
+        return ".png"
+
+@register_object("ct_projection_loader", "input_loader")
+class CTProjectionLoader(abstract_loader):
+    def configure_path(self, paths, sample):
+        return paths[0]
+
+    def load_input(self, paths, sample):
+        """
+        loads as grayscale image
+        """
+        out_dict = {}
+        if self.args.fix_seed_for_multi_image_augmentations:
+            sample["seed"] = np.random.randint(0, 2**32 - 1)
+        
+        s = copy.deepcopy(sample)
+        input_dicts = []
+        for e, path in enumerate(paths):
+            s["annotations"] = sample["annotations"][e]
+            mask = (
+                get_scaled_annotation_mask(sample["annotations"], self.args)
+                if self.args.use_annotations
+                else None
+            )
+            if path == self.pad_token:
+                shape = (self.args.num_chan, self.args.img_size[0], self.args.img_size[1])
+                x = torch.zeros(*shape)
+                mask = (
+                    torch.from_numpy(mask * 0).unsqueeze(0)
+                    if self.args.use_annotations
+                    else None
+                )
+            else:
+                x = cv2.imread(path, 0)
+            
+            input_dicts.append({"input": x, "mask": mask})
+
+        images = [i["input"] for i in input_dicts]
+        masks = [i["mask"] for i in input_dicts]
+
+        out_dict["input"] = self.reshape_images(images)
+        out_dict["mask"] = self.reshape_images(masks) if self.args.use_annotations else None
+
+        return out_dict
+
+    def reshape_images(self, images):
+        if isinstance(images[0], np.ndarray):
+            images = [np.expand_dims(im, axis=0) for im in images]
+            images = np.concatenate(images, axis=0)
+            # Convert from (T, C, H, W) to (C, T, H, W)
+            images = images.transpose((1, 0, 2, 3))
+        elif torch.is_tensor(images[0]):
+            images = [im.unsqueeze(0) for im in images]
+            images = torch.cat(images, dim=0)
+            # Convert from (T, C, H, W) to (C, T, H, W)
+            images = images.permute(1, 0, 2, 3)
+        return images
+
 
     @property
     def cached_extension(self):
