@@ -53,7 +53,7 @@
     "dropout": [0.1],
     "dataset_file_path": ["/Mounts/rbg-storage1/datasets/NLST/full_nlst_google.json"],
     "save_dir": ["/Mounts/rbg-storage1/snapshots/xray_cancer"],
-    "img_dir": ["/Mounts/rbg-storage1/datasets/NLST/nlst-ct-png"],
+    "img_dir": ["/Mounts/rbg-storage1/datasets/NLST/nlst-ct-png"]
   },
   "available_gpus": ["0,1,2,3"]
 }
