@@ -127,7 +127,7 @@ class NLST_Survival_Dataset(data.Dataset):
 
         dataset = []
 
-        for mrn_row in tqdm(self.metadata_json, position=0):
+        for mrn_row in tqdm(self.metadata_json[:100], position=0):
             pid, split, exams, pt_metadata = (
                 mrn_row["pid"],
                 mrn_row["split"],
@@ -706,7 +706,7 @@ class NLSTCTProjectionsDataset(NLST_Survival_Dataset):
         """
         NLST CT Dataset with adapted get_images to project CT to 2D
         """
-        super(NLST_Survival_Dataset, self).__init__(args, split_group)
+        super(NLSTCTProjectionsDataset, self).__init__(args, split_group)
 
     def get_images(self, paths, sample):
             """
@@ -736,12 +736,12 @@ class NLSTCTProjectionsDataset(NLST_Survival_Dataset):
             return out_dict
 
     def reshape_images(self, images):
-        if isinstance(images, np.ndarray):
+        if isinstance(images[0], np.ndarray):
             images = [np.expand_dims(im, axis=0) for im in images]
             images = np.concatenate(images, axis=0)
             # Convert from (T, C, H, W) to (C, T, H, W)
             images = images.transpose((1, 0, 2, 3))
-        elif torch.is_tensor(images):
+        elif torch.is_tensor(images[0]):
             images = [im.unsqueeze(0) for im in images]
             images = torch.cat(images, dim=0)
             # Convert from (T, C, H, W) to (C, T, H, W)
@@ -753,5 +753,9 @@ class NLSTCTProjectionsDataset(NLST_Survival_Dataset):
         Returns resized (to image dims in args), flipped and mean of images in the last dim
         """
         # axis of mean is height (H)
-        assert isinstance(images, np.ndarray), "expected a numpy array but got something else"
-        return torch.tensor(cv2.resize(np.flipud(np.mean(images, axis=2)), self.args.img_size))
+        if isinstance(images, np.ndarray):
+            return torch.tensor(cv2.resize(np.flipud(np.mean(images, axis=2)), self.args.img_size))
+        elif torch.is_tensor(images):
+            projection = cv2.resize(torch.flipud(torch.mean(images, dim=2)), self.args.img_size)
+            assert torch.is_tensor(projection)
+            return projection
