@@ -7,6 +7,7 @@ from pydicom.pixel_data_handlers.util import apply_modality_lut
 import numpy as np
 from sybilx.datasets.utils import get_scaled_annotation_mask, IMG_PAD_TOKEN
 import copy
+from sybilx.utils.registry import md5
 
 LOADING_ERROR = "LOADING ERROR! {}"
 
@@ -29,57 +30,18 @@ class OpenCVLoader(abstract_loader):
 
 @register_object("ct_loader", "input_loader")
 class CTLoader(abstract_loader):
-    def configure_path(self, path, sample):
-        return path
-
-    def load_input(self, path, sample):
-        """
-        loads as grayscale image
-        """
-        mask = (
-            get_scaled_annotation_mask(sample["annotations"], self.args)
-            if self.args.use_annotations
-            else None
-        )
-        if path == self.pad_token:
-            shape = (self.args.num_chan, self.args.img_size[0], self.args.img_size[1])
-            x = torch.zeros(*shape)
-            mask = (
-                torch.from_numpy(mask * 0).unsqueeze(0)
-                if self.args.use_annotations
-                else None
-            )
-        else:
-            x = cv2.imread(path, 0)
-
-        return {"input": x, "mask": mask}
-
-    @property
-    def cached_extension(self):
-        return ".png"
-
-@register_object("ct_projection_loader", "input_loader")
-class CTProjectionLoader(abstract_loader):
+    """Loads all CT slices as a volume"""
+    
     def configure_path(self, paths, sample):
-        return paths[0]
+        return md5(str(paths))
 
-    def load_input(self, paths, sample):
-        """
-        loads as grayscale image
-        """
+    def load_input(self, input_path, sample):
         out_dict = {}
         if self.args.fix_seed_for_multi_image_augmentations:
             sample["seed"] = np.random.randint(0, 2**32 - 1)
         
-        s = copy.deepcopy(sample)
         input_dicts = []
-        for e, path in enumerate(paths):
-            s["annotations"] = sample["annotations"][e]
-            mask = (
-                get_scaled_annotation_mask(sample["annotations"], self.args)
-                if self.args.use_annotations
-                else None
-            )
+        for e, path in enumerate(sample["paths"]):
             if path == self.pad_token:
                 shape = (self.args.num_chan, self.args.img_size[0], self.args.img_size[1])
                 x = torch.zeros(*shape)
@@ -90,6 +52,16 @@ class CTProjectionLoader(abstract_loader):
                 )
             else:
                 x = cv2.imread(path, 0)
+
+            # XXX: this is a dumb way to make the mask be the same size as the img
+            annotation_mask_args = copy.deepcopy(self.args)
+            annotation_mask_args.img_size = x.shape
+
+            mask = (
+                get_scaled_annotation_mask(sample["annotations"][e], annotation_mask_args)
+                if self.args.use_annotations
+                else None
+            )
             
             input_dicts.append({"input": x, "mask": mask})
 
@@ -105,19 +77,14 @@ class CTProjectionLoader(abstract_loader):
         if isinstance(images[0], np.ndarray):
             images = [np.expand_dims(im, axis=0) for im in images]
             images = np.concatenate(images, axis=0)
-            # Convert from (T, C, H, W) to (C, T, H, W)
-            images = images.transpose((1, 0, 2, 3))
         elif torch.is_tensor(images[0]):
             images = [im.unsqueeze(0) for im in images]
             images = torch.cat(images, dim=0)
-            # Convert from (T, C, H, W) to (C, T, H, W)
-            images = images.permute(1, 0, 2, 3)
         return images
-
 
     @property
     def cached_extension(self):
-        return ".png"
+        return ""
 
 
 @register_object("dicom_transform_loader", "input_loader")

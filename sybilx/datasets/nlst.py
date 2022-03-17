@@ -548,15 +548,15 @@ class NLST_Survival_Dataset(data.Dataset):
             input_dict = self.get_images(sample["paths"], sample)
 
             x, mask = input_dict["input"], input_dict["mask"]
-            if self.args.use_all_images:
-                c, n, h, w = x.shape
-                x = torch.nn.functional.interpolate(
-                    x.unsqueeze(0), (self._num_images, h, w), align_corners=True
-                )[0]
-                if mask is not None:
-                    mask = torch.nn.functional.interpolate(
-                        mask.unsqueeze(0), (self._num_images, h, w), align_corners=True
-                    )[0]
+            #if self.args.use_all_images:
+            #    n, h, w = x.shape
+            #    x = torch.nn.functional.interpolate(
+            #        x.unsqueeze(0), (self._num_images, h, w), align_corners=True
+            #    )[0]
+            #    if mask is not None:
+            #        mask = torch.nn.functional.interpolate(
+            #            mask.unsqueeze(0), (self._num_images, h, w), align_corners=True
+            #        )[0]
 
             if self.args.use_annotations:
                 # item['mask'] = mask
@@ -719,15 +719,16 @@ class NLSTCTProjectionsDataset(NLST_Survival_Dataset):
             input_dict = self.input_loader.get_image(sample["paths"], sample)
 
             x, mask = input_dict["input"], input_dict["mask"]
+
             if self.args.use_all_images:
-                c, n, h, w = x.shape
-                x = torch.nn.functional.interpolate(
-                    x.unsqueeze(0), (self._num_images, h, w), align_corners=True
-                )[0]
-                if mask is not None:
-                    mask = torch.nn.functional.interpolate(
-                        mask.unsqueeze(0), (self._num_images, h, w), align_corners=True
-                    )[0]
+                n, h, w = x.shape
+                #x = torch.nn.functional.interpolate(
+                #    x.unsqueeze(0), (self._num_images, h, w), align_corners=True
+                #)[0]
+                #if mask is not None:
+                #    mask = torch.nn.functional.interpolate(
+                #        mask.unsqueeze(0), (self._num_images, h, w), align_corners=True
+                #    )[0]
 
             if self.args.use_annotations:
                 # item['mask'] = mask
