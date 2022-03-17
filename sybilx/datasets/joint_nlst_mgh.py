@@ -34,7 +34,7 @@ class MGH_NLST_Combined_Dataset(NLST_Survival_Dataset):
         dataset = []
 
         mgh_args = copy(self.args)
-        mgh_args.dataset_file_path = "/Mounts/rbg-storage1/datasets/MGH_Lung_Fintelmann/mgh_lung_cancer_cohort1.json"
+        mgh_args.dataset_file_path = "/Mounts/rbg-storage1/datasets/MGH_Lung_Fintelmann/mgh_lung_cancer_cohort1v2.json"
         mgh_dataset = MGH_Dataset(mgh_args, split_group)
 
         for exam_dict in mgh_dataset.dataset:
