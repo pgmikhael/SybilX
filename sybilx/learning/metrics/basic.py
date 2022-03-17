@@ -189,9 +189,9 @@ class Survival_Classification(BaseClassification):
     def __call__(self, logging_dict, args):
         stats_dict = OrderedDict()
 
-        golds = logging_dict["golds"].reshape(-1)
+        golds = logging_dict["golds"]
         probs = logging_dict["probs"]
-        preds = probs[:,-1].reshape(-1) > 0.5
+        preds = probs[:, -1].view(-1) > 0.5
         probs = probs.reshape((-1, probs.shape[-1]))[:, -1]
 
         stats_dict["accuracy"] = accuracy(golds, preds)
@@ -209,4 +209,28 @@ class Survival_Classification(BaseClassification):
                 stats_dict["ap_score"] = average_precision(probs, golds)
                 precision, recall, _ = precision_recall_curve(probs, golds)
                 stats_dict["prauc"] = auc(recall, precision)
+        return stats_dict
+
+
+@register_object("discrim_classification", "metric")
+class Discriminator_Classification(BaseClassification):
+    def __init__(self, args) -> None:
+        super().__init__(args)
+
+    @property
+    def metric_keys(self):
+        return ["discrim_probs", "discrim_golds"]
+
+    def __call__(self, logging_dict, args):
+        stats_dict = OrderedDict()
+
+        golds = logging_dict["discrim_golds"]
+        probs = logging_dict["discrim_probs"]
+        preds = logging_dict["discrim_probs"].argmax(axis=-1).reshape(-1)
+
+        nargs = copy.deepcopy(args)
+        nargs.num_classes = probs.shape[-1]
+        stats_dict = super().__call__({"golds": golds, "probs": probs, "preds": preds}, nargs)
+        stats_dict = {'discrim_{}'.format(k): v for k,v in stats_dict.items() }
+
         return stats_dict

@@ -9,10 +9,10 @@ from sybilx.utils.registry import register_object
 
 DEVICE_ID = {
     "GE MEDICAL SYSTEMS": 0,
-    "TOSHIBA": 1,
-    "Philips": 2,
-    "SIEMENS": 3,
-    "Siemens Healthcare": 3,  # note: same id as SIEMENS
+    "Philips": 1,
+    "SIEMENS": 2,
+    "Siemens Healthcare": 2,  # note: same id as SIEMENS
+    "TOSHIBA": 3,
     "Vital Images, Inc.": 4,
     "Hitachi Medical Corporation": 5,
     "LightSpeed16": 6,
@@ -238,7 +238,6 @@ class MGH_Dataset(NLST_Survival_Dataset):
             meta[idx]["split"] = np.random.choice(
                 ["train", "dev", "test"], p=self.args.split_probs
             )
-
 
 
 @register_object("mgh_cohort2", "dataset")
@@ -468,10 +467,6 @@ class MGH_Screening(NLST_Survival_Dataset):
         statement += "\n" + "Censor Times: {}".format(
             Counter([d["time_at_event"] for d in dataset])
         )
-        annotation_msg = (
-            self.annotation_summary_msg(dataset) if self.args.use_annotations else ""
-        )
-        statement += annotation_msg
         return statement
 
     def assign_splits(self, meta):

@@ -40,6 +40,7 @@ CT_ITEM_KEYS = [
     "cancer_laterality",
     "has_annotation",
     "origin_dataset",
+    "device"
 ]
 
 RACE_ID_KEYS = {
@@ -256,7 +257,7 @@ class NLST_Survival_Dataset(data.Dataset):
         img_paths = series_dict["paths"]
         slice_locations = series_dict["img_position"]
         series_data = series_dict["series_data"]
-        device = series_data["manufacturer"][0]
+        device = series_data["manufacturer"][0] - 1
         screen_timepoint = series_data["study_yr"][0]
         assert screen_timepoint == exam_dict["screen_timepoint"]
 

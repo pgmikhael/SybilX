@@ -532,6 +532,18 @@ def parse_args(args_strings=None):
         default=0.001,
         help="Initial learning rate for adversary model [default: 0.001]",
     )
+    parser.add_argument(
+        "--adv_num_classes",
+        type=int,
+        default=2,
+        help="Number of classes for adversary",
+    )
+    parser.add_argument(
+        "--adv_conditional",
+        action='store_true',
+        default=False,
+        help="Adversarial learning conditioned on output of interest",
+    )
 
     # schedule
     parser.add_argument(

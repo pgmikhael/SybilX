@@ -10,9 +10,6 @@
     "precision": [
       16
     ],
-    "dataset": [
-      "nlst"
-    ],
     "max_followup": [
       6
     ],
@@ -55,9 +52,15 @@
     "base_model": [
       "sybil"
     ],
-    "from_checkpoint": [true],
-    "snapshot": ["/Mounts/rbg-storage1/snapshots/lung_ct/36b8fed8790d236fa384e815f632f385/last.ckpt"],
-    "relax_checkpoint_matching": [true],
+    "from_checkpoint": [
+      true
+    ],
+    "snapshot": [
+      "/Mounts/rbg-storage1/logs/lung_ct/a14336d1fcf6558c02f1299063c5b2a5.args"
+    ],
+    "relax_checkpoint_matching": [
+      true
+    ],
     "use_only_thin_cuts_for_ct": [
       true
     ],
@@ -107,7 +110,7 @@
       false
     ],
     "dev": [
-      false
+      true
     ],
     "test": [
       true
@@ -157,22 +160,25 @@
     "dropout": [
       0.1
     ],
-    "dataset_file_path": [
-      "/Mounts/rbg-storage1/datasets/NLST/full_nlst_google.json"
-    ],
     "save_dir": [
       "/Mounts/rbg-storage1/snapshots/lung_ct"
     ],
-    "img_dir": [
-      "/Mounts/rbg-storage1/datasets/NLST/nlst-ct-png"
-    ],
-    "save_predictions": [true],
-    "hiddens_dir": ["/Mounts/rbg-storage1/results/lung_ct/"],
     "cache_path": [
       "/storage/nlst_cache"
     ]
   },
+  "paired_search_space": {
+    "dataset": [
+      "mgh_cohort1"
+    ],
+    "dataset_file_path": [
+       "/Mounts/rbg-storage1/datasets/MGH_Lung_Fintelmann/mgh_lung_cancer_cohort1.json"
+    ],
+    "img_dir": [
+      "/Mounts/rbg-storage1/datasets/MGH_Lung_Fintelmann/pngs"
+    ]
+  },
   "available_gpus": [
-    "1"
+    1
   ]
 }

@@ -20,10 +20,20 @@
       "ct_loader"
     ],
     "lightning_name": [
-      "base"
+      "domain_adapter"
+    ],
+    "adv_loss_lambda": [
+      1.0
+    ],
+    "adv_lr": [
+      3e-4
+    ],
+    "adv_conditional": [true],
+    "num_adv_steps": [
+      5
     ],
     "weight_decay": [
-      1e-2
+      1e-5
     ],
     "momentum": [
       0.9
@@ -55,9 +65,6 @@
     "base_model": [
       "sybil"
     ],
-    "from_checkpoint": [true],
-    "snapshot": ["/Mounts/rbg-storage1/snapshots/lung_ct/36b8fed8790d236fa384e815f632f385/last.ckpt"],
-    "relax_checkpoint_matching": [true],
     "use_only_thin_cuts_for_ct": [
       true
     ],
@@ -86,10 +93,10 @@
       3
     ],
     "loss_fns": [
-      "survival guided_attention"
+      "survival guided_attention device_discrimination"
     ],
     "metrics": [
-      "survival"
+      "survival discrim_classification"
     ],
     "monitor": [
       "val_c_index"
@@ -104,16 +111,32 @@
       5
     ],
     "train": [
-      false
+      true
     ],
     "dev": [
       false
     ],
     "test": [
-      true
+      false
     ],
     "class_bal": [
       true
+    ],
+    "callback_names": [
+      "lr_monitor checkpointer"
+    ],
+    "adv_num_classes": [4],
+    "swa_epoch": [
+      0.0
+    ],
+    "swa_lr": [
+      1e-4
+    ],
+    "swa_annealing_epochs": [
+      1
+    ],
+    "swa_annealing_strategy": [
+      "cos"
     ],
     "train_rawinput_augmentations": [
       "scale_2d rotate_range/deg=20"
@@ -137,7 +160,7 @@
       "nlst-cancer"
     ],
     "comet_tags": [
-      "sybil eval"
+      "sybil adversarial"
     ],
     "num_sanity_val_steps": [
       0
@@ -146,7 +169,7 @@
       "simple"
     ],
     "gpus": [
-      1
+      8
     ],
     "val_check_interval": [
       1.0
@@ -166,13 +189,11 @@
     "img_dir": [
       "/Mounts/rbg-storage1/datasets/NLST/nlst-ct-png"
     ],
-    "save_predictions": [true],
-    "hiddens_dir": ["/Mounts/rbg-storage1/results/lung_ct/"],
     "cache_path": [
       "/storage/nlst_cache"
     ]
   },
   "available_gpus": [
-    "1"
+    "0,1,2,3,4,5,6,7"
   ]
 }

@@ -52,4 +52,10 @@ import sybilx.learning.metrics.survival
 import sybilx.callbacks.basic
 import sybilx.callbacks.swa
 
+
+# branch-specific
+import sybilx.datasets.joint_nlst_mgh
+import sybilx.lightning.domain_adapter
+import sybilx.models.adversary
+
 __all__ = ["Sybil", "Serie"]

@@ -137,7 +137,9 @@
         "save_dir": [
             "/Mounts/rbg-storage1/snapshots/lung_ct"
         ],
-        "cache_path": [
+	"save_predictions": [true],
+        "hiddens_dir": ["/Mounts/rbg-storage1/results/lung_ct/"],
+	"cache_path": [
             "/storage/nlst_cache"
         ]
     },
