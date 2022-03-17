@@ -30,6 +30,7 @@ import sybilx.datasets.mnist
 # augmentation
 import sybilx.augmentations.rawinput
 import sybilx.augmentations.tensor
+import sybilx.augmentations.projection
 
 # loader
 import sybilx.loaders.image_loaders
