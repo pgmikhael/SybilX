@@ -708,54 +708,91 @@ class NLSTCTProjectionsDataset(NLST_Survival_Dataset):
         """
         super(NLSTCTProjectionsDataset, self).__init__(args, split_group)
 
+    def __getitem__(self, index):
+        sample = self.dataset[index]
+        if self.args.use_annotations:
+            sample = self.get_ct_annotations(sample)
+            sample["annotation_areas"] = get_scaled_annotation_area(sample, self.args)
+            sample["has_annotation"] = np.sum(sample["volume_annotations"]) > 0
+        try:
+            item = {}
+            input_dict = self.input_loader.get_image(sample["paths"], sample)
+
+            x, mask = input_dict["input"], input_dict["mask"]
+            if self.args.use_all_images:
+                c, n, h, w = x.shape
+                x = torch.nn.functional.interpolate(
+                    x.unsqueeze(0), (self._num_images, h, w), align_corners=True
+                )[0]
+                if mask is not None:
+                    mask = torch.nn.functional.interpolate(
+                        mask.unsqueeze(0), (self._num_images, h, w), align_corners=True
+                    )[0]
+
+            if self.args.use_annotations:
+                # item['mask'] = mask
+                # mask = item.pop('mask')
+                mask = torch.abs(mask)
+                mask_area = mask.sum(dim=(-1, -2)).unsqueeze(-1).unsqueeze(-1)
+                mask_area[mask_area == 0] = 1
+                mask = mask / mask_area
+                item["image_annotations"] = mask
+                if self.args.use_all_images:
+                    t = torch.from_numpy(sample["annotation_areas"])
+                    item["annotation_areas"] = F.interpolate(
+                        t[None, None],
+                        (self._num_images),
+                        mode="linear",
+                        align_corners=True,
+                    )[0, 0]
+                    t = torch.from_numpy(sample["volume_annotations"]).float()
+                    item["volume_annotations"] = F.interpolate(
+                        t[None, None],
+                        (self._num_images),
+                        mode="linear",
+                        align_corners=True,
+                    )[0, 0]
+                else:
+                    item["annotation_areas"] = sample["annotation_areas"]
+                    item["volume_annotations"] = sample["volume_annotations"]
+
+            if self.args.use_risk_factors:
+                item["risk_factors"] = sample["risk_factors"]
+
+            item["x"] = x
+            item["y"] = sample["y"]
+            for key in CT_ITEM_KEYS:
+                if key in sample:
+                    item[key] = sample[key]
+
+            return item
+        except Exception:
+            warnings.warn(LOAD_FAIL_MSG.format(sample["exam"], traceback.print_exc()))
+
     def get_images(self, paths, sample):
-            """
-            Returns a stack of transformed images by their absolute paths.
-            If cache is used - transformed images will be loaded if available,
-            and saved to cache if not.
-            """
-            out_dict = {}
-            if self.args.fix_seed_for_multi_image_augmentations:
-                sample["seed"] = np.random.randint(0, 2**32 - 1)
+        pass
 
-            # get images for multi image input
-            s = copy.deepcopy(sample)
-            input_dicts = []
-            for e, path in enumerate(paths):
-                s["annotations"] = sample["annotations"][e]
-                input_dicts.append(self.input_loader.get_image(path, s))
+    # def reshape_images(self, images):
+    #     if isinstance(images[0], np.ndarray):
+    #         images = [np.expand_dims(im, axis=0) for im in images]
+    #         images = np.concatenate(images, axis=0)
+    #         # Convert from (T, C, H, W) to (C, T, H, W)
+    #         images = images.transpose((1, 0, 2, 3))
+    #     elif torch.is_tensor(images[0]):
+    #         images = [im.unsqueeze(0) for im in images]
+    #         images = torch.cat(images, dim=0)
+    #         # Convert from (T, C, H, W) to (C, T, H, W)
+    #         images = images.permute(1, 0, 2, 3)
+    #     return images
 
-            images = [i["input"] for i in input_dicts]
-            masks = [i["mask"] for i in input_dicts]
-
-            out_dict["input"] = self.project_ct(self.reshape_images(images))
-            out_dict["mask"] = (
-                self.project_ct(self.reshape_images(masks)) if self.args.use_annotations else None
-            )
-
-            return out_dict
-
-    def reshape_images(self, images):
-        if isinstance(images[0], np.ndarray):
-            images = [np.expand_dims(im, axis=0) for im in images]
-            images = np.concatenate(images, axis=0)
-            # Convert from (T, C, H, W) to (C, T, H, W)
-            images = images.transpose((1, 0, 2, 3))
-        elif torch.is_tensor(images[0]):
-            images = [im.unsqueeze(0) for im in images]
-            images = torch.cat(images, dim=0)
-            # Convert from (T, C, H, W) to (C, T, H, W)
-            images = images.permute(1, 0, 2, 3)
-        return images
-
-    def project_ct(self, images):
-        """
-        Returns resized (to image dims in args), flipped and mean of images in the last dim
-        """
-        # axis of mean is height (H)
-        if isinstance(images, np.ndarray):
-            return torch.tensor(cv2.resize(np.flipud(np.mean(images, axis=2)), self.args.img_size))
-        elif torch.is_tensor(images):
-            projection = cv2.resize(torch.flipud(torch.mean(images, dim=2)), self.args.img_size)
-            assert torch.is_tensor(projection)
-            return projection
+    # def project_ct(self, images):
+    #     """
+    #     Returns resized (to image dims in args), flipped and mean of images in the last dim
+    #     """
+    #     # axis of mean is height (H)
+    #     if isinstance(images, np.ndarray):
+    #         return torch.tensor(cv2.resize(np.flipud(np.mean(images, axis=2)), self.args.img_size))
+    #     elif torch.is_tensor(images):
+    #         projection = cv2.resize(torch.flipud(torch.mean(images, dim=2)), self.args.img_size)
+    #         assert torch.is_tensor(projection)
+    #         return projection
