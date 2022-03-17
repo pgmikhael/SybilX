@@ -55,6 +55,9 @@
     "base_model": [
       "sybil"
     ],
+    "from_checkpoint": [true],
+    "snapshot": ["/Mounts/rbg-storage1/logs/lung_ct/0614c71fe4bbd9f44f5ade0b2427dc46.args"],
+    "relax_checkpoint_matching": [true],
     "use_only_thin_cuts_for_ct": [
       true
     ],
@@ -101,13 +104,13 @@
       5
     ],
     "train": [
-      true
+      false
     ],
     "dev": [
       false
     ],
     "test": [
-      false
+      true
     ],
     "class_bal": [
       true
@@ -116,13 +119,13 @@
       "scale_2d rotate_range/deg=20"
     ],
     "train_tnsr_augmentations": [
-      "force_num_chan_2d normalize_2d"
+      "force_num_chan_2d max_normalize_2d"
     ],
     "test_rawinput_augmentations": [
       "scale_2d"
     ],
     "test_tnsr_augmentations": [
-      "force_num_chan_2d normalize_2d"
+      "force_num_chan_2d max_normalize_2d"
     ],
     "fix_seed_for_multi_image_augmentations": [
       true
@@ -134,7 +137,7 @@
       "nlst-cancer"
     ],
     "comet_tags": [
-      "sybil"
+      "sybil swa eval"
     ],
     "num_sanity_val_steps": [
       0
@@ -143,7 +146,7 @@
       "simple"
     ],
     "gpus": [
-      8
+      1
     ],
     "val_check_interval": [
       1.0
@@ -163,8 +166,7 @@
     "img_dir": [
       "/Mounts/rbg-storage1/datasets/NLST/nlst-ct-png"
     ],
-    "cache_path": [
-      "/storage/nlst_cache/bit16"
+    "cache_path": [ "/storage/nlst_cache/bit16"
     ]
   },
   "available_gpus": [

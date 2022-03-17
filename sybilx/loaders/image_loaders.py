@@ -57,6 +57,36 @@ class CTLoader(abstract_loader):
     def cached_extension(self):
         return ".png"
 
+@register_object("ct_16bit_loader", "input_loader")
+class CT16Loader(abstract_loader):
+    def configure_path(self, path, sample):
+        return path
+
+    def load_input(self, path, sample):
+        """
+        loads as grayscale image
+        """
+        mask = (
+            get_scaled_annotation_mask(sample["annotations"], self.args)
+            if self.args.use_annotations
+            else None
+        )
+        if path == self.pad_token:
+            shape = (self.args.num_chan, self.args.img_size[0], self.args.img_size[1])
+            x = torch.zeros(*shape)
+            mask = (
+                torch.from_numpy(mask * 0).unsqueeze(0)
+                if self.args.use_annotations
+                else None
+            )
+        else:
+            x = cv2.imread(path, -1)
+            x = np.float32(x)
+        return {"input": x, "mask": mask}
+
+    @property
+    def cached_extension(self):
+        return ".png"
 
 @register_object("dicom_loader", "input_loader")
 class DicomLoader(abstract_loader):

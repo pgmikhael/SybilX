@@ -68,6 +68,7 @@
 		"/Mounts/rbg-storage1/logs/lung_ct/02e70a6a25b472fe65e92b891c735c9e.args",
             "/Mounts/rbg-storage1/snapshots/lung_ct/36b8fed8790d236fa384e815f632f385/last.ckpt"
         ],
+	"relax_checkpoint_matching": [true],
 	"swa_epoch": [
 	      0.7
 	],
@@ -80,6 +81,10 @@
 	"swa_annealing_strategy": [
 	      "cos"
 	],
+	"callback_names": [
+		"lr_monitor checkpointer swa"
+	],
+	"checkpoint_save_last": [true],
         "use_only_thin_cuts_for_ct": [
             true
         ],
