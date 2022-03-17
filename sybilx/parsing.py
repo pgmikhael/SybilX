@@ -91,10 +91,11 @@ def prepare_training_config_for_eval(train_config):
 
     experiments, flags, experiment_axies = parse_dispatcher_config(eval_args)
 
-    for (idx, e), s in zip(enumerate(experiments), stem_names):
-        experiments[idx] += " --snapshot {}".format(
-            os.path.join(train_config["log_dir"], "{}.args".format(s))
-        )
+    if "snapshot" not in eval_args["grid_search_space"]:
+        for (idx, e), s in zip(enumerate(experiments), stem_names):
+            experiments[idx] += " --snapshot {}".format(
+                os.path.join(train_config["log_dir"], "{}.args".format(s))
+            )
 
     return experiments, flags, experiment_axies
 
@@ -371,11 +372,19 @@ def parse_args(args_strings=None):
     )
 
     # handling CT slices
+
     parser.add_argument(
-        "--use_all_images",
+        "--resample_pixel_spacing",
         action="store_true",
         default=False,
-        help="Whether to use all slices as input. In which case, the num_images arg is used to interpolate volumes to constant depth",
+        help="Whether to resample pixel spacing into fixed dimensions",
+    )
+    parser.add_argument(
+        "--ct_pixel_spacing",
+        type=float,
+        nargs=3,
+        default=[1, 1, 1],
+        help="Target pixel spacing [x,y,z] in mm when resampling.",
     )
     parser.add_argument(
         "--num_images",

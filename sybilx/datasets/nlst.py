@@ -20,6 +20,9 @@ from sybilx.datasets.utils import (
 )
 from sybilx.utils.registry import register_object
 from sybilx.datasets.nlst_risk_factors import NLSTRiskFactorVectorizer
+import pydicom
+import torchio as tio
+
 
 GOOGLE_SPLITS_FILENAME = (
     "/Mounts/rbg-storage1/datasets/NLST/Shetty_et_al(Google)/data_splits.p"
@@ -85,6 +88,13 @@ class NLST_Survival_Dataset(data.Dataset):
             raise Exception(METAFILE_NOTFOUND_ERR.format(args.dataset_file_path, e))
 
         self.input_loader = get_sample_loader(split_group, args)
+        if args.resample_pixel_spacing:
+            self.resample_transform = tio.transforms.Resample(
+                target=tuple(args.ct_pixel_spacing)
+            )
+            self.padding_transform = tio.transforms.CropOrPad(
+                target_shape=tuple(args.img_size + [args.num_images]), padding_mode=0
+            )
 
         if self.args.region_annotations_filepath:
             self.annotations_metadata = json.load(
@@ -214,7 +224,7 @@ class NLST_Survival_Dataset(data.Dataset):
         # check if restricting to specific slice thicknesses
         slice_thickness = series_data["reconthickness"][0]
         wrong_thickness = (self.args.slice_thickness_filter is not None) and (
-            slice_thickness not in self.args.slice_thickness_filter
+            slice_thickness > self.args.slice_thickness_filter
         )
 
         # check if valid label (info is not missing)
@@ -300,6 +310,7 @@ class NLST_Survival_Dataset(data.Dataset):
             "institution": pt_metadata["cen"][0],
             "cancer_laterality": self.get_cancer_side(pt_metadata),
             "num_original_slices": len(series_dict["paths"]),
+            "pixel_spacing": series_dict["pixel_spacing"] + [ series_dict["slice_thickness"]]
         }
 
         if self.args.use_risk_factors:
@@ -307,7 +318,7 @@ class NLST_Survival_Dataset(data.Dataset):
                 pt_metadata, screen_timepoint, return_dict=False
             )
 
-        if not self.args.use_all_images:
+        if not self.args.resample_pixel_spacing:
             sample["paths"] = fit_to_length(sorted_img_paths, self.args.num_images)
             sample["slice_locations"] = fit_to_length(
                 sorted_slice_locs, self.args.num_images, "<PAD>"
@@ -357,6 +368,21 @@ class NLST_Survival_Dataset(data.Dataset):
         )
         return is_localizer
 
+    def get_pixel_spacing(self, dcm_path):
+        """Get slice thickness and row/col spacing
+
+        Args:
+            path (str): path to sample png file in the series
+
+        Returns:
+            pixel spacing: [thickness, spacing[0], spacing[1]]
+                thickness (float): CT slice thickness
+                spacing (list): spacing along x and y axes
+        """
+        dcm = pydicom.dcmread(dcm_path, stop_before_pixels=True)
+        spacing = [float(d) for d in dcm.PixelSpacing] + [float(dcm.SliceThickness)]
+        return spacing
+
     def get_cancer_side(self, pt_metadata):
         """
         Return if cancer in left or right
@@ -375,8 +401,10 @@ class NLST_Survival_Dataset(data.Dataset):
 
         return np.array([int(right), int(left), int(other)])
 
-    def order_slices(self, img_paths, slice_locations):
+    def order_slices(self, img_paths, slice_locations, reverse = False):
         sorted_ids = np.argsort(slice_locations)
+        if reverse:
+            sorted_ids = sorted_ids[::-1]
         sorted_img_paths = np.array(img_paths)[sorted_ids].tolist()
         sorted_slice_locs = np.sort(slice_locations).tolist()
 
@@ -509,15 +537,16 @@ class NLST_Survival_Dataset(data.Dataset):
 
         if sample["series"] in self.annotations_metadata:
             # check if there is an annotation in a slice
-            sample["volume_annotations"] = np.array(
-                [
-                    int(
-                        os.path.splitext(os.path.basename(path))[0]
-                        in self.annotations_metadata[sample["series"]]
-                    )
-                    for path in sample["paths"]
-                ]
-            )
+            # sample["volume_annotations"] = np.array(
+            #     [
+            #         int(
+            #             os.path.splitext(os.path.basename(path))[0]
+            #             in self.annotations_metadata[sample["series"]]
+            #         )
+            #         for path in sample["paths"]
+            #     ]
+            # )
+
             # store annotation(s) data (x,y,width,height) for each slice
             sample["annotations"] = [
                 {
@@ -528,7 +557,7 @@ class NLST_Survival_Dataset(data.Dataset):
                 for path in sample["paths"]
             ]
         else:
-            sample["volume_annotations"] = np.array([0 for _ in sample["paths"]])
+            # sample["volume_annotations"] = np.array([0 for _ in sample["paths"]])
             sample["annotations"] = [
                 {"image_annotations": None} for path in sample["paths"]
             ]
@@ -541,49 +570,25 @@ class NLST_Survival_Dataset(data.Dataset):
         sample = self.dataset[index]
         if self.args.use_annotations:
             sample = self.get_ct_annotations(sample)
-            sample["annotation_areas"] = get_scaled_annotation_area(sample, self.args)
-            sample["has_annotation"] = np.sum(sample["volume_annotations"]) > 0
+            # sample["annotation_areas"] = get_scaled_annotation_area(sample, self.args)
+            # sample["has_annotation"] = np.sum(sample["volume_annotations"]) > 0
         try:
             item = {}
             input_dict = self.get_images(sample["paths"], sample)
 
-            x, mask = input_dict["input"], input_dict["mask"]
-            if self.args.use_all_images:
-                c, n, h, w = x.shape
-                x = torch.nn.functional.interpolate(
-                    x.unsqueeze(0), (self._num_images, h, w), align_corners=True
-                )[0]
-                if mask is not None:
-                    mask = torch.nn.functional.interpolate(
-                        mask.unsqueeze(0), (self._num_images, h, w), align_corners=True
-                    )[0]
+            x = input_dict["input"]
 
             if self.args.use_annotations:
-                # item['mask'] = mask
-                # mask = item.pop('mask')
-                mask = torch.abs(mask)
-                mask_area = mask.sum(dim=(-1, -2)).unsqueeze(-1).unsqueeze(-1)
+                mask = torch.abs(input_dict["mask"])
+                mask_area = mask.sum(dim=(-1, -2))
+                item["volume_annotations"] = mask_area[0] / max(1, mask_area.sum())
+                item["annotation_areas"] = mask_area[0] / (
+                    mask.shape[-2] * mask.shape[-1]
+                )
+                mask_area = mask_area.unsqueeze(-1).unsqueeze(-1)
                 mask_area[mask_area == 0] = 1
-                mask = mask / mask_area
-                item["image_annotations"] = mask
-                if self.args.use_all_images:
-                    t = torch.from_numpy(sample["annotation_areas"])
-                    item["annotation_areas"] = F.interpolate(
-                        t[None, None],
-                        (self._num_images),
-                        mode="linear",
-                        align_corners=True,
-                    )[0, 0]
-                    t = torch.from_numpy(sample["volume_annotations"]).float()
-                    item["volume_annotations"] = F.interpolate(
-                        t[None, None],
-                        (self._num_images),
-                        mode="linear",
-                        align_corners=True,
-                    )[0, 0]
-                else:
-                    item["annotation_areas"] = sample["annotation_areas"]
-                    item["volume_annotations"] = sample["volume_annotations"]
+                item["image_annotations"] = mask / mask_area
+                item["has_annotation"] = item["volume_annotations"].sum() > 0
 
             if self.args.use_risk_factors:
                 item["risk_factors"] = sample["risk_factors"]
@@ -617,12 +622,32 @@ class NLST_Survival_Dataset(data.Dataset):
             input_dicts.append(self.input_loader.get_image(path, s))
 
         images = [i["input"] for i in input_dicts]
-        masks = [i["mask"] for i in input_dicts]
+        input_arr = self.reshape_images(images)
+        if self.args.use_annotations:
+            masks = [i["mask"] for i in input_dicts]
+            mask_arr = self.reshape_images(masks) if self.args.use_annotations else None
+        
+        # resample pixel spacing
+        if self.args.resample_pixel_spacing:
+            spacing = torch.tensor(sample["pixel_spacing"] + [1])
+            input_arr = tio.ScalarImage(
+                affine=torch.diag(spacing),
+                tensor=input_arr.permute(0, 2, 3, 1),
+            )
+            input_arr = self.resample_transform(input_arr)
+            input_arr = self.padding_transform(input_arr.data)
 
-        out_dict["input"] = self.reshape_images(images)
-        out_dict["mask"] = (
-            self.reshape_images(masks) if self.args.use_annotations else None
-        )
+            if self.args.use_annotations:
+                mask_arr = tio.ScalarImage(
+                    affine=torch.diag(spacing),
+                    tensor=mask_arr.permute(0, 2, 3, 1),
+                )
+                mask_arr = self.resample_transform(mask_arr)
+                mask_arr = self.padding_transform(mask_arr.data)
+
+        out_dict["input"] = input_arr.data.permute(0, 3, 1, 2)
+        if self.args.use_annotations:
+            out_dict["mask"] = mask_arr.data.permute(0, 3, 1, 2)
 
         return out_dict
 
