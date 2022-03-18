@@ -14,27 +14,13 @@ class ProjectCT(Abstract_augmentation):
         self.set_cachable()
 
     def __call__(self, input_dict, sample=None):
-
         volume = input_dict["input"]
-        img = np.flipud(np.mean(volume, axis=1)).copy()
-        input_dict["input"] = img
-
-        return input_dict
-
-@register_object("project_annotation", "augmentation")
-class ProjectAnnotation(Abstract_augmentation):
-    """
-    Projects annotation volume to match CT projection
-    """
-
-    def __init__(self, args, kwargs):
-        super(ProjectAnnotation, self).__init__()
-        assert len(kwargs) == 0
-
-    def __call__(self, input_dict, sample=None):
-
         mask = input_dict["mask"]
+
+        img = np.flipud(np.mean(volume, axis=1)).copy()
         mask = np.flipud(np.mean(mask, axis=1)).copy()
+
+        input_dict["input"] = img
         input_dict["mask"] = mask
 
         return input_dict

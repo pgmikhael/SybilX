@@ -68,7 +68,10 @@ def apply_augmentations_and_cache(
             all_prev_cachable = False
         else:
             key += trans.caching_keys()
-            cache.add(img_path, key, loaded_input["input"])
+            if "mask" in loaded_input and loaded_input["mask"] is not None:
+                cache.add(img_path, key, image=loaded_input["input"], mask=loaded_input["mask"])
+            else:
+                cache.add(img_path, key, image=loaded_input["input"])
 
     return loaded_input
 
@@ -80,8 +83,8 @@ class cache:
 
         self.cache_dir = path
         self.files_extension = extension
-        if ".npy" != extension:
-            self.files_extension += ".npy"
+        if ".npz" != extension:
+            self.files_extension += ".npz"
 
     def _file_dir(self, attr_key, par_dir):
         return os.path.join(self.cache_dir, attr_key, par_dir)
@@ -104,13 +107,16 @@ class cache:
         par_dir = self._parent_dir(image_path)
         return np.load(self._file_path(attr_key, par_dir, hashed_key))
 
-    def add(self, image_path, attr_key, image):
+    def add(self, image_path, attr_key, image, mask=None):
         hashed_key = md5(image_path)
         par_dir = self._parent_dir(image_path)
         file_dir = self._file_dir(attr_key, par_dir)
         if not os.path.exists(file_dir):
             os.makedirs(file_dir)
-        np.save(self._file_path(attr_key, par_dir, hashed_key), image)
+        if mask is None:
+            np.savez(self._file_path(attr_key, par_dir, hashed_key), image=image)
+        else:
+            np.savez(self._file_path(attr_key, par_dir, hashed_key), image=image, mask=mask)
 
     def rem(self, image_path, attr_key):
         hashed_key = md5(image_path)
@@ -185,7 +191,10 @@ class abstract_loader:
             )
             if self.cache.exists(input_path, base_key):
                 try:
-                    input_dict["input"] = self.cache.get(input_path, base_key)
+                    cached_arrays = self.cache.get(input_path, base_key)
+                    input_dict["input"] = cached_arrays["image"]
+                    if "mask" in cached_arrays:
+                        input_dict["mask"] = cached_arrays["mask"]
                     if self.apply_augmentations:
                         input_dict = apply_augmentations_and_cache(
                             input_dict,
