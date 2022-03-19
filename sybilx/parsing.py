@@ -91,7 +91,9 @@ def prepare_training_config_for_eval(train_config):
 
     experiments, flags, experiment_axies = parse_dispatcher_config(eval_args)
 
-    if ("snapshot" not in eval_args["grid_search_space"]) or ("snapshot" in train_args["grid_search_space"]):
+    if ("snapshot" not in eval_args["grid_search_space"]) or (
+        "snapshot" in train_args["grid_search_space"]
+    ):
         for (idx, e), s in zip(enumerate(experiments), stem_names):
             experiments[idx] += " --snapshot {}".format(
                 os.path.join(train_config["log_dir"], "{}.args".format(s))
@@ -393,6 +395,12 @@ def parse_args(args_strings=None):
         help="In multi image setting, the number of images per single sample.",
     )
     parser.add_argument(
+        "--fit_to_length",
+        action="store_true",
+        default=False,
+        help="Whether to fit num slices using padding and slice sampling",
+    )
+    parser.add_argument(
         "--min_num_images",
         type=int,
         default=0,
@@ -539,8 +547,14 @@ def parse_args(args_strings=None):
         help="Number of classes for adversary",
     )
     parser.add_argument(
+        "--adv_key",
+        type=str,
+        default="devices",
+        help="Name of classes for adversary",
+    )
+    parser.add_argument(
         "--adv_conditional",
-        action='store_true',
+        action="store_true",
         default=False,
         help="Adversarial learning conditioned on output of interest",
     )
