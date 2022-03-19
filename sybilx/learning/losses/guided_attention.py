@@ -155,7 +155,7 @@ def get_2d_annotation_loss(model_output, batch, model, args):
     batch_mask = batch["has_annotation"]
 
     if model_output.get("image_attention", None) is not None:
-        if len(batch["image_annotations"].shape) == 4:
+        if len(batch["image_annotations"].shape) == 3:
             batch["image_annotations"] = batch["image_annotations"].unsqueeze(1)
 
         # resize annotation to 'activ' size
@@ -187,7 +187,7 @@ def get_2d_annotation_loss(model_output, batch, model, args):
 
         # attend to cancer side
         cancer_side_mask = (batch["cancer_laterality"][:, :2].sum(-1) == 1).float()[:, None]  # (B, 1), only one side is positive
-        cancer_side_gold = batch["cancer_laterality"][:, 1] # .unsqueeze(1) TODO: why was this important before? # (B, 1), left side (seen as lung on right) is positive class
+        cancer_side_gold = batch["cancer_laterality"][:, 1] # (B, 1), left side (seen as lung on right) is positive class
         num_annotated_samples = max(cancer_side_mask.sum(), 1)
         side_attn = torch.exp(model_output["image_attention"]) # (B, H * W)
         side_attn = side_attn.view(B, H, W) # (B, H, W)
