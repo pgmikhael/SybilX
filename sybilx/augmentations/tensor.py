@@ -1,8 +1,10 @@
 import torchvision
 import torch
 import numpy as np
+import random
 from sybilx.augmentations.abstract import Abstract_augmentation
 from sybilx.utils.registry import register_object
+import torchio as tio
 
 
 @register_object("normalize_2d", "augmentation")
@@ -116,7 +118,7 @@ class Force_Num_Chan_Tensor_2d(Abstract_augmentation):
         img = input_dict["input"]
         mask = input_dict.get("mask", None)
         if mask is not None:
-            input_dict['mask'] = mask.unsqueeze(0)
+            input_dict["mask"] = mask.unsqueeze(0)
 
         num_dims = len(img.shape)
         if num_dims == 2:
@@ -163,4 +165,61 @@ class MaxNormalize(Abstract_augmentation):
         input_dict["input"] = input_dict["input"] / (
             torch.abs(max_values[:, None, None]) + 1e-9
         )
+        return input_dict
+
+
+@register_object("resample_thickness", "augmentation")
+class ResampleThickness(Abstract_augmentation):
+    """
+    Normalizes input by channel
+    wrapper for torchvision.transforms.Normalize wrapper.
+    """
+
+    def __init__(self, args, kwargs):
+        super(ResampleThickness, self).__init__()
+        assert len(kwargs) == 1
+        self.prob_resample = float(kwargs["prob"])
+        assert (self.prob_resample >= 0) and (
+            self.prob_resample <= 1
+        ), "Resampling Augmentation Probability Not In [0,1]"
+        self.resample_transform = tio.transforms.Resample(
+            target=tuple(args.ct_pixel_spacing)
+        )
+        self.padding_transform = tio.transforms.CropOrPad(
+            target_shape=tuple(args.img_size + [args.num_images]), padding_mode=0
+        )
+
+    def __call__(self, input_dict, sample=None):
+        if "seed" in sample:
+            self.set_seed(sample["seed"])
+
+        input_arr = input_dict["input"]
+        mask_arr = input_dict.get("mask", None)
+        assert len(input_arr.shape) == 2, "Resampling Augmentations Expects 2D Image"
+
+        # probabilistically resample
+        if np.random.uniform() < self.prob_resample:
+            # resample pixel spacing
+            spacing = torch.tensor(sample["pixel_spacing"] + [1])
+
+            # H, W -> T, H, W, C
+            input_arr = tio.ScalarImage(
+                affine=torch.diag(spacing),
+                tensor=input_arr.unsqueeze(0).unsqueeze(-1),
+            )
+            input_arr = self.resample_transform(input_arr)
+            input_arr = self.padding_transform(input_arr.data)
+
+            if mask_arr is not None:
+                mask_arr = tio.ScalarImage(
+                    affine=torch.diag(spacing),
+                    tensor=mask_arr.unsqueeze(0).unsqueeze(-1),
+                )
+                mask_arr = self.resample_transform(mask_arr)
+                mask_arr = self.padding_transform(mask_arr.data)
+
+            input_dict["input"] = input_arr.data[0, ..., 0]
+            if mask_arr is not None:
+                input_dict["mask"] = mask_arr.data[0, ..., 0]
+
         return input_dict
