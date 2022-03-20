@@ -14,7 +14,7 @@
             "mgh_cohort1"
         ],
         "dataset_file_path": [
-            "/Mounts/rbg-storage1/datasets/MGH_Lung_Fintelmann/mgh_lung_cancer_cohort1.json"
+            "/Mounts/rbg-storage1/datasets/MGH_Lung_Fintelmann/mgh_lung_cancer_cohort1v2.json"
         ],
         "img_dir": [
             "/Mounts/rbg-storage1/datasets/MGH_Lung_Fintelmann/pngs"
@@ -25,6 +25,9 @@
         "input_loader_name": [
             "ct_loader"
         ],
+	"slice_thickness_filter": [2.5],
+	"resample_pixel_spacing": [true],
+	"ct_pixel_spacing": ["0.703125 0.703125 1.5"],
         "lightning_name": [
             "base"
         ],
@@ -65,8 +68,7 @@
             true
         ],
         "snapshot": [
-		"/Mounts/rbg-storage1/logs/lung_ct/02e70a6a25b472fe65e92b891c735c9e.args",
-            "/Mounts/rbg-storage1/snapshots/lung_ct/36b8fed8790d236fa384e815f632f385/last.ckpt"
+		"/Mounts/rbg-storage1/snapshots/lung_ct/df98178d07bf8f9b2ad19898f107f0ed/df98178d07bf8f9b2ad19898f107f0edepoch=5.ckpt"
         ],
 	"relax_checkpoint_matching": [true],
 	"swa_epoch": [

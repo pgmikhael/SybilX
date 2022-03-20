@@ -18,6 +18,7 @@ from sybilx.datasets.utils import (
     get_scaled_annotation_area,
     METAFILE_NOTFOUND_ERR,
     LOAD_FAIL_MSG,
+    DEVICE_ID,
 )
 from sybilx.utils.registry import register_object
 from sybilx.datasets.nlst_risk_factors import NLSTRiskFactorVectorizer
@@ -260,7 +261,7 @@ class NLST_Survival_Dataset(data.Dataset):
         img_paths = series_dict["paths"]
         slice_locations = series_dict["img_position"]
         series_data = series_dict["series_data"]
-        device = series_data["manufacturer"][0] - 1
+        device = DEVICE_ID[series_data["manufacturer"][0]]
         screen_timepoint = series_data["study_yr"][0]
         assert screen_timepoint == exam_dict["screen_timepoint"]
 

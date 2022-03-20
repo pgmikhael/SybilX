@@ -1,0 +1,14 @@
+{
+	"train_config": "configs/mgh/finetune.json",
+	"log_dir": "/Mounts/rbg-storage1/logs/lung_ct",
+	"eval_args": {
+		"dataset": ["mgh_cohort2-1"],
+        	"dataset_file_path": ["/Mounts/rbg-storage1/datasets/MGH_Lung_Fintelmann/mgh_lung_cancer_cohort2v2.json"],
+        	"img_dir": ["/Mounts/rbg-storage1/datasets/MGH_Lung_Fintelmann/screening_pngs"],
+		"save_predictions": [true],
+		"snapshot": ["/Mounts/rbg-storage1/snapshots/lung_ct/bb354fbac26400e57c0ae33b89be92cc/last.ckpt"],
+		"hiddens_dir": ["/Mounts/rbg-storage1/results/lung_ct/mgh"]
+	},
+	"available_gpus": [7],
+	"script": "main"
+}
