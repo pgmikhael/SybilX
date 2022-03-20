@@ -107,9 +107,12 @@ class MGH_Dataset(NLST_Survival_Dataset):
                         "annotations": [],
                         "pixel_spacing": series_dict["pixel_spacing"]
                         + [series_dict["slice_thickness"]],
+                        "slice_thickness": self.get_slice_thickness_class(
+                            series_dict["slice_thickness"]
+                        ),
                     }
 
-                    if not self.args.resample_pixel_spacing:
+                    if self.args.fit_to_length:
                         sample["paths"] = fit_to_length(
                             sorted_img_paths, self.args.num_images
                         )
@@ -139,6 +142,9 @@ class MGH_Dataset(NLST_Survival_Dataset):
         if not mrn_row["split"] == split:
             return True
 
+        if mrn_row["in_cohort2"]:
+            return True
+
         # check if screen is localizer screen or not enough images
         if self.is_localizer(series_dict["series_data"]):
             return True
@@ -148,6 +154,7 @@ class MGH_Dataset(NLST_Survival_Dataset):
         if (self.args.slice_thickness_filter is not None) and (
             (slice_thickness in ["", None])
             or (slice_thickness > self.args.slice_thickness_filter)
+            or or (slice_thickness < 0)
         ):
             return True
 
@@ -300,6 +307,7 @@ class MGH_Screening(NLST_Survival_Dataset):
         if (self.args.slice_thickness_filter is not None) and (
             (slice_thickness in ["", None])
             or (slice_thickness > self.args.slice_thickness_filter)
+            or (slice_thickness < 0)
         ):
             return True
 
@@ -324,7 +332,7 @@ class MGH_Screening(NLST_Survival_Dataset):
         series_data = series_dict["series_data"]
         pixel_spacing = series_dict["PixelSpacing"] + [series_dict["SliceThickness"]]
         sorted_img_paths, sorted_slice_locs = self.order_slices(
-            img_paths, slice_locations, reverse = True
+            img_paths, slice_locations, reverse=True
         )
 
         device = (
@@ -368,10 +376,11 @@ class MGH_Screening(NLST_Survival_Dataset):
             "laterality1": exam_dict["Laterality"],
             "laterality2": exam_dict["Laterality.1"],
             "icdo3": exam_dict["Histo/Behavior ICD-O-3"],
-            "pixel_spacing": pixel_spacing
+            "pixel_spacing": pixel_spacing,
+            "slice_thickness": self.get_slice_thickness_class(pixel_spacing[-1]),
         }
 
-        if not self.args.resample_pixel_spacing:
+        if self.args.fit_to_length:
             sample["paths"] = fit_to_length(sorted_img_paths, self.args.num_images)
             sample["slice_locations"] = fit_to_length(
                 sorted_slice_locs, self.args.num_images, "<PAD>"
@@ -414,7 +423,7 @@ class MGH_Screening(NLST_Survival_Dataset):
                 time_at_event = self.args.max_followup - 1
             else:
                 days_to_last_neg_followup = exam_dict["days_to_last_follow_up"]
-                years_to_last_neg_followup = int( days_to_last_neg_followup // 365 )
+                years_to_last_neg_followup = int(days_to_last_neg_followup // 365)
                 time_at_event = min(
                     years_to_last_neg_followup, self.args.max_followup - 1
                 )
@@ -476,18 +485,6 @@ class MGH_Screening(NLST_Survival_Dataset):
             )
 
 
-@register_object("mgh_cohort2-1", "dataset")
-class MGH_ScreeningExclude1(MGH_Screening):
-    """
-    MGH Dataset Cohort 2 without patients in cohort 1
-    """
-
-    def skip_sample(self, series_dict, exam_dict, mrn_row):
-        if mrn_row["in_cohort1"]:
-            return True
-        return super().skip_sample(series_dict, exam_dict, mrn_row)
-
-
 @register_object("mgh_cohort_outpatient", "dataset")
 class MGH_Cohort1Outpatient(MGH_Dataset):
     """
@@ -516,6 +513,7 @@ class MGH_Cohort1Eval(MGH_Dataset):
         if (self.args.slice_thickness_filter is not None) and (
             (slice_thickness in ["", None])
             or (slice_thickness > self.args.slice_thickness_filter)
+            or (slice_thickness < 0)
         ):
             return True
 

@@ -382,6 +382,12 @@ def parse_args(args_strings=None):
         help="Whether to resample pixel spacing into fixed dimensions",
     )
     parser.add_argument(
+        "--resample_pixel_spacing_prob",
+        type = float,
+        default=1,
+        help="Probability of resampling pixel spacing into fixed dimensions. 1 when eval and using resampling",
+    )
+    parser.add_argument(
         "--ct_pixel_spacing",
         type=float,
         nargs=3,

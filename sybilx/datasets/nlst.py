@@ -1,3 +1,4 @@
+import enum
 import os
 from posixpath import split
 import traceback, warnings
@@ -40,7 +41,8 @@ CT_ITEM_KEYS = [
     "cancer_laterality",
     "has_annotation",
     "origin_dataset",
-    "device"
+    "device",
+    "slice_thickness",
 ]
 
 RACE_ID_KEYS = {
@@ -89,6 +91,7 @@ class NLST_Survival_Dataset(data.Dataset):
 
         self.input_loader = get_sample_loader(split_group, args)
         if args.resample_pixel_spacing:
+            self.always_resample_pixel_spacing = split_group == "test"
             self.resample_transform = tio.transforms.Resample(
                 target=tuple(args.ct_pixel_spacing)
             )
@@ -224,7 +227,7 @@ class NLST_Survival_Dataset(data.Dataset):
         # check if restricting to specific slice thicknesses
         slice_thickness = series_data["reconthickness"][0]
         wrong_thickness = (self.args.slice_thickness_filter is not None) and (
-            slice_thickness > self.args.slice_thickness_filter
+            slice_thickness > self.args.slice_thickness_filter or (slice_thickness < 0)
         )
 
         # check if valid label (info is not missing)
@@ -310,7 +313,11 @@ class NLST_Survival_Dataset(data.Dataset):
             "institution": pt_metadata["cen"][0],
             "cancer_laterality": self.get_cancer_side(pt_metadata),
             "num_original_slices": len(series_dict["paths"]),
-            "pixel_spacing": series_dict["pixel_spacing"] + [ series_dict["slice_thickness"]]
+            "pixel_spacing": series_dict["pixel_spacing"]
+            + [series_dict["slice_thickness"]],
+            "slice_thickness": self.get_slice_thickness_class(
+                series_dict["slice_thickness"]
+            ),
         }
 
         if self.args.use_risk_factors:
@@ -318,7 +325,7 @@ class NLST_Survival_Dataset(data.Dataset):
                 pt_metadata, screen_timepoint, return_dict=False
             )
 
-        if not self.args.resample_pixel_spacing:
+        if self.args.fit_to_length:
             sample["paths"] = fit_to_length(sorted_img_paths, self.args.num_images)
             sample["slice_locations"] = fit_to_length(
                 sorted_slice_locs, self.args.num_images, "<PAD>"
@@ -401,7 +408,7 @@ class NLST_Survival_Dataset(data.Dataset):
 
         return np.array([int(right), int(left), int(other)])
 
-    def order_slices(self, img_paths, slice_locations, reverse = False):
+    def order_slices(self, img_paths, slice_locations, reverse=False):
         sorted_ids = np.argsort(slice_locations)
         if reverse:
             sorted_ids = sorted_ids[::-1]
@@ -626,9 +633,11 @@ class NLST_Survival_Dataset(data.Dataset):
         if self.args.use_annotations:
             masks = [i["mask"] for i in input_dicts]
             mask_arr = self.reshape_images(masks) if self.args.use_annotations else None
-        
+
         # resample pixel spacing
-        if self.args.resample_pixel_spacing:
+        if self.always_resample_pixel_spacing or (
+            self.args.resample_pixel_spacing_prob > np.random.uniform()
+        ):
             spacing = torch.tensor(sample["pixel_spacing"] + [1])
             input_arr = tio.ScalarImage(
                 affine=torch.diag(spacing),
@@ -657,6 +666,14 @@ class NLST_Survival_Dataset(data.Dataset):
         # Convert from (T, C, H, W) to (C, T, H, W)
         images = images.permute(1, 0, 2, 3)
         return images
+
+    def get_slice_thickness_class(self, thickness):
+        BINS = [1, 1.5, 2, 2.5]
+        for i, tau in enumerate(BINS):
+            if thickness <= tau:
+                return i
+            else:
+                raise ValueError("THICKNESS > 2.5")
 
 
 @register_object("nlst_plco", "dataset")
