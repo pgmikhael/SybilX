@@ -17,7 +17,7 @@
       6
     ],
     "input_loader_name": [
-      "ct_16_loader"
+      "ct_16bit_loader"
     ],
     "lightning_name": [
       "base"

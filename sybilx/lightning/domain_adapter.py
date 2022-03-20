@@ -106,4 +106,4 @@ class MultiDomainAdaptation(DomainAdaptation):
 
     def __init__(self, args):
         super().__init__(args)
-        self.device_discriminator = MultiAlignmentMLP(args)
+        self.discriminator = MultiAlignmentMLP(args)

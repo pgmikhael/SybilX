@@ -18,7 +18,7 @@ DEVICE_ID = {
         "Vital Images, Inc.": 4,
         "Hitachi Medical Corporation": 5,
         "LightSpeed16": 6,
-        -1: -1
+        -1: 7
         }
 
 def order_slices(img_paths, slice_locations):

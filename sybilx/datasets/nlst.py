@@ -65,7 +65,7 @@ EDUCAT_LEVEL = {
     6: 5,  # Bachelors = College Grad
     7: 6,  # Graduate School = Postrad/Prof
 }
-
+DEVICE_TO_NAME = {1:"GE MEDICAL SYSTEMS", 2:"Philips", 3:"SIEMENS", 4:"TOSHIBA"}
 
 @register_object("nlst", "dataset")
 class NLST_Survival_Dataset(data.Dataset):
@@ -91,8 +91,8 @@ class NLST_Survival_Dataset(data.Dataset):
             raise Exception(METAFILE_NOTFOUND_ERR.format(args.dataset_file_path, e))
 
         self.input_loader = get_sample_loader(split_group, args)
+        self.always_resample_pixel_spacing = (args.resample_pixel_spacing) and (split_group == "test")
         if args.resample_pixel_spacing:
-            self.always_resample_pixel_spacing = split_group == "test"
             self.resample_transform = tio.transforms.Resample(
                 target=tuple(args.ct_pixel_spacing)
             )
@@ -261,7 +261,7 @@ class NLST_Survival_Dataset(data.Dataset):
         img_paths = series_dict["paths"]
         slice_locations = series_dict["img_position"]
         series_data = series_dict["series_data"]
-        device = DEVICE_ID[series_data["manufacturer"][0]]
+        device = DEVICE_ID[DEVICE_TO_NAME[series_data["manufacturer"][0]]]
         screen_timepoint = series_data["study_yr"][0]
         assert screen_timepoint == exam_dict["screen_timepoint"]
 
@@ -636,9 +636,8 @@ class NLST_Survival_Dataset(data.Dataset):
             mask_arr = self.reshape_images(masks) if self.args.use_annotations else None
 
         # resample pixel spacing
-        if self.always_resample_pixel_spacing or (
-            self.args.resample_pixel_spacing_prob > np.random.uniform()
-        ):
+        resample_now = self.args.resample_pixel_spacing_prob > np.random.uniform()
+        if self.always_resample_pixel_spacing or resample_now:
             spacing = torch.tensor(sample["pixel_spacing"] + [1])
             input_arr = tio.ScalarImage(
                 affine=torch.diag(spacing),
@@ -654,10 +653,14 @@ class NLST_Survival_Dataset(data.Dataset):
                 )
                 mask_arr = self.resample_transform(mask_arr)
                 mask_arr = self.padding_transform(mask_arr.data)
+        elif self.args.resample_pixel_spacing:
+            input_arr = self.padding_transform(input_arr.permute(0, 2, 3, 1))
+            mask_arr = self.padding_transform(mask_arr.permute(0, 2, 3, 1))
 
-        out_dict["input"] = input_arr.data.permute(0, 3, 1, 2)
-        if self.args.use_annotations:
-            out_dict["mask"] = mask_arr.data.permute(0, 3, 1, 2)
+        if self.args.resample_pixel_spacing:
+            out_dict["input"] = input_arr.data.permute(0, 3, 1, 2)
+            if self.args.use_annotations:
+                out_dict["mask"] = mask_arr.data.permute(0, 3, 1, 2)
 
         return out_dict
 
@@ -673,8 +676,7 @@ class NLST_Survival_Dataset(data.Dataset):
         for i, tau in enumerate(BINS):
             if thickness <= tau:
                 return i
-            else:
-                raise ValueError("THICKNESS > 2.5")
+        raise ValueError("THICKNESS > 2.5")
 
 
 @register_object("nlst_plco", "dataset")

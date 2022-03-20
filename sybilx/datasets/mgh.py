@@ -138,7 +138,7 @@ class MGH_Dataset(NLST_Survival_Dataset):
         if (self.args.slice_thickness_filter is not None) and (
             (slice_thickness in ["", None])
             or (slice_thickness > self.args.slice_thickness_filter)
-            or or (slice_thickness < 0)
+            or (slice_thickness < 0)
         ):
             return True
 

@@ -17,11 +17,12 @@
       6
     ],
     "input_loader_name": [
-      "ct_16_loader"
+      "ct_16bit_loader"
     ],
     "lightning_name": [
       "multi_domain_adapter"
     ],
+    "adv_conditional": [true],
     "adv_loss_lambda": [
       1.0
     ],
