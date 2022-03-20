@@ -4,20 +4,8 @@ from ast import literal_eval
 import copy
 from sybilx.datasets.nlst import NLST_Survival_Dataset
 from collections import Counter
-from sybilx.datasets.utils import fit_to_length, get_scaled_annotation_area
+from sybilx.datasets.utils import fit_to_length, get_scaled_annotation_area, DEVICE_ID
 from sybilx.utils.registry import register_object
-
-DEVICE_ID = {
-    "GE MEDICAL SYSTEMS": 0,
-    "Philips": 1,
-    "SIEMENS": 2,
-    "Siemens Healthcare": 2,  # note: same id as SIEMENS
-    "TOSHIBA": 3,
-    "Vital Images, Inc.": 4,
-    "Hitachi Medical Corporation": 5,
-    "LightSpeed16": 6,
-}
-
 
 @register_object("mgh_cohort1", "dataset")
 class MGH_Dataset(NLST_Survival_Dataset):
@@ -65,11 +53,7 @@ class MGH_Dataset(NLST_Survival_Dataset):
                     img_paths = [p.replace("Data082021", "pngs") for p in img_paths]
                     slice_locations = series_dict["image_posn"]
                     series_data = series_dict["series_data"]
-                    device = (
-                        -1
-                        if series_data["Manufacturer"] == -1
-                        else DEVICE_ID[series_data["Manufacturer"]]
-                    )
+                    device = DEVICE_ID[series_data["Manufacturer"]]
 
                     sorted_img_paths, sorted_slice_locs = self.order_slices(
                         img_paths, slice_locations
@@ -327,11 +311,7 @@ class MGH_Screening(NLST_Survival_Dataset):
             img_paths, slice_locations, reverse = True
         )
 
-        device = (
-            -1
-            if series_data["Manufacturer"] == -1
-            else DEVICE_ID[series_data["Manufacturer"]]
-        )
+        device = DEVICE_ID[series_data["Manufacturer"]]
 
         studyuid = exam_dict["StudyInstanceUID"]
         bridge_uid = exam_dict["bridge_uid"]
