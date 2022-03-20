@@ -17,10 +17,10 @@
       6
     ],
     "input_loader_name": [
-      "ct_loader"
+      "ct_16_loader"
     ],
     "lightning_name": [
-      "domain_adapter"
+      "base"
     ],
     "adv_loss_lambda": [
       1.0
@@ -92,10 +92,10 @@
       3
     ],
     "loss_fns": [
-      "survival guided_attention source_discrimination"
+      "survival guided_attention"
     ],
     "metrics": [
-      "survival discrim_classification"
+      "survival"
     ],
     "monitor": [
       "val_c_index"
@@ -124,29 +124,17 @@
     "callback_names": [
       "lr_monitor checkpointer"
     ],
-    "swa_epoch": [
-      0.0
-    ],
-    "swa_lr": [
-      1e-4
-    ],
-    "swa_annealing_epochs": [
-      1
-    ],
-    "swa_annealing_strategy": [
-      "cos"
-    ],
     "train_rawinput_augmentations": [
       "scale_2d rotate_range/deg=20"
     ],
     "train_tnsr_augmentations": [
-      "force_num_chan_2d normalize_2d"
+      "force_num_chan_2d max_normalize_2d"
     ],
     "test_rawinput_augmentations": [
       "scale_2d"
     ],
     "test_tnsr_augmentations": [
-      "force_num_chan_2d normalize_2d"
+      "force_num_chan_2d max_normalize_2d"
     ],
     "fix_seed_for_multi_image_augmentations": [
       true
@@ -158,7 +146,7 @@
       "nlst-cancer"
     ],
     "comet_tags": [
-      "sybil adversarial"
+      "sybil nlst mgh"
     ],
     "num_sanity_val_steps": [
       0
@@ -178,17 +166,14 @@
     "dropout": [
       0.1
     ],
-    "dataset_file_path": [
-      "/Mounts/rbg-storage1/datasets/NLST/full_nlst_google.json"
-    ],
     "save_dir": [
-      "/Mounts/rbg-storage1/snapshots/lung_ct"
+      "/storage/nlst_cache/snapshots"
     ],
     "img_dir": [
       "/Mounts/rbg-storage1/datasets/NLST/nlst-ct-png"
     ],
     "cache_path": [
-      "/storage/nlst_cache"
+      "/storage/nlst_cache/bit16"
     ]
   },
   "available_gpus": [
