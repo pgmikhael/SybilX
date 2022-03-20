@@ -52,6 +52,9 @@
     "img_size": [
       "256 256"
     ],
+    "slice_thickness_filter": [2.5],
+    "resample_pixel_spacing": [true],
+    "ct_pixel_spacing": ["0.703125 0.703125 1.5"],
     "limit_train_batches": [
       0.5
     ],
