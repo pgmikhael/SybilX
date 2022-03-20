@@ -5,7 +5,7 @@ from collections import OrderedDict
 import copy
 from sybilx.utils.registry import register_object, get_object
 from sybilx.lightning.base import Base
-from sybilx.models.adversary import AlignmentMLP
+from sybilx.models.adversary import AlignmentMLP, MultiAlignmentMLP
 
 
 @register_object("domain_adapter", "lightning")
@@ -93,3 +93,17 @@ class DomainAdaptation(Base):
         }
 
         return [enc_optimizer, disc_optimizer], [enc_scheduler, disc_scheduler]
+
+
+@register_object("multi_domain_adapter", "lightning")
+class MultiDomainAdaptation(DomainAdaptation):
+    """
+    PyTorch Lightning module used as base for running training and test loops
+
+    Args:
+        args: argparser Namespace
+    """
+
+    def __init__(self, args):
+        super().__init__(args)
+        self.device_discriminator = MultiAlignmentMLP(args)

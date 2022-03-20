@@ -230,7 +230,36 @@ class Discriminator_Classification(BaseClassification):
 
         nargs = copy.deepcopy(args)
         nargs.num_classes = probs.shape[-1]
-        stats_dict = super().__call__({"golds": golds, "probs": probs, "preds": preds}, nargs)
-        stats_dict = {'discrim_{}'.format(k): v for k,v in stats_dict.items() }
+        stats_dict = super().__call__(
+            {"golds": golds, "probs": probs, "preds": preds}, nargs
+        )
+        stats_dict = {"discrim_{}".format(k): v for k, v in stats_dict.items()}
+
+        return stats_dict
+
+
+@register_object("multi_discrim_classification", "metric")
+class MultiDiscriminator_Classification(BaseClassification):
+    def __init__(self, args) -> None:
+        super().__init__(args)
+
+    @property
+    def metric_keys(self):
+        return ["device_probs", "device_golds", "thickness_probs", "thickness_golds"]
+
+    def __call__(self, logging_dict, args):
+        stats_dict = OrderedDict()
+
+        for key in ["device", "thickness"]:
+            golds = logging_dict["{}_golds".format(key)]
+            probs = logging_dict["{}_probs".format(key)]
+            preds = logging_dict["{}_probs".format(key)].argmax(axis=-1).reshape(-1)
+
+            nargs = copy.deepcopy(args)
+            nargs.num_classes = probs.shape[-1]
+            stats_dict = super().__call__(
+                {"golds": golds, "probs": probs, "preds": preds}, nargs
+            )
+            stats_dict = {"{}_{}".format(key, k): v for k, v in stats_dict.items()}
 
         return stats_dict

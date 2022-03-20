@@ -75,17 +75,18 @@ def discriminator_loss(model_output, batch, model, args):
     logging_dict, predictions = OrderedDict(), OrderedDict()
     d_output = model.discriminator(model_output, batch)
     loss = (
-        F.cross_entropy(d_output["logit"], batch["origin_dataset"].long())
+        F.cross_entropy(d_output["logit"], batch[args.adv_key].long())
         * args.adv_loss_lambda
     )
     logging_dict["discrim_loss"] = loss.detach()
-    predictions["discrim_probs"] = F.softmax( d_output["logit"], dim=-1).detach()
-    predictions["discrim_golds"] = batch["origin_dataset"]
+    predictions["discrim_probs"] = F.softmax(d_output["logit"], dim=-1).detach()
+    predictions["discrim_golds"] = batch[args.adv_key]
 
     if model.reverse_discrim_loss:
         loss = -loss
 
     return loss, logging_dict, predictions
+
 
 @register_object("device_discrimination", "loss")
 def device_discriminator_loss(model_output, batch, model, args):
@@ -95,9 +96,29 @@ def device_discriminator_loss(model_output, batch, model, args):
         F.cross_entropy(d_output["logit"], batch["device"].long())
         * args.adv_loss_lambda
     )
-    logging_dict["discrim_loss"] = loss.detach()
-    predictions["discrim_probs"] = F.softmax( d_output["logit"], dim=-1).detach()
-    predictions["discrim_golds"] = batch["device"]
+    logging_dict["device_loss"] = loss.detach()
+    predictions["device_probs"] = F.softmax(d_output["device_logit"], dim=-1).detach()
+    predictions["device_golds"] = batch["device"]
+
+    if model.reverse_discrim_loss:
+        loss = -loss
+
+    return loss, logging_dict, predictions
+
+
+@register_object("thickness_discrimination", "loss")
+def thickness_discriminator_loss(model_output, batch, model, args):
+    logging_dict, predictions = OrderedDict(), OrderedDict()
+    d_output = model.discriminator(model_output, batch)
+    loss = (
+        F.cross_entropy(d_output["logit"], batch["slice_thickness"].long())
+        * args.adv_loss_lambda
+    )
+    logging_dict["thickness_loss"] = loss.detach()
+    predictions["thickness_probs"] = F.softmax(
+        d_output["thickness_logit"], dim=-1
+    ).detach()
+    predictions["thickness_golds"] = batch["slice_thickness"]
 
     if model.reverse_discrim_loss:
         loss = -loss
