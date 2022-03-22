@@ -29,7 +29,7 @@ class OpenCVLoader(abstract_loader):
 
 
 @register_object("ct_loader", "input_loader")
-class CTLoader(abstract_loader):
+class FullCTLoader(abstract_loader):
     """Loads all CT slices as a volume"""
     
     def configure_path(self, paths, sample):
