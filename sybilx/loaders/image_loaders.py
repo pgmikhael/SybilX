@@ -42,18 +42,9 @@ class CTLoader(abstract_loader):
         
         input_dicts = []
         for e, path in enumerate(sample["paths"]):
-            if path == self.pad_token:
-                shape = (self.args.num_chan, self.args.img_size[0], self.args.img_size[1])
-                x = torch.zeros(*shape)
-                mask = (
-                    torch.from_numpy(mask * 0).unsqueeze(0)
-                    if self.args.use_annotations
-                    else None
-                )
-            else:
-                x = cv2.imread(path, 0)
+            x = cv2.imread(path, 0)
 
-            # XXX: this is a dumb way to make the mask be the same size as the img
+            # TODO: this is a dumb way to make the mask be the same size as the img
             annotation_mask_args = copy.deepcopy(self.args)
             annotation_mask_args.img_size = x.shape
 
@@ -138,30 +129,6 @@ class DicomTransformLoader(abstract_loader):
     @property
     def cached_extension(self):
         return ""
-
-# @register_object("dicom_tio_loader", "input_loader")
-# class DicomTorchIOLoader(abstract_loader):
-#     """
-#     Expects sample["paths"] 
-#     """
-#     def __init__(self, cache_path, augmentations, args):
-#         super(DicomTorchIOLoader, self).__init__(cache_path, augmentations, args)
-
-#     def configure_path(self, path, sample):
-#         return path
-
-#     def load_input(self, path, sample):
-#         try:
-            
-
-#         except Exception:
-#             raise Exception(LOADING_ERROR.format("COULD NOT LOAD DICOM."))
-
-#         return {"input": min_max_pixel_array, "mask": None}
-
-#     @property
-#     def cached_extension(self):
-#         return ""
 
 
 @register_object("cv_transform_loader", "input_loader")
