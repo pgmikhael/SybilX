@@ -372,10 +372,10 @@ def parse_args(args_strings=None):
 
     # handling CT slices
     parser.add_argument(
-        "--use_all_images",
+        "--fit_to_length",
         action="store_true",
         default=False,
-        help="Whether to use all slices as input. In which case, the num_images arg is used to interpolate volumes to constant depth",
+        help="Whether to fit num slices using padding and slice sampling",
     )
     parser.add_argument(
         "--num_images",
