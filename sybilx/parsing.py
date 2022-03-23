@@ -716,6 +716,12 @@ def parse_args(args_strings=None):
         default=False,
         help="Whether to log sample generated image to comet",
     )
+    parser.add_argument(
+        "--log_profiler",
+        action="store_true",
+        default=False,
+        help="Log profiler times to logger",
+    )
 
     # run
     parser = Trainer.add_argparse_args(parser)
