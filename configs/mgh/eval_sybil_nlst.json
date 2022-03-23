@@ -10,15 +10,6 @@
         "precision": [
             16
         ],
-        "dataset": [
-            "mgh_cohort1"
-        ],
-        "dataset_file_path": [
-            "/Mounts/rbg-storage1/datasets/MGH_Lung_Fintelmann/mgh_lung_cancer_cohort1.json"
-        ],
-        "img_dir": [
-            "/Mounts/rbg-storage1/datasets/MGH_Lung_Fintelmann/pngs"
-        ],
         "max_followup": [
             6
         ],
@@ -81,7 +72,7 @@
             "val_c_index"
         ],
         "num_workers": [
-            3
+            8
         ],
         "optimizer": [
             "adam"
@@ -123,7 +114,7 @@
             "nlst-cancer"
         ],
         "comet_tags": [
-            "mgh sybil"
+            "mgh sybil screening"
         ],
         "num_sanity_val_steps": [
             0
@@ -150,7 +141,18 @@
             "/storage/nlst_cache"
         ]
     },
+    "paired_search_space":{ 
+        "dataset": [
+            "mgh_cohort2"
+        ],
+        "dataset_file_path": [
+            "/Mounts/rbg-storage1/datasets/MGH_Lung_Fintelmann/mgh_lung_cancer_cohort2.json"
+        ],
+        "img_dir": [
+            "/Mounts/rbg-storage1/datasets/MGH_Lung_Fintelmann/screening_pngs"
+        ]
+    },
     "available_gpus": [
-        "0,1,2,3,4,5,6,7"
+        "1","2"
     ]
 }

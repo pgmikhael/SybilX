@@ -172,17 +172,19 @@ class abstract_loader:
 
         if input_path == self.pad_token:
             return self.load_input(input_path, sample)
-         
+
         if not self.use_cache:
             input_dict = self.load_input(input_path, sample)
             # hidden loaders typically do not use augmentation
             if self.apply_augmentations:
                 input_dict = self.composed_all_augmentations(input_dict, sample)
             return input_dict
-        
-        # if self.args.use_annotations: 
-        #     input_dict['mask'] = get_scaled_annotation_mask(sample["annotations"], self.args)
-        
+
+        if self.args.use_annotations:
+            input_dict["mask"] = get_scaled_annotation_mask(
+                sample["annotations"], self.args
+            )
+
         for key, post_augmentations in self.split_augmentations:
             base_key = (
                 DEFAULT_CACHE_DIR + key
@@ -225,33 +227,6 @@ class abstract_loader:
             )
 
         return input_dict
-
-    def get_images(self, paths, sample):
-        """
-        Returns a stack of transformed images by their absolute paths.
-        If cache is used - transformed images will be loaded if available,
-        and saved to cache if not.
-        """
-        out_dict = {}
-        if self.args.fix_seed_for_multi_image_augmentations:
-            sample["seed"] = np.random.randint(0, 2**32 - 1)
-
-        # get images for multi image input
-        s = copy.deepcopy(sample)
-        input_dicts = []
-        for e, path in enumerate(paths):
-            s["annotations"] = sample["annotations"][e]
-            input_dicts.append(self.get_image(path, s))
-
-        images = [i["input"] for i in input_dicts]
-        masks = [i["mask"] for i in input_dicts]
-
-        out_dict["input"] = self.reshape_images(images)
-        out_dict["mask"] = (
-            self.reshape_images(masks) if self.args.use_annotations else None
-        )
-
-        return out_dict
 
     def reshape_images(self, images):
         images = [im.unsqueeze(0) for im in images]
