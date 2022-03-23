@@ -129,7 +129,7 @@ class ChestXRayLungCancerAttn(nn.Module):
     def forward(self, x, batch = None):
         output = {}
         image_hidden = self.image_encoder( x )
-        #output["image_hidden"] = image_hidden
+        output["activ"] = image_hidden
 
         pool_output = self.pool(image_hidden)
         pool_output = self.custom_head(pool_output)
