@@ -113,10 +113,17 @@ class DicomTransformLoader(abstract_loader):
             if hasattr(dcm, 'PhotometricInterpretation') and not 'MONOCHROME2' in dcm.PhotometricInterpretation:
                 min_max_pixel_array = 255 - min_max_pixel_array
 
+            if self.args.use_annotations:
+                mask = get_scaled_annotation_mask(
+                    sample["annotations"], self.args
+            )
+            else:
+                mask = None
+            
         except Exception:
             raise Exception(LOADING_ERROR.format("COULD NOT LOAD DICOM."))
 
-        return {"input": min_max_pixel_array, "mask": None}
+        return {"input": min_max_pixel_array, "mask": mask}
 
     def transform_image(self, pixel_array):
         min_val = np.min(pixel_array)
@@ -143,8 +150,12 @@ class CVTransformLoader(DicomTransformLoader):
     def load_input(self, path, sample):
         img = cv2.imread(path, 0)
         min_max_pixel_array = self.transform_image(img)
+        if self.args.use_annotations:
+            mask = get_scaled_annotation_mask(sample["annotations"], self.args)
+        else:
+            mask = None
 
-        return {"input": min_max_pixel_array, "mask": None}
+        return {"input": min_max_pixel_array, "mask": mask}
 
 @register_object("ct_16bit_loader", "input_loader")
 class CT16Loader(abstract_loader):
@@ -171,6 +182,12 @@ class CT16Loader(abstract_loader):
         else:
             x = cv2.imread(path, -1)
             x = np.float32(x)
+
+            if self.args.use_annotations:
+                mask = get_scaled_annotation_mask(sample["annotations"], self.args)
+            else:
+                mask = None
+
         return {"input": x, "mask": mask}
 
     @property
@@ -192,9 +209,15 @@ class DicomLoader(abstract_loader):
             dcm = pydicom.dcmread(path)
             dcm = apply_modality_lut(dcm.pixel_array, dcm)
             arr = apply_windowing(dcm, self.window_center, self.window_width)
+
+            if self.args.use_annotations:
+                mask = get_scaled_annotation_mask(sample["annotations"], self.args)
+            else:
+                mask = None
+                
         except Exception:
             raise Exception(LOADING_ERROR.format("COULD NOT LOAD DICOM."))
-        return {"input": arr}
+        return {"input": arr, "mask": mask}
 
     @property
     def cached_extension(self):
