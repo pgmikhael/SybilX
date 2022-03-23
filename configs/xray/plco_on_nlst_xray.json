@@ -3,7 +3,7 @@
   "grid_search_space": {
     "batch_size": [24],
     "accumulate_grad_batches": [1],
-    "dataset": ["nlst_xray"],
+    "dataset": ["nlst_xray_test"],
     "max_followup": [6],
     "input_loader_name": ["dicom_transform_loader"],
     "lightning_name": ["base"],
@@ -48,10 +48,10 @@
     "dataset_file_path": ["/Mounts/rbg-storage1/datasets/ACRIN_XRAY/xray_dataset.json"],
     "save_dir": ["/Mounts/rbg-storage1/snapshots/lung_xray"],
     "img_dir": ["/Mounts/rbg-storage1/datasets/ACRIN_XRAY/NLST/"],
-    "comet_tags": ["plco_on_nlst_x_ray"],
+    "comet_tags": ["plco_on_nlst_x_ray full_nlst"],
     "use_risk_factors": [true],
     "from_checkpoint": [true],
-    "snapshot": ["snapshots/0244d3d3aecd65f2f6f4c4b9d8957f67/0244d3d3aecd65f2f6f4c4b9d8957f67epoch=7.ckpt"],
+    "snapshot": ["snapshots/0244d3d3aecd65f2f6f4c4b9d8957f67/0244d3d3aecd65f2f6f4c4b9d8957f67epoch=6.ckpt"],
     "relax_checkpoint_matching": [true]
   },
   "available_gpus": ["0","1","2","3"]
