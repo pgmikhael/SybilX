@@ -47,11 +47,14 @@ import sybilx.learning.schedulers.basic
 # models
 import sybilx.models.cxr_lc
 import sybilx.models.sybilxray
+import sybilx.models.sybilx_teacher_student
+import sybilx.models.sybil
 
 # losses
 import sybilx.learning.losses.basic
 import sybilx.learning.losses.guided_attention
 import sybilx.learning.losses.weighted_focal_loss
+import sybilx.learning.losses.distillation
 
 # metrics
 import sybilx.learning.metrics.basic
