@@ -675,22 +675,23 @@ class NLSTCTProjectionsDataset(NLST_Survival_Dataset):
         sample = self.dataset[index]
         if self.args.use_annotations:
             sample = self.get_ct_annotations(sample)
-            sample["annotation_areas"] = get_scaled_annotation_area(sample, self.args)
-            sample["has_annotation"] = np.sum(sample["volume_annotations"]) > 0
         try:
             item = {}
             input_dict = self.input_loader.get_image(sample["paths"], sample)
 
-            x, mask = input_dict["input"], input_dict["mask"]
+            x = input_dict["input"]
 
             if self.args.use_annotations:
-                mask = torch.abs(mask)
-                mask_area = mask.sum(dim=(-1, -2)).unsqueeze(-1).unsqueeze(-1)
+                mask = torch.abs(input_dict["mask"])
+                mask_area = mask.sum(dim=(-1, -2))
+                item["volume_annotations"] = mask_area[0] / max(1, mask_area.sum())
+                item["annotation_areas"] = mask_area[0] / (
+                    mask.shape[-2] * mask.shape[-1]
+                )
+                mask_area = mask_area.unsqueeze(-1).unsqueeze(-1)
                 mask_area[mask_area == 0] = 1
-                mask = mask / mask_area
-                item["image_annotations"] = mask
-                item["annotation_areas"] = sample["annotation_areas"]
-                item["volume_annotations"] = sample["volume_annotations"]
+                item["image_annotations"] = mask / mask_area
+                item["has_annotation"] = item["volume_annotations"].sum() > 0
 
             if self.args.use_risk_factors:
                 item["risk_factors"] = sample["risk_factors"]
@@ -704,6 +705,7 @@ class NLSTCTProjectionsDataset(NLST_Survival_Dataset):
             return item
         except Exception:
             warnings.warn(LOAD_FAIL_MSG.format(sample["exam"], traceback.print_exc()))
+
 
     def get_images(self, paths, sample):
         pass
