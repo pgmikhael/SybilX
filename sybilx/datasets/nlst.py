@@ -127,7 +127,7 @@ class NLST_Survival_Dataset(data.Dataset):
 
         dataset = []
 
-        for mrn_row in tqdm(self.metadata_json[:100], position=0):
+        for mrn_row in tqdm(self.metadata_json, position=0):
             pid, split, exams, pt_metadata = (
                 mrn_row["pid"],
                 mrn_row["split"],
