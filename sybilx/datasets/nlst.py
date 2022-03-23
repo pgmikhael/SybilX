@@ -307,7 +307,7 @@ class NLST_Survival_Dataset(data.Dataset):
                 pt_metadata, screen_timepoint, return_dict=False
             )
 
-        if not self.args.use_all_images:
+        if self.args.fit_to_length:
             sample["paths"] = fit_to_length(sorted_img_paths, self.args.num_images)
             sample["slice_locations"] = fit_to_length(
                 sorted_slice_locs, self.args.num_images, "<PAD>"
@@ -508,16 +508,6 @@ class NLST_Survival_Dataset(data.Dataset):
             }
 
         if sample["series"] in self.annotations_metadata:
-            # check if there is an annotation in a slice
-            sample["volume_annotations"] = np.array(
-                [
-                    int(
-                        os.path.splitext(os.path.basename(path))[0]
-                        in self.annotations_metadata[sample["series"]]
-                    )
-                    for path in sample["paths"]
-                ]
-            )
             # store annotation(s) data (x,y,width,height) for each slice
             sample["annotations"] = [
                 {
@@ -528,7 +518,6 @@ class NLST_Survival_Dataset(data.Dataset):
                 for path in sample["paths"]
             ]
         else:
-            sample["volume_annotations"] = np.array([0 for _ in sample["paths"]])
             sample["annotations"] = [
                 {"image_annotations": None} for path in sample["paths"]
             ]
@@ -541,49 +530,23 @@ class NLST_Survival_Dataset(data.Dataset):
         sample = self.dataset[index]
         if self.args.use_annotations:
             sample = self.get_ct_annotations(sample)
-            sample["annotation_areas"] = get_scaled_annotation_area(sample, self.args)
-            sample["has_annotation"] = np.sum(sample["volume_annotations"]) > 0
         try:
             item = {}
             input_dict = self.get_images(sample["paths"], sample)
 
-            x, mask = input_dict["input"], input_dict["mask"]
-            #if self.args.use_all_images:
-            #    n, h, w = x.shape
-            #    x = torch.nn.functional.interpolate(
-            #        x.unsqueeze(0), (self._num_images, h, w), align_corners=True
-            #    )[0]
-            #    if mask is not None:
-            #        mask = torch.nn.functional.interpolate(
-            #            mask.unsqueeze(0), (self._num_images, h, w), align_corners=True
-            #        )[0]
+            x = input_dict["input"]
 
             if self.args.use_annotations:
-                # item['mask'] = mask
-                # mask = item.pop('mask')
-                mask = torch.abs(mask)
-                mask_area = mask.sum(dim=(-1, -2)).unsqueeze(-1).unsqueeze(-1)
+                mask = torch.abs(input_dict["mask"])
+                mask_area = mask.sum(dim=(-1, -2))
+                item["volume_annotations"] = mask_area[0] / max(1, mask_area.sum())
+                item["annotation_areas"] = mask_area[0] / (
+                    mask.shape[-2] * mask.shape[-1]
+                )
+                mask_area = mask_area.unsqueeze(-1).unsqueeze(-1)
                 mask_area[mask_area == 0] = 1
-                mask = mask / mask_area
-                item["image_annotations"] = mask
-                if self.args.use_all_images:
-                    t = torch.from_numpy(sample["annotation_areas"])
-                    item["annotation_areas"] = F.interpolate(
-                        t[None, None],
-                        (self._num_images),
-                        mode="linear",
-                        align_corners=True,
-                    )[0, 0]
-                    t = torch.from_numpy(sample["volume_annotations"]).float()
-                    item["volume_annotations"] = F.interpolate(
-                        t[None, None],
-                        (self._num_images),
-                        mode="linear",
-                        align_corners=True,
-                    )[0, 0]
-                else:
-                    item["annotation_areas"] = sample["annotation_areas"]
-                    item["volume_annotations"] = sample["volume_annotations"]
+                item["image_annotations"] = mask / mask_area
+                item["has_annotation"] = item["volume_annotations"].sum() > 0
 
             if self.args.use_risk_factors:
                 item["risk_factors"] = sample["risk_factors"]
@@ -720,42 +683,14 @@ class NLSTCTProjectionsDataset(NLST_Survival_Dataset):
 
             x, mask = input_dict["input"], input_dict["mask"]
 
-            if self.args.use_all_images:
-                n, h, w = x.shape
-                #x = torch.nn.functional.interpolate(
-                #    x.unsqueeze(0), (self._num_images, h, w), align_corners=True
-                #)[0]
-                #if mask is not None:
-                #    mask = torch.nn.functional.interpolate(
-                #        mask.unsqueeze(0), (self._num_images, h, w), align_corners=True
-                #    )[0]
-
             if self.args.use_annotations:
-                # item['mask'] = mask
-                # mask = item.pop('mask')
                 mask = torch.abs(mask)
                 mask_area = mask.sum(dim=(-1, -2)).unsqueeze(-1).unsqueeze(-1)
                 mask_area[mask_area == 0] = 1
                 mask = mask / mask_area
                 item["image_annotations"] = mask
-                if self.args.use_all_images:
-                    t = torch.from_numpy(sample["annotation_areas"])
-                    item["annotation_areas"] = F.interpolate(
-                        t[None, None],
-                        (self._num_images),
-                        mode="linear",
-                        align_corners=True,
-                    )[0, 0]
-                    t = torch.from_numpy(sample["volume_annotations"]).float()
-                    item["volume_annotations"] = F.interpolate(
-                        t[None, None],
-                        (self._num_images),
-                        mode="linear",
-                        align_corners=True,
-                    )[0, 0]
-                else:
-                    item["annotation_areas"] = sample["annotation_areas"]
-                    item["volume_annotations"] = sample["volume_annotations"]
+                item["annotation_areas"] = sample["annotation_areas"]
+                item["volume_annotations"] = sample["volume_annotations"]
 
             if self.args.use_risk_factors:
                 item["risk_factors"] = sample["risk_factors"]
@@ -772,28 +707,3 @@ class NLSTCTProjectionsDataset(NLST_Survival_Dataset):
 
     def get_images(self, paths, sample):
         pass
-
-    # def reshape_images(self, images):
-    #     if isinstance(images[0], np.ndarray):
-    #         images = [np.expand_dims(im, axis=0) for im in images]
-    #         images = np.concatenate(images, axis=0)
-    #         # Convert from (T, C, H, W) to (C, T, H, W)
-    #         images = images.transpose((1, 0, 2, 3))
-    #     elif torch.is_tensor(images[0]):
-    #         images = [im.unsqueeze(0) for im in images]
-    #         images = torch.cat(images, dim=0)
-    #         # Convert from (T, C, H, W) to (C, T, H, W)
-    #         images = images.permute(1, 0, 2, 3)
-    #     return images
-
-    # def project_ct(self, images):
-    #     """
-    #     Returns resized (to image dims in args), flipped and mean of images in the last dim
-    #     """
-    #     # axis of mean is height (H)
-    #     if isinstance(images, np.ndarray):
-    #         return torch.tensor(cv2.resize(np.flipud(np.mean(images, axis=2)), self.args.img_size))
-    #     elif torch.is_tensor(images):
-    #         projection = cv2.resize(torch.flipud(torch.mean(images, dim=2)), self.args.img_size)
-    #         assert torch.is_tensor(projection)
-    #         return projection
