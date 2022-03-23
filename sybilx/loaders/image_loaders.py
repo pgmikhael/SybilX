@@ -84,14 +84,6 @@ class DicomTransformLoader(abstract_loader):
     MIMIC method of DICOM image loading
     source: https://physionet.org/content/mimic-cxr-jpg/2.0.0/
     Chest radiographs were converted from DICOM to a compressed JPG format. 
-    
-    First, the image pixels were extracted from the DICOM file using the pydicom library. 
-    Pixel values were normalized to the range [0, 255] by subtracting the lowest value in the image, dividing by the highest value in the shifted image, truncating values, and converting the result to an unsigned integer. 
-    The DICOM field PhotometricInterpretation was used to determine whether the pixel values were inverted, 
-    and if necessary images were inverted such that air in the image appears white (highest pixel value), while the outside of the patient's body appears black (lowest pixel value). 
-    The OpenCV library was then used to histogram equalize the image with the intention of enhancing contrast. 
-    Histogram equalization involves shifting pixel values towards 0 or towards 255 such that all pixel values 0 through 255 have approximately equal frequency. 
-    Images were then converted to JPG files using OpenCV with a quality factor of 95.
     """
     def __init__(self, cache_path, augmentations, args):
         super(DicomTransformLoader, self).__init__(cache_path, augmentations, args)
@@ -114,16 +106,15 @@ class DicomTransformLoader(abstract_loader):
                 min_max_pixel_array = 255 - min_max_pixel_array
 
             if self.args.use_annotations:
-                mask = get_scaled_annotation_mask(
-                    sample["annotations"], self.args
-            )
+                mask = get_scaled_annotation_mask(sample["annotations"], self.args)
+                return {"input": min_max_pixel_array, "mask": mask}
             else:
-                mask = None
+                return {"input": min_max_pixel_array}
+
             
         except Exception:
             raise Exception(LOADING_ERROR.format("COULD NOT LOAD DICOM."))
 
-        return {"input": min_max_pixel_array, "mask": mask}
 
     def transform_image(self, pixel_array):
         min_val = np.min(pixel_array)
@@ -152,10 +143,11 @@ class CVTransformLoader(DicomTransformLoader):
         min_max_pixel_array = self.transform_image(img)
         if self.args.use_annotations:
             mask = get_scaled_annotation_mask(sample["annotations"], self.args)
+            return {"input": min_max_pixel_array, "mask": mask}
         else:
-            mask = None
+            return {"input": min_max_pixel_array}
 
-        return {"input": min_max_pixel_array, "mask": mask}
+        
 
 @register_object("ct_16bit_loader", "input_loader")
 class CT16Loader(abstract_loader):
@@ -183,12 +175,7 @@ class CT16Loader(abstract_loader):
             x = cv2.imread(path, -1)
             x = np.float32(x)
 
-            if self.args.use_annotations:
-                mask = get_scaled_annotation_mask(sample["annotations"], self.args)
-            else:
-                mask = None
-
-        return {"input": x, "mask": mask}
+            return {"input": x, "mask": mask}
 
     @property
     def cached_extension(self):
@@ -212,12 +199,12 @@ class DicomLoader(abstract_loader):
 
             if self.args.use_annotations:
                 mask = get_scaled_annotation_mask(sample["annotations"], self.args)
+                return {"input": arr, "mask": mask}
             else:
-                mask = None
+                return {"input": arr}
                 
         except Exception:
             raise Exception(LOADING_ERROR.format("COULD NOT LOAD DICOM."))
-        return {"input": arr, "mask": mask}
 
     @property
     def cached_extension(self):

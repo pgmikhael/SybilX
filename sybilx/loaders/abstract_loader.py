@@ -171,9 +171,11 @@ class abstract_loader:
         input_path = self.configure_path(path, sample)
 
         if input_path == self.pad_token:
+            # this now returns 'mask' as well if use_annotations
             return self.load_input(input_path, sample)
 
         if not self.use_cache:
+            # this now returns 'mask' as well if use_annotations
             input_dict = self.load_input(input_path, sample)
             # hidden loaders typically do not use augmentation
             if self.apply_augmentations:
@@ -192,6 +194,9 @@ class abstract_loader:
                     input_dict["input"] = cached_arrays["image"]
                     if "mask" in cached_arrays:
                         input_dict["mask"] = cached_arrays["mask"]
+                    elif self.args.use_annotations:
+                        # if masks are correctly cached this should not be necessary
+                        input_dict["mask"] = get_scaled_annotation_mask(sample["annotations"], self.args)
                     if self.apply_augmentations:
                         input_dict = apply_augmentations_and_cache(
                             input_dict,
@@ -210,6 +215,7 @@ class abstract_loader:
                     warnings.warn(CORUPTED_FILE_ERR.format(sys.exc_info()[0]))
                     self.cache.rem(input_path, key)
         all_augmentations = self.split_augmentations[-1][1]
+        # this now returns 'mask' as well if use_annotations
         input_dict = self.load_input(input_path, sample)
         if self.apply_augmentations:
             input_dict = apply_augmentations_and_cache(
@@ -222,10 +228,3 @@ class abstract_loader:
             )
 
         return input_dict
-
-    def reshape_images(self, images):
-        images = [im.unsqueeze(0) for im in images]
-        images = torch.cat(images, dim=0)
-        # Convert from (T, C, H, W) to (C, T, H, W)
-        images = images.permute(1, 0, 2, 3)
-        return images
