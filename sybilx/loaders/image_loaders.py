@@ -2,6 +2,7 @@ from sybilx.loaders.abstract_loader import abstract_loader
 from sybilx.utils.registry import register_object
 import cv2
 import torch
+import os.path
 import pydicom
 from pydicom.pixel_data_handlers.util import apply_modality_lut
 import numpy as np
@@ -43,7 +44,7 @@ class FullCTLoader(abstract_loader):
         input_dicts = []
         for e, path in enumerate(sample["paths"]):
             x = cv2.imread(path, 0)
-
+                
             # TODO: this is a dumb way to make the mask be the same size as the img
             annotation_mask_args = copy.deepcopy(self.args)
             annotation_mask_args.img_size = x.shape
@@ -76,6 +77,64 @@ class FullCTLoader(abstract_loader):
     @property
     def cached_extension(self):
         return ""
+
+
+@register_object("ct_loader", "input_loader")
+class FullCTLoader_from_cached(FullCTLoader):
+    """
+    This is a loader to allow us to load CT datasets that were previously cached for the CT (Sybil) project
+    """
+    def __init__(self, cache_path, augmentations, args):
+        super(FullCTLoader_from_cached, self).__init__(cache_path, augmentations, args)
+
+    def configure_path(self, paths, sample):
+        # we still want to cache the projections, just removed double hashing
+        return str(paths)
+    
+    def get_hashed_paths(self, image_paths, attr_key="#256#256"):
+        DEFAULT_CACHE_DIR = "default/"
+        # TODO: debug and double check that attr_key is correct, it might be the entire augmentation name like @scale2d#256#256
+        hashed_image_paths = []
+        for image_path in image_paths:
+            hashed_key = md5(image_path)
+            par_dir = os.path.basename(os.path.dirname(image_path))
+            # this is the line to double check
+            hashed_path = os.path.join(self.cache_path, DEFAULT_CACHE_DIR, attr_key, par_dir, hashed_key + '.npz')    
+            hashed_image_paths.append(hashed_path)
+        return hashed_image_paths
+
+    def load_input(self, input_path, sample):
+        sample['paths'] = self.get_hashed_paths(sample['paths'])
+        out_dict = {}
+        if self.args.fix_seed_for_multi_image_augmentations:
+            sample["seed"] = np.random.randint(0, 2**32 - 1)
+        
+        input_dicts = []
+        for e, path in enumerate(sample["paths"]):
+            cached_arrays = np.load(path)
+            cached_arrays = self.cache.get(input_path, base_key)
+            x = cached_arrays["image"]
+            if "mask" in cached_arrays:
+                mask = cached_arrays["mask"]
+            elif self.args.use_annotations:
+                # if masks are correctly cached this should not be necessary
+                annotation_mask_args = copy.deepcopy(self.args)
+                annotation_mask_args.img_size = x.shape
+                mask = (
+                get_scaled_annotation_mask(sample["annotations"][e], annotation_mask_args)
+                if self.args.use_annotations
+                else None
+                )
+                
+            input_dicts.append({"input": x, "mask": mask})
+
+        images = [i["input"] for i in input_dicts]
+        masks = [i["mask"] for i in input_dicts]
+
+        out_dict["input"] = self.reshape_images(images)
+        out_dict["mask"] = self.reshape_images(masks) if self.args.use_annotations else None
+
+        return out_dict
 
 
 @register_object("dicom_transform_loader", "input_loader")
