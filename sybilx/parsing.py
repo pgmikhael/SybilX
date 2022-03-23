@@ -334,6 +334,33 @@ def parse_args(args_strings=None):
         "--max_followup", type=int, default=6, help="Max followup to predict over"
     )
 
+    # MLP
+    parser.add_argument('--fc_classifier_input_dim', type = int, default = 128, help = 'Dim of input to classifier')
+    parser.add_argument('--mlp_input_dim', type = int, default = 512, help = 'Dim of input to mlp')
+    parser.add_argument('--mlp_layer_configuration', type = int, nargs='*', default = [128, 128], help = 'MLP layer dimensions')
+    parser.add_argument('--mlp_use_batch_norm', action='store_true', default = False, help = 'Use batchnorm in mlp')
+    parser.add_argument('--mlp_use_layer_norm', action='store_true', default = False, help = 'Use LayerNorm in mlp')
+    parser.add_argument('--multitask_mlp_input_dim', type = int, default = 512, help = 'Dim of input to classifier with multiple MLP and FC heads for multiple, separate tasks')
+    parser.add_argument('--multitask_mlp_configuration', type = int, nargs='*', default = [128, 128], help = 'Layer dimensions of multitask model')
+    parser.add_argument('--multitask_keys', type = str, nargs = '*', default = [], help = 'names of task for multi-task setting')
+    parser.add_argument('--hidden_size', type=int, default=256, help='Dimensionality of hidden layers, multi-purpose')
+
+    # Distillation
+    parser.add_argument('--itrd_alpha', type=float, default=1, help='Power in information theoretic distillation loss') 
+    parser.add_argument('--itrd_beta_mi', type=float, default=1, help='Correlation scaling in information theoretic distillation loss') 
+    parser.add_argument('--itrd_beta_corr', type=float, default=1, help='Mutual information scaling in information theoretic distillation loss') 
+    parser.add_argument('--nst_lambda', type=float, default=1, help='Scaling in mmd distillation loss') 
+    parser.add_argument('--mmd_kernel', type=str, default='guassian_rbf', choices=['linear', 'multiscale', 'guassian_rbf'], help='Kernel in mmd distillation loss. ') 
+    parser.add_argument('--distill_num_subclasses', type=int, default=3, help='Number of subclasses in subclass distillation')
+    parser.add_argument('--distill_temperature', type=float, default=1, help='Temperature parameter in distillation') 
+    parser.add_argument('--distill_aux_loss_lambda', type = float, default = 1.0, help = 'Weight for auxiliary distillation loss')
+    parser.add_argument('--distill_student_loss_lambda', type = float, default = 1.0, help = 'Weight for student distillation loss')
+    parser.add_argument('--distill_aux_temperature', type = float, default = 1.0, help = 'Temperature for auxiliary distillation loss')
+    
+    # Teacher Student Models
+    parser.add_argument('--proj_encoder_model', type = str, default = 'sybilxray_r50', help = 'Name of molecular encoder')
+
+    
     # augmentations
     parser.add_argument(
         "--fix_multi_image_augmentation_seed",
