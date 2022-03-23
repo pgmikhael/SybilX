@@ -34,7 +34,7 @@ class FullCTLoader(abstract_loader):
     """Loads all CT slices as a volume"""
     
     def configure_path(self, paths, sample):
-        return md5(str(paths))
+        return md5(str(sorted(paths)))
 
     def load_input(self, input_path, sample):
         out_dict = {}
