@@ -15,12 +15,12 @@
     "max_epochs": [10],
     "lr_decay": [0.1],
     "img_size": ["224 224"],
+    "img_file_type": ["dicom"],
     "limit_train_batches": [1.0],
     "limit_val_batches": [1.0],
     "lr": [1e-3],
     "base_model": ["cxrlc_attn"],
     "use_only_thin_cuts_for_ct": [true],
-    "use_all_images": [true],
     "region_annotations_filepath": ["/Mounts/rbg-storage1/datasets/NLST/annotations_122020.json"],
     "use_annotations": [true],
     "annotation_loss_lambda": [1.0],
@@ -58,5 +58,5 @@
     "cross_val_seed": [0],
     "split_probs": ["0.7 0.15 0.15"]
   },
-  "available_gpus": ["0,1,2,3"]
+  "available_gpus": ["1"]
 }
