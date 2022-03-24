@@ -206,7 +206,9 @@ class CVTransformLoader(DicomTransformLoader):
         else:
             return {"input": min_max_pixel_array}
 
-        
+    @property
+    def cached_extension(self):
+        return ".png"
 
 @register_object("ct_16bit_loader", "input_loader")
 class CT16Loader(abstract_loader):
