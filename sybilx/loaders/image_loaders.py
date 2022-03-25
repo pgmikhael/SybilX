@@ -83,7 +83,7 @@ class FullCTLoader(abstract_loader):
         return ""
 
 
-@register_object("ct_loader", "input_loader")
+@register_object("cached_ct_loader", "input_loader")
 class FullCTLoader_from_cached(FullCTLoader):
     """
     This is a loader to allow us to load CT datasets that were previously cached for the CT (Sybil) project
