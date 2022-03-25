@@ -43,7 +43,11 @@ class FullCTLoader(abstract_loader):
         
         input_dicts = []
         for e, path in enumerate(sample["paths"]):
-            x = cv2.imread(path, 0)
+            if self.args.img_file_type == 'dicom':
+                with open(path, 'rb') as f:
+                    x = pydicom.dcmread(f).pixel_array
+            else:
+                x = cv2.imread(path, 0)
                 
             # TODO: this is a dumb way to make the mask be the same size as the img
             annotation_mask_args = copy.deepcopy(self.args)
