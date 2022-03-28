@@ -99,13 +99,21 @@ def cli_main(args):
         trainer.fit(model, train_dataset, dev_dataset)
         args.model_path = trainer.checkpoint_callback.best_model_path
 
+    # dev
+    if args.dev:
+        log.info("\nInference Phase on dev set...")
+        dev_dataset = loaders.get_eval_dataset_loader(
+            args, get_object(args.dataset, "dataset")(args, "dev"), False
+        )
+        trainer.validate(model, dev_dataset, ckpt_path=args.model_path)
+
     # testing
     if args.test:
         log.info("\nInference Phase on test set...")
         test_dataset = loaders.get_eval_dataset_loader(
             args, get_object(args.dataset, "dataset")(args, "test"), False
         )
-        trainer.test(model, test_dataset)
+        trainer.test(model, test_dataset, ckpt_path=args.model_path)
 
     print("Saving args to {}.args".format(args.results_path))
     pickle.dump(vars(args), open("{}.args".format(args.results_path), "wb"))
