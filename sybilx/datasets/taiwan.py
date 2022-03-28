@@ -57,7 +57,10 @@ class CGMH_Dataset(NLST_Survival_Dataset):
         
         if any([ p.replace("CGMH_LDCT", "ldct_pngs").replace(".dcm", ".png") in empty_paths for p in series_dict["paths"] ]):
             return True
-
+        
+        if len(set([float(s[-1]) for s in series_dict["slice_position"]])) == 1:
+            return True
+        
         return False
 
     def get_volume_dict(self, series_dict, exam_dict, mrn_row):
@@ -67,7 +70,7 @@ class CGMH_Dataset(NLST_Survival_Dataset):
             p.replace("CGMH_LDCT", "ldct_pngs").replace(".dcm", ".png")
             for p in img_paths
         ]
-        slice_locations = series_dict["slice_position"]
+        slice_locations = [float(s[-1]) for s in series_dict["slice_position"]]
 
         sorted_img_paths, sorted_slice_locs = self.order_slices(
             img_paths, slice_locations

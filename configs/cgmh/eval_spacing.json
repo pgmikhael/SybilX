@@ -56,12 +56,11 @@
             true
         ],
         "snapshot": [
-            "/home/peter/SybilModels/nlst_only.ckpt",
-	    "/home/peter/SybilModels/nlst_mgh_tune.ckpt"
+            "/home/peter/SybilModels/8ae3b01374674810ff14438a4a3e5638epoch=7.ckpt"
         ],
 	"relax_checkpoint_matching": [true],
         "use_only_thin_cuts_for_ct": [
-            true
+            false
         ],
         "num_images": [
             200
