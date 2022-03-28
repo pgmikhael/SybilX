@@ -17,7 +17,7 @@
       6
     ],
     "input_loader_name": [
-      "ct_loader"
+      "ct_16bit_loader"
     ],
     "lightning_name": [
       "base"
@@ -116,13 +116,13 @@
       "scale_2d rotate_range/deg=20"
     ],
     "train_tnsr_augmentations": [
-      "force_num_chan_2d normalize_2d"
+      "force_num_chan_2d max_normalize_2d"
     ],
     "test_rawinput_augmentations": [
       "scale_2d"
     ],
     "test_tnsr_augmentations": [
-      "force_num_chan_2d normalize_2d"
+      "force_num_chan_2d max_normalize_2d"
     ],
     "fix_seed_for_multi_image_augmentations": [
       true
@@ -134,7 +134,22 @@
       "nlst-cancer"
     ],
     "comet_tags": [
-      "sybil"
+      "sybil swa"
+    ],
+    "callback_names": [
+      "lr_monitor checkpointer swa"
+    ],
+    "swa_epoch": [
+      0.5
+    ],
+    "swa_lr": [
+      1e-4
+    ],
+    "swa_annealing_epochs": [
+      1
+    ],
+    "swa_annealing_strategy": [
+      "cos"
     ],
     "num_sanity_val_steps": [
       0
