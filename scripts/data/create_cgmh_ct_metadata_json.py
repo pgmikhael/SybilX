@@ -44,6 +44,8 @@ for path in tqdm(dicoms, total=len(dicoms)):
         sdict = {
                 'seriesid': seriesid,
                 'ImageType': imagetype,
+                'slice_thickness': float(dcm.SliceThickness),
+                'pixel_spacing': [float(d) for d in  dcm.PixelSpacing],
                 'slice_position': [position],
                 'paths': [path]
                 }

@@ -93,10 +93,11 @@ class CGMH_Dataset(NLST_Survival_Dataset):
                 ),
             "series": series_id,
             "pid": mrn_row["pid"],
+            "pixel_spacing": series_dict['pixel_spacing'] + [series_dict['slice_thickness'] ],
             "manufacturer": exam_dict["manufacturer"]
         }
 
-        if not self.args.use_all_images:
+        if self.args.fit_to_length:
             sample["paths"] = fit_to_length(sorted_img_paths, self.args.num_images)
             sample["slice_locations"] = fit_to_length(
                 sorted_slice_locs, self.args.num_images, "<PAD>"
