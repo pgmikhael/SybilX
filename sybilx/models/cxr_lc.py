@@ -119,9 +119,7 @@ class ChestXRayLungCancerAttn(nn.Module):
             self.risk_factors_mlp = nn.Sequential(*risk_factors_layers)
 
         # final MLP
-        final_hidden_size = 32 + 1536
-        if args.use_risk_factors:
-            final_hidden_size += 32
+        final_hidden_size = 64 if args.use_risk_factors else 32
         final_layers = [nn.Linear(final_hidden_size, 32), nn.ReLU(), nn.Dropout(p=args.dropout), nn.Linear(32, args.num_classes)]
         
         self.final_mlp = nn.Sequential(*final_layers)
@@ -131,17 +129,13 @@ class ChestXRayLungCancerAttn(nn.Module):
         image_hidden = self.image_encoder( x )
         output["activ"] = image_hidden
 
-        pool_output = self.pool(image_hidden)
-        pool_output = self.custom_head(pool_output)
-
         attn_output = self.attn_pool(image_hidden)
         output["image_attention"] = attn_output["image_attention"]
+        output["hidden"] = self.custom_head( attn_output["hidden"] )
 
         if self.args.use_risk_factors:
             risk_factors_hidden = self.risk_factors_mlp( batch['risk_factors'].float() )
-            output["hidden"] = torch.cat( [risk_factors_hidden, pool_output, attn_output["hidden"]], dim=1 )
-        else:
-            output["hidden"] = torch.cat( [pool_output, attn_output["hidden"]], dim=1 )
+            output["hidden"] = torch.cat( [risk_factors_hidden, output["hidden"]], dim=1 )
 
         output["hidden"] = self.relu(output["hidden"])
         output["hidden"] = self.dropout(output["hidden"])
