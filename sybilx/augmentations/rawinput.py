@@ -1,4 +1,6 @@
+import numpy as np
 import albumentations as A
+import cv2
 from sybilx.utils.registry import register_object
 from sybilx.augmentations.abstract import Abstract_augmentation
 
@@ -383,3 +385,28 @@ class Random_Affine_Transform(Abstract_augmentation):
             self.set_seed(sample["seed"])
         input_dict["input"] = self.transform(image=input_dict["input"])["image"]
         return input_dict
+
+
+@register_object("dcm_transform", "augmentation")
+class DcmTransform(Abstract_augmentation):
+    """
+    from dicom_transform_loader
+    """
+
+    def __init__(self, args, kwargs):
+        super(DcmTransform, self).__init__()
+        assert len(kwargs.keys()) == 0
+        self.set_cachable()
+
+    def transform_image(self, pixel_array):
+        min_val = np.min(pixel_array)
+        min_max_pixel_array = pixel_array - min_val
+        max_val = np.max(min_max_pixel_array)
+        min_max_pixel_array = np.trunc(( min_max_pixel_array / max_val ) * 255).astype(np.uint8)
+        min_max_pixel_array = cv2.equalizeHist(min_max_pixel_array)
+        return min_max_pixel_array
+
+    def __call__(self, input_dict, sample=None):
+        input_dict["input"] = self.transform_image(input_dict["input"])
+        return input_dict
+
