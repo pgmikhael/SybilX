@@ -40,7 +40,7 @@ class ProjectCT(Abstract_augmentation):
             self.method = "mean"
             self.annotation_method = "mean"
 
-        self.set_cachable()
+        self.set_cachable(self.method, self.annotation_method)
 
     def __call__(self, input_dict, sample=None):
         volume = input_dict["input"]
