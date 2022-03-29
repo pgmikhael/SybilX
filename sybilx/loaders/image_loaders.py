@@ -28,9 +28,65 @@ class OpenCVLoader(abstract_loader):
     def cached_extension(self):
         return ".png"
 
+@register_object("ct_dicom_loader", "input_loader")
+class FullCTDicomLoader(abstract_loader):
+    """Loads all CT slices as a volume"""
+    
+    def configure_path(self, paths, sample):
+        return str(sorted(paths))
 
-@register_object("ct_loader", "input_loader")
-class FullCTLoader(abstract_loader):
+    def load_input(self, input_path, sample):
+        out_dict = {}
+        if self.args.fix_seed_for_multi_image_augmentations:
+            sample["seed"] = np.random.randint(0, 2**32 - 1)
+        
+        input_dicts = []
+        for e, path in enumerate(sample["paths"]):
+            dcm = pydicom.dcmread(path)
+            try:
+                x = apply_modality_lut(dcm.pixel_array, dcm)
+            except:
+                raise Exception("Could not apply modality lut")
+
+            if hasattr(dcm, 'PhotometricInterpretation') and not 'MONOCHROME2' in dcm.PhotometricInterpretation:
+                x = np.max(x) - x
+                
+            # TODO: this is a way to make the mask be the same size as the img
+            annotation_mask_args = copy.deepcopy(self.args)
+            annotation_mask_args.img_size = x.shape
+
+            mask = (
+                get_scaled_annotation_mask(sample["annotations"][e], annotation_mask_args)
+                if self.args.use_annotations
+                else None
+            )
+            
+            input_dicts.append({"input": x, "mask": mask})
+
+        images = [i["input"] for i in input_dicts]
+        masks = [i["mask"] for i in input_dicts]
+
+        out_dict["input"] = self.reshape_images(images)
+        out_dict["mask"] = self.reshape_images(masks) if self.args.use_annotations else None
+
+        return out_dict
+
+    def reshape_images(self, images):
+        if isinstance(images[0], np.ndarray):
+            images = [np.expand_dims(im, axis=0) for im in images]
+            images = np.concatenate(images, axis=0)
+        elif torch.is_tensor(images[0]):
+            images = [im.unsqueeze(0) for im in images]
+            images = torch.cat(images, dim=0)
+        return images
+
+    @property
+    def cached_extension(self):
+        return ""
+
+
+@register_object("ct_png_loader", "input_loader")
+class FullCTPNGLoader(abstract_loader):
     """Loads all CT slices as a volume"""
     
     def configure_path(self, paths, sample):
@@ -43,11 +99,7 @@ class FullCTLoader(abstract_loader):
         
         input_dicts = []
         for e, path in enumerate(sample["paths"]):
-            if self.args.img_file_type == 'dicom':
-                with open(path, 'rb') as f:
-                    x = pydicom.dcmread(f).pixel_array
-            else:
-                x = cv2.imread(path, 0)
+            x = cv2.imread(path, 0)
                 
             # TODO: this is a dumb way to make the mask be the same size as the img
             annotation_mask_args = copy.deepcopy(self.args)
@@ -84,8 +136,9 @@ class FullCTLoader(abstract_loader):
 
 
 @register_object("cached_ct_loader", "input_loader")
-class FullCTLoader_from_cached(FullCTLoader):
+class FullCTLoader_from_cached(FullCTPNGLoader):
     """
+    NOTE: THIS WAS NEVER DEBUGGED
     This is a loader to allow us to load CT datasets that were previously cached for the CT (Sybil) project
     """
     def __init__(self, cache_path, augmentations, args):
@@ -144,6 +197,8 @@ class FullCTLoader_from_cached(FullCTLoader):
 @register_object("dicom_transform_loader", "input_loader")
 class DicomTransformLoader(abstract_loader):
     """
+    Expects: single X-Ray
+
     MIMIC method of DICOM image loading
     source: https://physionet.org/content/mimic-cxr-jpg/2.0.0/
     Chest radiographs were converted from DICOM to a compressed JPG format. 
@@ -174,10 +229,8 @@ class DicomTransformLoader(abstract_loader):
             else:
                 return {"input": min_max_pixel_array}
 
-            
         except Exception:
             raise Exception(LOADING_ERROR.format("COULD NOT LOAD DICOM."))
-
 
     def transform_image(self, pixel_array):
         min_val = np.min(pixel_array)
@@ -245,6 +298,7 @@ class CT16Loader(abstract_loader):
     @property
     def cached_extension(self):
         return ".png"
+
 
 @register_object("dicom_loader", "input_loader")
 class DicomLoader(abstract_loader):
