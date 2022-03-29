@@ -100,7 +100,7 @@ def cli_main(args):
         args.model_path = trainer.checkpoint_callback.best_model_path
 
     if args.dev:
-        log.info("\Validation Phase...")
+        log.info("\nValidation Phase...")
         trainer.validate(
             model, dev_dataset, ckpt_path=args.model_path
         ) if args.train else trainer.validate(model, dev_dataset)
