@@ -516,7 +516,7 @@ class NLST_Survival_Dataset(data.Dataset):
                 {
                     "image_annotations": self.annotations_metadata[
                         sample["series"]
-                    ].get(os.path.splitext(os.path.basename(path))[0], None)
+                    ].get(os.path.basename(path).replace(".png",""), None)
                 }
                 for path in sample["paths"]
             ]
