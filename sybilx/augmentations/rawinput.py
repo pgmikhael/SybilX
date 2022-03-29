@@ -424,7 +424,7 @@ class HistogramEqualize(Abstract_augmentation):
         self.set_cachable()
 
     def __call__(self, input_dict, sample=None):
-        input_dict["input"] = self.transform(input_dict["input"])
+        input_dict["input"] = self.transform(image=input_dict["input"])["image"]
         return input_dict
 
 
@@ -454,5 +454,5 @@ class ElasticDeformation(Abstract_augmentation):
                     p=0.5)
 
     def __call__(self, input_dict, sample=None):
-        input_dict["input"] = self.transform(input_dict["input"])
+        input_dict["input"] = self.transform(image=input_dict["input"])["image"]
         return input_dict
