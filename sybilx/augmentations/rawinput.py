@@ -387,14 +387,14 @@ class Random_Affine_Transform(Abstract_augmentation):
         return input_dict
 
 
-@register_object("dcm_transform", "augmentation")
-class DcmTransform(Abstract_augmentation):
+@register_object("min_max_8bit_scaler", "augmentation")
+class MinMax8BitScaler(Abstract_augmentation):
     """
-    from dicom_transform_loader
+    Scales images to 8 bits (0-255)
     """
 
     def __init__(self, args, kwargs):
-        super(DcmTransform, self).__init__()
+        super(MinMax8BitScaler, self).__init__()
         assert len(kwargs.keys()) == 0
         self.set_cachable()
 
@@ -403,10 +403,56 @@ class DcmTransform(Abstract_augmentation):
         min_max_pixel_array = pixel_array - min_val
         max_val = np.max(min_max_pixel_array)
         min_max_pixel_array = np.trunc(( min_max_pixel_array / max_val ) * 255).astype(np.uint8)
-        min_max_pixel_array = cv2.equalizeHist(min_max_pixel_array)
         return min_max_pixel_array
 
     def __call__(self, input_dict, sample=None):
         input_dict["input"] = self.transform_image(input_dict["input"])
         return input_dict
 
+
+@register_object("histogram_equalize", "augmentation")
+class HistogramEqualize(Abstract_augmentation):
+    """
+    Expects:
+        - pixel_array to already have 'apply_modality_lut' applied to it
+        - values scaled to 0-255 (min max scaler)
+    """
+    def __init__(self, args, kwargs):
+        super(HistogramEqualize, self).__init__()
+        assert len(kwargs.keys()) == 0
+        self.transform = A.Equalize(always_apply=True)
+        self.set_cachable()
+
+    def __call__(self, input_dict, sample=None):
+        input_dict["input"] = self.transform(input_dict["input"])
+        return input_dict
+
+
+@register_object("elastic_deformation", "augmentation")
+class ElasticDeformation(Abstract_augmentation):
+    """
+    Elastic deformation of images as described in [Simard2003]_ (with modifications). 
+    Based on https://gist.github.com/ernestum/601cdf56d2b424757de5
+    [Simard2003] Simard, Steinkraus and Platt 
+    "Best Practices for Convolutional Neural Networks applied to Visual Document Analysis"
+    """
+    def __init__(self, args, kwargs):
+        super(ElasticDeformation, self).__init__()
+        self.args = args
+        kwargs_len = len(kwargs.keys())
+        assert kwargs_len == 2
+        alpha, sigma = float(kwargs["alpha"]) if "alpha" in kwargs else 1, float(kwargs["sigma"]) if "sigma" in kwargs else 50
+        self.transform = A.ElasticTransform(
+                    alpha=alpha, 
+                    sigma=sigma, 
+                    alpha_affine=50, 
+                    interpolation=1, 
+                    border_mode=4, 
+                    value=None, 
+                    approximate=False, 
+                    same_dxdy=False, 
+                    p=0.5)
+
+    def __call__(self, input_dict, sample=None):
+        input_dict["input"] = self.transform(input_dict["input"])
+        return input_dict
