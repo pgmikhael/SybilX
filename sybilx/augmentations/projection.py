@@ -46,7 +46,6 @@ class ProjectCT(Abstract_augmentation):
         volume = input_dict["input"]
         mask = input_dict["mask"]
 
-        import pdb; pdb.set_trace()
         if self.method == "mean":
             img = project_simple(volume, agg_func=np.mean)
         if self.method == "sum":
