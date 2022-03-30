@@ -54,3 +54,6 @@ class ComposeAug(Abstract_augmentation):
             input_dict = transformer(input_dict, sample)
 
         return input_dict
+
+
+# here is a fake augmentation object
