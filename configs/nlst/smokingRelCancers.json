@@ -149,7 +149,7 @@
         "test_run"
       ],
       "gpus": [
-        8
+        6
       ],
       "limit_train_batches": [
         0.5
