@@ -48,7 +48,7 @@ class ProjectCT(Abstract_augmentation):
 
         if self.method == "mean":
             img = project_simple(volume, agg_func=np.mean)
-        if self.method == "sum":
+        elif self.method == "sum":
             img = project_simple(volume, agg_func=np.sum)
         elif self.method == "mean-invert":
             volume = volume.max() - volume
