@@ -21,14 +21,16 @@ class AttentionPool2D(nn.Module):
 
         B, C, W, H = x.size()
         x = x.view(B, C, W*H)
-        attention_scores = self.attention_fc(x.transpose(1,2)) #B, WH , 1
+        attention_scores = self.attention_fc(x.transpose(1,2)) # (B, WH, C) -> (B, WH, 1)
+                                                               # (B, 25, 1536) - > (B, 25 , 1)
     
-        output['image_attention'] = self.logsoftmax(attention_scores.transpose(1,2)).view(B, -1) 
+        output['image_attention'] = self.logsoftmax(attention_scores.transpose(1,2)).view(B, -1)
+        # (B, WH, 1) -> (B, 1, WH) -> (B, WH)
 
-        attention_scores = self.softmax(attention_scores.transpose(1,2)) #B, 1, N
+        attention_scores = self.softmax(attention_scores.transpose(1,2)) #B, 1, WH
 
-        x = x * attention_scores #B, C, WH
-        x = torch.sum(x, dim=-1)
+        x = x * attention_scores #(B, C, WH) * (B, 1 WH) -> B, C, WH
+        x = torch.sum(x, dim=-1) # (B, C)
         output['hidden'] = x.view(B, C)
         return output
 
@@ -43,6 +45,8 @@ class SybilXrayInception(nn.Module):
 
         self.relu = nn.ReLU(inplace=False)
         self.dropout = nn.Dropout(p=args.dropout)
+
+        self.lin1 = nn.Linear(self.HIDDEN_DIM, self.HIDDEN_DIM)
 
         self.prob_of_failure_layer = Cumulative_Probability_Layer(
             self.HIDDEN_DIM, args, max_followup=args.max_followup
@@ -74,6 +78,7 @@ class SybilXrayInception(nn.Module):
 
         pool_output["hidden"] = self.relu(pool_output["hidden"])
         pool_output["hidden"] = self.dropout(pool_output["hidden"])
+        pool_output['hidden'] = self.lin1(pool_output["hidden"])
         pool_output["logit"] = self.prob_of_failure_layer(pool_output["hidden"])
 
         return pool_output
