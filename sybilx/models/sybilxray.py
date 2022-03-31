@@ -101,7 +101,7 @@ class SybilXrayR152(SybilXrayInception):
 
     @property
     def HIDDEN_DIM(self):
-        return 1568
+        return 2048
 
 #@register_object("sybilxray_vit", "model")
 #class SybilXrayViT(SybilXrayInception):
