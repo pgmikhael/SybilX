@@ -54,6 +54,16 @@ def cli_main(args):
         )
     )
 
+    # print args
+    for key, value in sorted(vars(args).items()):
+        print("{} -- {}".format(key.upper(), value))
+
+    if args.get_dataset_stats:
+        log.info("\nComputing image mean and std...")
+        args.img_mean, args.img_std = get_dataset_stats(args)
+        log.info('Mean: {}'.format(args.img_mean))
+        log.info('Std: {}'.format(args.img_std))
+
     train_dataset = loaders.get_train_dataset_loader(
         args, get_object(args.dataset, "dataset")(args, "train")
     )
@@ -64,16 +74,7 @@ def cli_main(args):
     if "survival" in args.metrics:
         # compute censoring distribution
         args.censoring_distribution = get_censoring_dist(train_dataset.dataset)
-
-    # print args
-    for key, value in sorted(vars(args).items()):
-        print("{} -- {}".format(key.upper(), value))
-
-    if args.get_dataset_stats:
-        log.info("\nComputing image mean and std...")
-        args.img_mean, args.img_std = get_dataset_stats(args)
-        log.info('Mean: {}'.format(args.img_mean))
-        log.info('Std: {}'.format(args.img_std))
+    
 
     if args.from_checkpoint:
         if args.snapshot.endswith(".args"):
