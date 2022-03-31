@@ -409,6 +409,29 @@ class MinMax8BitScaler(Abstract_augmentation):
         input_dict["input"] = self.transform_image(input_dict["input"])
         return input_dict
 
+@register_object("min_max_scaler", "augmentation")
+class MinMax8BitScaler(Abstract_augmentation):
+    """
+    Scales images from 0 to kwargs['max'] 
+    """
+
+    def __init__(self, args, kwargs):
+        super(MinMax8BitScaler, self).__init__()
+        assert len(kwargs.keys()) == 1
+        self.max_scale = kwargs["max"] if "max" in kwargs else 1
+        self.set_cachable()
+
+    def transform_image(self, pixel_array):
+        min_val = np.min(pixel_array)
+        min_max_pixel_array = pixel_array - min_val
+        max_val = np.max(min_max_pixel_array)
+        min_max_pixel_array = np.trunc(( min_max_pixel_array / max_val ) * self.max_scale).astype(np.uint8)
+        return min_max_pixel_array
+
+    def __call__(self, input_dict, sample=None):
+        input_dict["input"] = self.transform_image(input_dict["input"])
+        return input_dict
+
 
 @register_object("histogram_equalize", "augmentation")
 class HistogramEqualize(Abstract_augmentation):
