@@ -8,11 +8,9 @@ from datetime import datetime as dt
 
 def get_dataset_stats(args):
     args = copy.deepcopy(args)
-    augmentations = get_augmentations( args.train_rawinput_augmentations, args.train_tnsr_augmentations, args )
-    augmentations = [a for a in augmentations if (a._is_cachable or a.name == 'tensorizer')]
 
-    train_data = get_object(args.dataset, 'dataset')(args, augmentations, 'train')
-    data_loader = get_train_dataset_loader(args, train_data,  args.batch_size)
+    train_data = get_object(args.dataset, 'dataset')(args, 'train')
+    data_loader = get_train_dataset_loader(args, train_data)
 
     means, stds = {i:[] for i in range(args.num_chan)}, {i:[] for i in range(args.num_chan)}
 
