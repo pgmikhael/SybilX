@@ -77,7 +77,7 @@
         3
       ],
       "loss_fns": [
-        "cross_entropy survival"
+        "cross_entropy survival guided_attention"
       ],
       "metrics": [
         "survival_classification survival"
