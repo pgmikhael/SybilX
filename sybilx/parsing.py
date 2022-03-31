@@ -248,6 +248,9 @@ def parse_args(args_strings=None):
     parser.add_argument(
         "--num_chan", type=int, default=3, help="Number of channels for input image"
     )
+    
+    parser.add_argument('--get_dataset_stats', action='store_true', default = False, help = 'whether to get mean, std of training set')
+
     parser.add_argument(
         "--img_mean",
         type=float,

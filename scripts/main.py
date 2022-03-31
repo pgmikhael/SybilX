@@ -16,6 +16,7 @@ from sybilx.utils.registry import get_object
 from sybilx.datasets.utils import get_censoring_dist
 import sybilx.utils.loading as loaders
 from sybilx.utils.callbacks import set_callbacks
+from utils import get_dataset_stats
 
 
 def cli_main(args):
@@ -67,6 +68,12 @@ def cli_main(args):
     # print args
     for key, value in sorted(vars(args).items()):
         print("{} -- {}".format(key.upper(), value))
+
+    if args.get_dataset_stats:
+        log.info("\nComputing image mean and std...")
+        args.img_mean, args.img_std = get_dataset_stats(args)
+        log.info('Mean: {}'.format(args.img_mean))
+        log.info('Std: {}'.format(args.img_std))
 
     if args.from_checkpoint:
         if args.snapshot.endswith(".args"):
