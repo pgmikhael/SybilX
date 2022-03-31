@@ -410,13 +410,13 @@ class MinMax8BitScaler(Abstract_augmentation):
         return input_dict
 
 @register_object("min_max_scaler", "augmentation")
-class MinMax8BitScaler(Abstract_augmentation):
+class MinMaxScaler(Abstract_augmentation):
     """
     Scales images from 0 to kwargs['max'] 
     """
 
     def __init__(self, args, kwargs):
-        super(MinMax8BitScaler, self).__init__()
+        super(MinMaxScaler, self).__init__()
         assert len(kwargs.keys()) == 1
         self.max_scale = kwargs["max"] if "max" in kwargs else 1
         self.set_cachable()
