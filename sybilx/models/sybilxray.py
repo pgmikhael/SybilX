@@ -79,6 +79,7 @@ class SybilXrayInception(nn.Module):
         pool_output["hidden"] = self.relu(pool_output["hidden"])
         pool_output["hidden"] = self.dropout(pool_output["hidden"])
         pool_output['hidden'] = self.lin1(pool_output["hidden"])
+        pool_output['hidden'] = self.relu(self.dropout(pool_output['hidden']))
         pool_output["logit"] = self.prob_of_failure_layer(pool_output["hidden"])
 
         return pool_output
