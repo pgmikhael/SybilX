@@ -40,8 +40,10 @@ class SybilXrayInception(nn.Module):
         super(SybilXrayInception, self).__init__()
 
         self.image_encoder = self.get_image_encoder()
+        self.args = args
 
-        self.pool = AttentionPool2D(num_chan=self.HIDDEN_DIM)
+        if args.with_attention:
+            self.pool = AttentionPool2D(num_chan=self.HIDDEN_DIM)
 
         self.relu = nn.ReLU(inplace=False)
         self.dropout = nn.Dropout(p=args.dropout)
@@ -67,19 +69,21 @@ class SybilXrayInception(nn.Module):
     def forward(self, x, batch = None):
         output = {}
         x = self.image_encoder(x)
-        pool_output = self.aggregate_and_classify(x)
         output["activ"] = x
+        pool_output = self.aggregate_and_classify(x)
         output.update(pool_output)
 
         return output
 
     def aggregate_and_classify(self, x):
-        pool_output = self.pool(x)
-
+        if self.args.with_attention:
+            pool_output = self.pool(x)
+        else:
+            pool_output = {"hidden": x}
         pool_output["hidden"] = self.relu(pool_output["hidden"])
         pool_output["hidden"] = self.dropout(pool_output["hidden"])
         pool_output['hidden'] = self.lin1(pool_output["hidden"])
-        pool_output['hidden'] = self.relu(self.dropout(pool_output['hidden']))
+        pool_output['hidden'] = self.dropout(self.relu(pool_output['hidden']))
         pool_output["logit"] = self.prob_of_failure_layer(pool_output["hidden"])
 
         return pool_output
