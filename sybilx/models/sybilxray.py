@@ -61,7 +61,7 @@ class SybilXrayInception(nn.Module):
             self.HIDDEN_DIM, args, max_followup=args.max_followup
         )
         
-        self.avg_pool = nn.AvgPool2d((5,5))
+        self.avg_pool = nn.AvgPool2d((14, 14))
 
     def get_image_encoder(self):
         encoder = pretrainedmodels.__dict__['inceptionv4'](num_classes=1000, pretrained='imagenet')
@@ -97,7 +97,7 @@ class SybilXrayInception(nn.Module):
         pool_output["hidden"] = self.avg_pool(x)
         # if using attention concat
         if self.args.with_attention:
-            pool_output["hidden"] = torch.cat([pool_output["hidden"], pool_output["attn_hidden"]])
+            pool_output["hidden"] = torch.cat([pool_output["hidden"].squeeze(2).squeeze(2), pool_output["attn_hidden"]])
 
         pool_output['hidden'] = self.lin1(pool_output["hidden"])
         pool_output['hidden'] = self.dropout(self.relu(pool_output['hidden']))
