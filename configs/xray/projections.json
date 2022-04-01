@@ -19,6 +19,7 @@
     "limit_val_batches": [1.0],
     "lr": [3e-5],
     "base_model": ["sybilxray_inception"],
+    "with_attention": [true],
     "use_only_thin_cuts_for_ct": [true],
     "region_annotations_filepath": ["/Mounts/rbg-storage1/datasets/NLST/annotations_122020.json"],
     "use_annotations": [true],
