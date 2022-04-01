@@ -61,7 +61,7 @@ class SybilXrayInception(nn.Module):
             self.HIDDEN_DIM, args, max_followup=args.max_followup
         )
         
-        self.avg_pool = nn.AvgPool2D((5,5))
+        self.avg_pool = nn.AvgPool2d((5,5))
 
     def get_image_encoder(self):
         encoder = pretrainedmodels.__dict__['inceptionv4'](num_classes=1000, pretrained='imagenet')
