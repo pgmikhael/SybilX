@@ -12,7 +12,7 @@ def get_dataset_stats(args):
     new_augmentations = [a for a in original_augmentations if (a._is_cachable or a.name == 'tensorizer')]
 
     train_data = get_object(args.dataset, 'dataset')(args, 'train')
-    data_loader = get_train_dataset_loader(args, train_data,  args.batch_size)
+    data_loader = get_train_dataset_loader(args, train_data)
 
     means, stds = {i:[] for i in range(args.num_chan)}, {i:[] for i in range(args.num_chan)}
 
@@ -24,7 +24,7 @@ def get_dataset_stats(args):
             means[channel].append(torch.mean(tensor_chan))
             stds[channel].append(torch.std(tensor_chan))
 
-        if indx % 0 == 0 :#(len(data_loader)//20) == 0:
+        if indx % 1 == 0 :#(len(data_loader)//20) == 0:
             _means = [torch.mean(torch.Tensor(means[channel])).item() for channel in range(args.num_chan)]
             _stds = [torch.mean(torch.Tensor(stds[channel])).item() for channel in range(args.num_chan)]
             print('for indx={}\n mean={}\n std={}\n'.format(indx, _means, _stds))
