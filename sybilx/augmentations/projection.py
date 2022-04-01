@@ -34,7 +34,7 @@ class ProjectCT(Abstract_augmentation):
         assert len(kwargs) == 0 or len(kwargs) == 2
         if len(kwargs) == 2:
             assert kwargs["method"] in ("mean", "mean-invert", "sum", "campo")
-            assert kwargs["annotation_method"] in ("mean", "sum", "max", "threshold")
+            assert kwargs["annotation_method"] in ("mean", "sum", "max", "mean-threshold", "max-threshold", "binary-grow-1")
             self.method = kwargs["method"]
             self.annotation_method = kwargs["annotation_method"]
         else:
