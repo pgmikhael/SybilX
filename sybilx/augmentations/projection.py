@@ -1,4 +1,5 @@
 import numpy as np
+from scipy.ndimage import binary_opening
 from sybilx.augmentations.abstract import Abstract_augmentation
 from sybilx.utils.registry import register_object
 
@@ -33,7 +34,7 @@ class ProjectCT(Abstract_augmentation):
         assert len(kwargs) == 0 or len(kwargs) == 2
         if len(kwargs) == 2:
             assert kwargs["method"] in ("mean", "mean-invert", "sum", "campo")
-            assert kwargs["annotation_method"] in ("mean", "sum", "max", "threshold")
+            assert kwargs["annotation_method"] in ("mean", "sum", "max", "mean-threshold", "max-threshold", "binary-grow-1")
             self.method = kwargs["method"]
             self.annotation_method = kwargs["annotation_method"]
         else:
@@ -63,12 +64,18 @@ class ProjectCT(Abstract_augmentation):
             mask = project_simple(mask, agg_func=np.sum)
         elif self.annotation_method == "max":
             mask = project_simple(mask, agg_func=np.max)
-        else:
-            assert self.annotation_method == "threshold"
+        elif self.annotation_method == "mean-threshold":
             mask = project_simple(mask, agg_func=np.mean)
-            epsilon = 1e-6
-            mask[mask > epsilon] = 1
-            mask[mask <= epsilon] = 0
+            mask[mask != 0] = 1
+        elif self.annotation_method == "max-threshold":
+            mask = project_simple(mask, agg_func=np.max)
+            mask[mask != 0] = 1
+        else:
+            assert self.annotation_method == "binary-grow-1"
+            mask = project_simple(mask, agg_func=np.max)
+            mask[mask != 0] = 1
+            mask = binary_opening(mask) # expand 1 pixel in every direction (including z+ and z-)
+
 
         input_dict["input"] = img
         input_dict["mask"] = mask
