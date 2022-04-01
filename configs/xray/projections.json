@@ -52,7 +52,7 @@
     "dropout": [0.1],
     "dataset_file_path": ["/Mounts/rbg-storage1/datasets/NLST/full_nlst_google.json"],
     "save_dir": ["/Mounts/rbg-storage1/snapshots/lung_xray"],
-    "img_dir": ["/Mounts/rbg-storage1/datasets/NLST/nlst-ct-png"],
+    "img_dir": ["/storage/NLST/nlst-ct-png"],
     "cache_path": ["/storage/xray_cache"],
     "assign_splits": [true],
     "split_type": ["random"],
