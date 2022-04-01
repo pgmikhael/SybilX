@@ -90,6 +90,8 @@ class SybilXrayInception(nn.Module):
             pool_output = self.pool(x)
             pool_output["attn_hidden"] = self.relu(pool_output["hidden"])
             pool_output["attn_hidden"] = self.dropout(pool_output["attn_hidden"])
+        else:
+            pool_output = {}
         
         # pass forward average encoded image 
         pool_output["hidden"] = self.avg_pool(x)
