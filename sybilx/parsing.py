@@ -249,8 +249,8 @@ def parse_args(args_strings=None):
         "--num_chan", type=int, default=3, help="Number of channels for input image"
     )
     
-    parser.add_argument('--with_attention', action='store_true', default = True, help = 'whether to use the attention layer or not')
-    parser.add_argument('--scale_annotations', action='store_true', default = True, help = 'whether to normalize the annotations per slice')
+    parser.add_argument('--with_attention', action='store_true', default = False, help = 'whether to use the attention layer or not')
+    parser.add_argument('--scale_annotations', action='store_true', default = False, help = 'whether to normalize the annotations per slice')
     parser.add_argument('--get_dataset_stats', action='store_true', default = False, help = 'whether to get mean, std of training set')
 
     parser.add_argument(
