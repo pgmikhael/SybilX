@@ -44,11 +44,14 @@ class SybilXrayInception(nn.Module):
 
         if args.with_attention:
             self.pool = AttentionPool2D(num_chan=self.HIDDEN_DIM)
+            self.lin1 = nn.Linear(self.HIDDEN_DIM*2, self.HIDDEN_DIM)
+        else:
+            self.lin1 = nn.Linear(self.HIDDEN_DIM, self.HIDDEN_DIM)
 
         self.relu = nn.ReLU(inplace=False)
         self.dropout = nn.Dropout(p=args.dropout)
 
-        self.lin1 = nn.Linear(self.HIDDEN_DIM, self.HIDDEN_DIM)
+        
         
         # if using survival setup then finish with cumulative prob layer, otherwise fc layer
         if "survival" not in args.loss_fns:
@@ -57,6 +60,8 @@ class SybilXrayInception(nn.Module):
             self.prob_of_failure_layer = Cumulative_Probability_Layer(
             self.HIDDEN_DIM, args, max_followup=args.max_followup
         )
+        
+        self.avg_pool = nn.AvgPool2D((5,5))
 
     def get_image_encoder(self):
         encoder = pretrainedmodels.__dict__['inceptionv4'](num_classes=1000, pretrained='imagenet')
@@ -80,15 +85,21 @@ class SybilXrayInception(nn.Module):
         return output
 
     def aggregate_and_classify(self, x):
+        # get attention
         if self.args.with_attention:
             pool_output = self.pool(x)
-            pool_output["hidden"] = self.relu(pool_output["hidden"])
-            pool_output["hidden"] = self.dropout(pool_output["hidden"])
-        else:
-            pool_output = {"hidden": x}
+            pool_output["attn_hidden"] = self.relu(pool_output["hidden"])
+            pool_output["attn_hidden"] = self.dropout(pool_output["attn_hidden"])
+        
+        # pass forward average encoded image 
+        pool_output["hidden"] = self.avg_pool(x)
+        # if using attention concat
+        if self.args.with_attention:
+            pool_output["hidden"] = torch.cat([pool_output["hidden"], pool_output["attn_hidden"]])
+
         pool_output['hidden'] = self.lin1(pool_output["hidden"])
         pool_output['hidden'] = self.dropout(self.relu(pool_output['hidden']))
-        
+
         if "survival" not in self.args.loss_fns:
             pool_output["logit"] = self.fc(pool_output["hidden"])
         else:
