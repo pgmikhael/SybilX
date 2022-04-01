@@ -56,7 +56,7 @@ class FullCTDicomLoader(abstract_loader):
             annotation_mask_args.img_size = x.shape
 
             mask = (
-                get_scaled_annotation_mask(sample["annotations"][e], annotation_mask_args)
+                get_scaled_annotation_mask(sample["annotations"][e], annotation_mask_args, scale_annotation=annotation_mask_args.scale_annotations)
                 if self.args.use_annotations
                 else None
             )
@@ -106,7 +106,7 @@ class FullCTPNGLoader(abstract_loader):
             annotation_mask_args.img_size = x.shape
 
             mask = (
-                get_scaled_annotation_mask(sample["annotations"][e], annotation_mask_args)
+                get_scaled_annotation_mask(sample["annotations"][e], annotation_mask_args, scale_annotation=annotation_mask_args.scale_annotations)
                 if self.args.use_annotations
                 else None
             )
@@ -224,7 +224,7 @@ class DicomTransformLoader(abstract_loader):
                 min_max_pixel_array = 255 - min_max_pixel_array
 
             if self.args.use_annotations:
-                mask = get_scaled_annotation_mask(sample["annotations"], self.args)
+                mask = get_scaled_annotation_mask(sample["annotations"], self.args, scale_annotation=self.args.scale_annotations)
                 return {"input": min_max_pixel_array, "mask": mask}
             else:
                 return {"input": min_max_pixel_array}

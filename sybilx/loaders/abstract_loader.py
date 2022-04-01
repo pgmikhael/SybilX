@@ -196,7 +196,7 @@ class abstract_loader:
                         input_dict["mask"] = cached_arrays["mask"]
                     elif self.args.use_annotations:
                         # if masks are correctly cached this should not be necessary
-                        input_dict["mask"] = get_scaled_annotation_mask(sample["annotations"], self.args)
+                        input_dict["mask"] = get_scaled_annotation_mask(sample["annotations"], self.args, scale_annotation=self.args.scale_annotations)
                     if self.apply_augmentations:
                         input_dict = apply_augmentations_and_cache(
                             input_dict,
