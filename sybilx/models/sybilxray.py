@@ -49,8 +49,12 @@ class SybilXrayInception(nn.Module):
         self.dropout = nn.Dropout(p=args.dropout)
 
         self.lin1 = nn.Linear(self.HIDDEN_DIM, self.HIDDEN_DIM)
-
-        self.prob_of_failure_layer = Cumulative_Probability_Layer(
+        
+        # if using survival setup then finish with cumulative prob layer, otherwise fc layer
+        if "survival" not in args.loss_fns:
+            self.fc = nn.Linear(self.HIDDEN_DIM, args.num_classes)
+        else:
+            self.prob_of_failure_layer = Cumulative_Probability_Layer(
             self.HIDDEN_DIM, args, max_followup=args.max_followup
         )
 
@@ -78,13 +82,17 @@ class SybilXrayInception(nn.Module):
     def aggregate_and_classify(self, x):
         if self.args.with_attention:
             pool_output = self.pool(x)
+            pool_output["hidden"] = self.relu(pool_output["hidden"])
+            pool_output["hidden"] = self.dropout(pool_output["hidden"])
         else:
             pool_output = {"hidden": x}
-        pool_output["hidden"] = self.relu(pool_output["hidden"])
-        pool_output["hidden"] = self.dropout(pool_output["hidden"])
         pool_output['hidden'] = self.lin1(pool_output["hidden"])
         pool_output['hidden'] = self.dropout(self.relu(pool_output['hidden']))
-        pool_output["logit"] = self.prob_of_failure_layer(pool_output["hidden"])
+        
+        if "survival" not in self.args.loss_fns:
+            pool_output["logit"] = self.fc(pool_output["hidden"])
+        else:
+            pool_output["logit"] = self.prob_of_failure_layer(pool_output["hidden"])
 
         return pool_output
 
