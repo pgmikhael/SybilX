@@ -51,8 +51,6 @@ class SybilXrayInception(nn.Module):
         self.relu = nn.ReLU(inplace=False)
         self.dropout = nn.Dropout(p=args.dropout)
 
-        
-        
         # if using survival setup then finish with cumulative prob layer, otherwise fc layer
         if "survival" not in args.loss_fns:
             self.fc = nn.Linear(self.HIDDEN_DIM, args.num_classes)
@@ -61,7 +59,7 @@ class SybilXrayInception(nn.Module):
             self.HIDDEN_DIM, args, max_followup=args.max_followup
         )
         
-        self.avg_pool = nn.AvgPool2d((14, 14))
+        self.avg_pool = nn.AdaptiveAvgPool2d((1, 1))
 
     def get_image_encoder(self):
         encoder = pretrainedmodels.__dict__['inceptionv4'](num_classes=1000, pretrained='imagenet')
@@ -94,10 +92,10 @@ class SybilXrayInception(nn.Module):
             pool_output = {}
         
         # pass forward average encoded image 
-        pool_output["hidden"] = self.avg_pool(x)
+        pool_output["hidden"] = self.avg_pool(x).squeeze(2).squeeze(2)
         # if using attention concat
         if self.args.with_attention:
-            pool_output["hidden"] = torch.cat([pool_output["hidden"].squeeze(2).squeeze(2), pool_output["attn_hidden"]])
+            pool_output["hidden"] = torch.cat([pool_output["hidden"], pool_output["attn_hidden"]], axis=-1)
 
         pool_output['hidden'] = self.lin1(pool_output["hidden"])
         pool_output['hidden'] = self.dropout(self.relu(pool_output['hidden']))
