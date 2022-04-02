@@ -82,3 +82,31 @@ class ProjectCT(Abstract_augmentation):
 
         return input_dict
 
+@register_object("project_ct_cheat", "augmentation")
+class ProjectCTCheat(Abstract_augmentation):
+    """
+    Projection of CTs that "cheats" by multiplying annotated areas up, so they're more visible to the encoder
+    """
+
+    def __init__(self, args, kwargs):
+        super(ProjectCT, self).__init__()
+        assert len(kwargs) == 1
+        self.scale = kwargs["scale"]
+        self.set_cachable(self.scale)
+
+    def __call__(self, input_dict, sample=None):
+        volume = input_dict["input"]
+        mask = input_dict["mask"]
+
+        if mask.any():
+            volume += self.scale * (volume * mask)
+
+        img = project_campo(volume)
+        mask = project_simple(mask, agg_func=np.max)
+        mask[mask != 0] = 1
+
+        input_dict["input"] = img
+        input_dict["mask"] = mask
+
+        return input_dict
+
