@@ -473,6 +473,12 @@ def parse_args(args_strings=None):
         help="Weight of loss for predicting image attention scores",
     )
     parser.add_argument(
+        "--image_side_attention_loss_lambda",
+        type=float,
+        default=1,
+        help="Weight of loss for predicting image attention scores",
+    )
+    parser.add_argument(
         "--volume_attention_loss_lambda",
         type=float,
         default=1,
