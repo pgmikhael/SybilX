@@ -4,7 +4,6 @@
     "gpus": [1],
     "batch_size": [32],
     "accumulate_grad_batches": [1],
-    "precision": [16],
     "dataset": ["nlst_ct_projections"],
     "max_followup": [6],
     "input_loader_name": ["ct_dicom_loader"],
@@ -13,11 +12,11 @@
     "momentum": [0.9],
     "max_epochs": [10],
     "lr_decay": [0.1],
-    "img_size": ["224 224", "512 512"],
+    "img_size": ["512 512"],
     "img_file_type": ["dicom"],
     "limit_train_batches": [1.0],
     "limit_val_batches": [1.0],
-    "lr": [3e-5],
+    "lr": [3e-5, 1e-4, 1e-5],
     "base_model": ["sybilxray_inception"],
     "use_only_thin_cuts_for_ct": [true],
     "region_annotations_filepath": ["/Mounts/rbg-storage1/datasets/NLST/annotations_122020.json"],
@@ -25,7 +24,7 @@
     "annotation_loss_lambda": [1.0],
     "image_attention_loss_lambda": [1.0],
     "num_chan": [3],
-    "metrics": ["classification"],
+    "metrics": ["survival"],
     "num_classes": [2],
     "monitor": ["val_c_index"],
     "num_workers": [10],
@@ -35,9 +34,9 @@
     "dev": [true],
     "test": [false],
     "class_bal": [true],
-    "train_rawinput_augmentations": ["project_ct/method=campo/annotation_method=max-threshold scale_2d"],
+    "train_rawinput_augmentations": ["project_ct/method=campo/annotation_method=max-threshold scale_2d min_max_8bit_scaler histogram_equalize rotate_range/deg=20"],
     "train_tnsr_augmentations": ["force_num_chan_2d normalize_2d"],
-    "test_rawinput_augmentations": ["project_ct/method=campo/annotation_method=max-threshold scale_2d"],
+    "test_rawinput_augmentations": ["project_ct/method=campo/annotation_method=max-threshold scale_2d min_max_8bit_scaler histogram_equalize"],
     "test_tnsr_augmentations": ["force_num_chan_2d normalize_2d"],
     "fix_seed_for_multi_image_augmentations": [true],
     "img_mean": ["127.2311 127.2311 127.2311"],
@@ -57,7 +56,8 @@
     "split_type": ["random"],
     "cross_val_seed": [0],
     "split_probs": ["0.7 0.15 0.15"],
-    "scale_annotations": [false]
+    "scale_annotations": [false],
+    "image_attention_loss_lambda": ["0.027"]
   },
   "paired_search_space": {
     "with_attention": [
@@ -69,5 +69,5 @@
         "survival guided_attention_2d"
     ]
   },
-  "available_gpus": ["2"]
+  "available_gpus": [0,2]
 }
