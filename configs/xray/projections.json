@@ -8,9 +8,8 @@
     "max_followup": [6],
     "input_loader_name": ["ct_dicom_loader"],
     "lightning_name": ["base"],
-    "weight_decay": [0.01, 0.005, 0.1],
+    "weight_decay": [0.01],
     "momentum": [0.9],
-    "max_epochs": [10],
     "lr_decay": [0.1],
     "img_size": ["512 512"],
     "img_file_type": ["dicom"],
@@ -22,7 +21,7 @@
     "region_annotations_filepath": ["/Mounts/rbg-storage1/datasets/NLST/annotations_122020.json"],
     "use_annotations": [true],
     "annotation_loss_lambda": [0.036],
-    "image_attention_loss_lambda": [0.6],
+    "image_side_attention_loss_lambda": [0.06],
     "num_chan": [3],
     "metrics": ["survival"],
     "num_classes": [2],
@@ -55,24 +54,17 @@
     "split_type": ["random"],
     "cross_val_seed": [0],
     "split_probs": ["0.7 0.15 0.15"],
-    "scale_annotations": [false]
+    "scale_annotations": [false],
+    "with_attention": [true]
   },
   "paired_search_space": {
-    "with_attention": [
-        false,
-        true,
-        true
-    ],
     "loss_fns": [
-        "survival",
-        "survival guided_attention_2d",
-        "survival guided_side_attention_2d"
+        "survival guided_attention_2d"
     ],
+    "max_epochs": ["20"],
     "comet_tags": [
-      "projections without_attention", 
-      "projections with_annotation_attention", 
-      "projections with_side_attention"
+      "projections with_annotation_attention"
     ]
   },
-  "available_gpus": [0,2]
+  "available_gpus": [0,1,2,4,6, 7]
 }
