@@ -4,10 +4,10 @@ from sybilx.models.cumulative_probability_layer import Cumulative_Probability_La
 from sybilx.utils.registry import register_object, get_object
 import copy
 
-@register_object("sybilx_teacher_student", "model")
-class SybilXTeacherStudent(nn.Module):
+@register_object("sybilx_teacher", "model")
+class SybilXTeacher(nn.Module):
     def __init__(self, args):
-        super(SybilXTeacherStudent, self).__init__()
+        super(SybilXTeacher, self).__init__()
 
         self.args = args
         # SybilXrayInception
@@ -28,7 +28,7 @@ class SybilXTeacherStudent(nn.Module):
         output = {}
         # must use 'hidden' here to not use cumulative probablity layer, note includes dropout and activation
         # expects batch['ct'] and batch['projection']
-        output['ct_hidden'] = self.ct_encoder(batch['ct'])['hidden']
+        output['ct_hidden'] = self.ct_encoder(x)['hidden']
         output['proj_hidden'] = self.projection_encoder(batch['projection'])['hidden']
 
         combined_encoding = torch.cat([output['ct_hidden'], output['proj_hidden']], dim=-1)
