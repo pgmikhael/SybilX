@@ -398,6 +398,32 @@ def parse_args(args_strings=None):
         help="List of image-transformations to use for the dev and test dataset",
     )
 
+    # projection augmentations
+    parser.add_argument(
+        "--train_projection_rawinput_augmentations",
+        nargs="*",
+        default=[],
+        help='List of image-transformations to use. Usage: "--train_rawinput_augmentations trans1/arg1=5/arg2=2 trans2 trans3/arg4=val"',
+    )
+    parser.add_argument(
+        "--train_projection_tnsr_augmentations",
+        nargs="*",
+        default=[],
+        help='List of image-transformations to use. Usage: "--train_tnsr_augmentations trans1/arg1=5/arg2=2 trans2 trans3/arg4=val"',
+    )
+    parser.add_argument(
+        "--test_projection_rawinput_augmentations",
+        nargs="*",
+        default=[],
+        help="List of image-transformations to use for the dev and test dataset",
+    )
+    parser.add_argument(
+        "--test_projection_tnsr_augmentations",
+        nargs="*",
+        default=[],
+        help="List of image-transformations to use for the dev and test dataset",
+    )
+
     # risk factors
     parser.add_argument(
         "--use_risk_factors",
@@ -467,6 +493,12 @@ def parse_args(args_strings=None):
         help="Weight of annotation losses",
     )
     parser.add_argument(
+        "--annotation_loss_lambda_2d",
+        type=float,
+        default=1,
+        help="Weight of annotation losses",
+    )
+    parser.add_argument(
         "--image_attention_loss_lambda",
         type=float,
         default=1,
@@ -474,6 +506,12 @@ def parse_args(args_strings=None):
     )
     parser.add_argument(
         "--image_side_attention_loss_lambda",
+        type=float,
+        default=1,
+        help="Weight of loss for predicting image attention scores",
+    )
+    parser.add_argument(
+        "--image_side_attention_loss_lambda_2d",
         type=float,
         default=1,
         help="Weight of loss for predicting image attention scores",
