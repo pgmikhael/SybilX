@@ -21,6 +21,7 @@ from sybilx.datasets.utils import (
 )
 from sybilx.utils.registry import register_object
 from sybilx.datasets.nlst_risk_factors import NLSTRiskFactorVectorizer
+from parsing import parse_augmentations
 
 GOOGLE_SPLITS_FILENAME = (
     "/Mounts/rbg-storage1/datasets/NLST/Shetty_et_al(Google)/data_splits.p"
@@ -665,7 +666,6 @@ class NLST_Risk_Factor_Task(NLST_Survival_Dataset):
         )
 
 
-
 @register_object("nlst_ct_projections", "dataset")
 class NLSTCTProjectionsDataset(NLST_Survival_Dataset):
     def __init__(self, args, split_group):
@@ -687,14 +687,14 @@ class NLSTCTProjectionsDataset(NLST_Survival_Dataset):
             if self.args.use_annotations:
                 mask = torch.abs(input_dict["mask"])
                 mask_area = mask.sum(dim=(-1, -2))
-                item["volume_annotations"] = mask_area[0] / max(1, mask_area.sum())
-                item["annotation_areas"] = mask_area[0] / (
+                item["projection_volume_annotations"] = mask_area[0] / max(1, mask_area.sum())
+                item["projection_annotation_areas"] = mask_area[0] / (
                     mask.shape[-2] * mask.shape[-1]
                 )
                 mask_area = mask_area.unsqueeze(-1).unsqueeze(-1)
                 mask_area[mask_area == 0] = 1
-                item["image_annotations"] = mask / mask_area
-                item["has_annotation"] = item["volume_annotations"].sum() > 0
+                item["projection_image_annotations"] = mask / mask_area
+                item["projection_has_annotation"] = item["projection_volume_annotations"].sum() > 0
 
             if self.args.use_risk_factors:
                 item["risk_factors"] = sample["risk_factors"]
@@ -709,6 +709,94 @@ class NLSTCTProjectionsDataset(NLST_Survival_Dataset):
         except Exception:
             warnings.warn(LOAD_FAIL_MSG.format(sample["exam"], traceback.print_exc()))
 
+    def get_images(self, paths, sample):
+        pass
+
+
+@register_object("nlst_teacher", "dataset")
+class NLSTTeacher(NLST_Survival_Dataset):
+    def __init__(self, args, split_group):
+        """
+        NLST CT Dataset which loads both the CT and the projected CT in the batch
+        """
+        super(NLSTTeacher, self).__init__(args, split_group)
+        
+        # Projection can use different loader and does use different augmentations
+        projection_args = copy.deepcopy(args)
+
+        # check these exist
+        assert projection_args.train_projection_rawinput_augmentations
+        assert projection_args.train_projection_tnsr_augmentations
+        assert projection_args.test_projection_rawinput_augmentations
+        assert projection_args.test_projection_tnsr_augmentations
+        
+        projection_args.img_mean = [127.2311, 127.2311, 127.2311]
+        projection_args.img_std = [74.1043, 74.1043, 74.1043]
+
+        projection_args.train_rawinput_augmentations = parse_augmentations(projection_args.train_projection_rawinput_augmentations)
+        projection_args.train_tnsr_augmentations = parse_augmentations(projection_args.train_projection_tnsr_augmentations)
+        projection_args.test_rawinput_augmentations = parse_augmentations(projection_args.test_projection_rawinput_augmentations)
+        projection_args.test_tnsr_augmentations = parse_augmentations(projection_args.test_projection_tnsr_augmentations)
+
+        projection_args.input_loader = "ct_dicom_loader"
+        self.projection_loader = get_sample_loader(split_group, projection_args)
+
+    def __getitem__(self, index):
+        sample = self.dataset[index]
+        if self.args.use_annotations:
+            sample = self.get_ct_annotations(sample)
+        try:
+            item = {}
+            
+            ########################################################
+            ################# LOAD CT ##############################
+            ########################################################
+            ct_dict = self.input_loader.get_image(sample["paths"], sample)
+            x = ct_dict["input"]
+
+            if self.args.use_annotations:
+                mask = torch.abs(ct_dict["mask"])
+                mask_area = mask.sum(dim=(-1, -2))
+                item["volume_annotations"] = mask_area[0] / max(1, mask_area.sum())
+                item["annotation_areas"] = mask_area[0] / (
+                    mask.shape[-2] * mask.shape[-1]
+                )
+                mask_area = mask_area.unsqueeze(-1).unsqueeze(-1)
+                mask_area[mask_area == 0] = 1
+                item["image_annotations"] = mask / mask_area
+                item["has_annotation"] = item["volume_annotations"].sum() > 0
+
+            ########################################################
+            ################# LOAD PROJECTION ######################
+            ########################################################
+            projection_dict = self.projection_loader.get_image(sample["paths"], sample)
+            item['projection'] = projection_dict["input"]
+
+            if self.args.use_annotations:
+                mask = torch.abs(projection_dict["mask"])
+                mask_area = mask.sum(dim=(-1, -2))
+                item["projection_volume_annotations"] = mask_area[0] / max(1, mask_area.sum())
+                item["projection_annotation_areas"] = mask_area[0] / (
+                    mask.shape[-2] * mask.shape[-1]
+                )
+                mask_area = mask_area.unsqueeze(-1).unsqueeze(-1)
+                mask_area[mask_area == 0] = 1
+                item["projection_image_annotations"] = mask / mask_area
+                item["projection_has_annotation"] = item["projection_volume_annotations"].sum() > 0
+
+            if self.args.use_risk_factors:
+                item["risk_factors"] = sample["risk_factors"]
+
+            # x is the CT, NOT the projection
+            item["x"] = x
+            item["y"] = sample["y"]
+            for key in CT_ITEM_KEYS:
+                if key in sample:
+                    item[key] = sample[key]
+
+            return item
+        except Exception:
+            warnings.warn(LOAD_FAIL_MSG.format(sample["exam"], traceback.print_exc()))
 
     def get_images(self, paths, sample):
         pass
