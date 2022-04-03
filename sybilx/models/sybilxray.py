@@ -24,7 +24,7 @@ class AttentionPool2D(nn.Module):
         attention_scores = self.attention_fc(x.transpose(1,2)) # (B, WH, C) -> (B, WH, 1)
                                                                # (B, 25, 1536) - > (B, 25 , 1)
     
-        output['image_attention'] = self.logsoftmax(attention_scores.transpose(1,2)).view(B, -1)
+        output['image_attention_2d'] = self.logsoftmax(attention_scores.transpose(1,2)).view(B, -1)
         # (B, WH, 1) -> (B, 1, WH) -> (B, WH)
 
         attention_scores = self.softmax(attention_scores.transpose(1,2)) #B, 1, WH
@@ -76,7 +76,7 @@ class SybilXrayInception(nn.Module):
     def forward(self, x, batch = None):
         output = {}
         x = self.image_encoder(x)
-        output["activ"] = x
+        output["activ_2d"] = x
         pool_output = self.aggregate_and_classify(x)
         output.update(pool_output)
 
