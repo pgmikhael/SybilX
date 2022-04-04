@@ -751,7 +751,9 @@ class NLSTTeacher(NLST_Survival_Dataset):
             ########################################################
             ################# LOAD CT ##############################
             ########################################################
-            ct_dict = self.input_loader.get_image(sample["paths"], sample)
+
+            # same as old method, must use loader that loads 1 slice at a time
+            ct_dict = self.get_images(sample["paths"], sample) 
             x = ct_dict["input"]
 
             if self.args.use_annotations:
@@ -797,6 +799,3 @@ class NLSTTeacher(NLST_Survival_Dataset):
             return item
         except Exception:
             warnings.warn(LOAD_FAIL_MSG.format(sample["exam"], traceback.print_exc()))
-
-    def get_images(self, paths, sample):
-        pass

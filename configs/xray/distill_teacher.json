@@ -5,7 +5,7 @@
     "accumulate_grad_batches": [1],
     "dataset": ["nlst_teacher"],
     "max_followup": [6],
-    "input_loader_name": ["ct_dicom_loader"],
+    "input_loader_name": ["dicom_transform_loader"],
     "img_file_type": ["dicom"],
     "lightning_name": ["base"],
     "weight_decay": [1e-2],
