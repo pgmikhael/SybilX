@@ -48,8 +48,8 @@ class FullCTDicomLoader(abstract_loader):
             except:
                 raise Exception("Could not apply modality lut")
 
-            if hasattr(dcm, 'PhotometricInterpretation') and not 'MONOCHROME2' in dcm.PhotometricInterpretation:
-                x = np.max(x) - x
+            # if hasattr(dcm, 'PhotometricInterpretation') and not 'MONOCHROME2' in dcm.PhotometricInterpretation:
+            #     x = np.max(x) - x
                 
             # TODO: this is a way to make the mask be the same size as the img
             annotation_mask_args = copy.deepcopy(self.args)
