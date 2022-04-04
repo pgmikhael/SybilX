@@ -17,7 +17,9 @@ class SybilXTeacher(nn.Module):
         self.ct_encoder = get_object("sybil" , 'model')(args)
 
         targs = copy.deepcopy(args)
-        targs.mlp_input_dim = args.mlp_input_dim + args.hidden_size
+        
+        # sybil hiddens are hard-coded 512
+        targs.mlp_input_dim = 512 + args.hidden_size
         self.mlp = get_object('mlp', 'model')(targs)
 
         self.prob_of_failure_layer = Cumulative_Probability_Layer(
