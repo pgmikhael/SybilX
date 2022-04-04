@@ -4,6 +4,7 @@ import cv2
 import torch
 import os.path
 import pydicom
+import skimage
 from pydicom.pixel_data_handlers.util import apply_modality_lut
 import numpy as np
 from sybilx.datasets.utils import get_scaled_annotation_mask, IMG_PAD_TOKEN
@@ -27,6 +28,21 @@ class OpenCVLoader(abstract_loader):
     @property
     def cached_extension(self):
         return ".png"
+
+@register_object("tif_loader", "input_loader")
+class TIFFLoader(abstract_loader):
+    def configure_path(self, path, sample):
+        return path
+
+    def load_input(self, path, sample):
+        """
+        loads as grayscale image
+        """
+        return {"input": skimage.io.imread(path, plugin='tifffile')}
+
+    @property
+    def cached_extension(self):
+        return ""
 
 @register_object("ct_dicom_loader", "input_loader")
 class FullCTDicomLoader(abstract_loader):
