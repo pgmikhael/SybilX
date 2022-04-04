@@ -207,7 +207,7 @@ class DicomTransformLoader(abstract_loader):
         super(DicomTransformLoader, self).__init__(cache_path, augmentations, args)
 
     def configure_path(self, path, sample):
-        return path
+        return str(path)
 
     def load_input(self, path, sample):
         try:
