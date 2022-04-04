@@ -752,6 +752,11 @@ class NLSTTeacher(NLST_Survival_Dataset):
             ################# LOAD CT ##############################
             ########################################################
 
+            # fit to length otherwise can't batch them
+            sample["paths"] = fit_to_length(sample["paths"], self.args.num_images)
+            sample["slice_locations"] = fit_to_length(
+                sample["slice_locations"], self.args.num_images, "<PAD>"
+            )
             # same as old method, must use loader that loads 1 slice at a time
             ct_dict = self.get_images(sample["paths"], sample) 
             x = ct_dict["input"]
