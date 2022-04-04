@@ -24,7 +24,7 @@ class AttentionPool2D(nn.Module):
         attention_scores = self.attention_fc(x.transpose(1,2)) # (B, WH, C) -> (B, WH, 1)
                                                                # (B, 25, 1536) - > (B, 25 , 1)
     
-        output['image_attention'] = self.logsoftmax(attention_scores.transpose(1,2)).view(B, -1)
+        output['image_attention_2d'] = self.logsoftmax(attention_scores.transpose(1,2)).view(B, -1)
         # (B, WH, 1) -> (B, 1, WH) -> (B, WH)
 
         attention_scores = self.softmax(attention_scores.transpose(1,2)) #B, 1, WH
@@ -43,32 +43,30 @@ class SybilXrayInception(nn.Module):
         self.args = args
 
         if args.with_attention:
-            self.pool = AttentionPool2D(num_chan=self.HIDDEN_DIM)
-            self.lin1 = nn.Linear(self.HIDDEN_DIM*2, self.HIDDEN_DIM)
+            self.pool = AttentionPool2D(num_chan=self.ENCODER_OUTPUT_DIM)
+            self.lin1 = nn.Linear(self.ENCODER_OUTPUT_DIM*2, args.hidden_size)
         else:
-            self.lin1 = nn.Linear(self.HIDDEN_DIM, self.HIDDEN_DIM)
+            self.lin1 = nn.Linear(self.ENCODER_OUTPUT_DIM, args.hidden_size)
 
         self.relu = nn.ReLU(inplace=False)
         self.dropout = nn.Dropout(p=args.dropout)
 
-        
-        
         # if using survival setup then finish with cumulative prob layer, otherwise fc layer
         if "survival" not in args.loss_fns:
-            self.fc = nn.Linear(self.HIDDEN_DIM, args.num_classes)
+            self.fc = nn.Linear(args.hidden_size, args.num_classes)
         else:
             self.prob_of_failure_layer = Cumulative_Probability_Layer(
-            self.HIDDEN_DIM, args, max_followup=args.max_followup
+            args.hidden_size, args, max_followup=args.max_followup
         )
         
-        self.avg_pool = nn.AvgPool2d((14, 14))
+        self.avg_pool = nn.AdaptiveAvgPool2d((1, 1))
 
     def get_image_encoder(self):
         encoder = pretrainedmodels.__dict__['inceptionv4'](num_classes=1000, pretrained='imagenet')
         return nn.Sequential(*list(encoder.children())[:-2])
     
     @property
-    def HIDDEN_DIM(self):
+    def ENCODER_OUTPUT_DIM(self):
         """Size of input to cumulative prob. layer. 
 
         Must match no. of channels in image encoder hidden output.
@@ -78,7 +76,7 @@ class SybilXrayInception(nn.Module):
     def forward(self, x, batch = None):
         output = {}
         x = self.image_encoder(x)
-        output["activ"] = x
+        output["activ_2d"] = x
         pool_output = self.aggregate_and_classify(x)
         output.update(pool_output)
 
@@ -94,10 +92,10 @@ class SybilXrayInception(nn.Module):
             pool_output = {}
         
         # pass forward average encoded image 
-        pool_output["hidden"] = self.avg_pool(x)
+        pool_output["hidden"] = self.avg_pool(x).squeeze(2).squeeze(2)
         # if using attention concat
         if self.args.with_attention:
-            pool_output["hidden"] = torch.cat([pool_output["hidden"].squeeze(2).squeeze(2), pool_output["attn_hidden"]])
+            pool_output["hidden"] = torch.cat([pool_output["hidden"], pool_output["attn_hidden"]], axis=-1)
 
         pool_output['hidden'] = self.lin1(pool_output["hidden"])
         pool_output['hidden'] = self.dropout(self.relu(pool_output['hidden']))
@@ -116,7 +114,7 @@ class SybilXrayR50(SybilXrayInception):
         return nn.Sequential(*list(encoder.children())[:-2])
 
     @property
-    def HIDDEN_DIM(self):
+    def ENCODER_OUTPUT_DIM(self):
         return 2048
 
 @register_object("sybilxray_r152", "model")
@@ -126,7 +124,7 @@ class SybilXrayR152(SybilXrayInception):
         return nn.Sequential(*list(encoder.children())[:-2])
 
     @property
-    def HIDDEN_DIM(self):
+    def ENCODER_OUTPUT_DIM(self):
         return 2048
 
 #@register_object("sybilxray_vit", "model")
@@ -136,7 +134,7 @@ class SybilXrayR152(SybilXrayInception):
 #        return nn.Sequential(*list(encoder.children())[:-1])
 #
 #    @property
-#    def HIDDEN_DIM(self):
+#    def ENCODER_OUTPUT_DIM(self):
 #        return 3
 #
 #@register_object("sybilxray_convnext", "model")
@@ -146,5 +144,5 @@ class SybilXrayR152(SybilXrayInception):
 #        return nn.Sequential(*list(encoder.children())[:-2])
 #
 #    @property
-#    def HIDDEN_DIM(self):
+#    def ENCODER_OUTPUT_DIM(self):
 #        return 1536

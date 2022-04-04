@@ -1,8 +1,8 @@
 import torch
 import torch.nn as nn
 import copy
-from modules.utils.shared import register_object, get_object
-from modules.models.layers.cumulative_probability_layer import Cumulative_Probability_Layer
+from sybilx.utils.registry import register_object, get_object
+from sybilx.models.cumulative_probability_layer import Cumulative_Probability_Layer
 
 
 @register_object('fc_classifier', 'model')

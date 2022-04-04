@@ -479,3 +479,22 @@ class ElasticDeformation(Abstract_augmentation):
     def __call__(self, input_dict, sample=None):
         input_dict["input"] = self.transform(image=input_dict["input"])["image"]
         return input_dict
+
+@register_object("invert_pixels", "augmentation")
+class InvertPixels(Abstract_augmentation):
+    """
+    Subtracts all pixels from max pixel value
+    """
+
+    def __init__(self, args, kwargs):
+        super(InvertPixels, self).__init__()
+        assert len(kwargs.keys()) == 0
+        self.set_cachable()
+
+    def transform_image(self, pixel_array):
+        max_val = np.max(pixel_array)
+        return max_val - pixel_array
+
+    def __call__(self, input_dict, sample=None):
+        input_dict["input"] = self.transform_image(input_dict["input"])
+        return input_dict

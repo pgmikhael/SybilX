@@ -76,8 +76,8 @@ def get_annotation_loss(model_output, batch, model, args):
                     side_attn[:, :, :, W // 2 :].sum((2, 3)),
                 ],
                 dim=-1,
-            )
-            side_attn_log = F.log_softmax(side_attn, dim=-1).transpose(1, 2)
+            ) # [(B, N, 1), (B, N, 1)] -> (B, N, 2)
+            side_attn_log = F.log_softmax(side_attn, dim=-1).transpose(1, 2) # (B, 2, N)
 
             loss = (
                 F.cross_entropy(side_attn_log, cancer_side_gold, reduction="none")
@@ -148,18 +148,18 @@ def get_annotation_loss(model_output, batch, model, args):
 
 @register_object("guided_attention_2d", "loss")
 def get_2d_annotation_loss(model_output, batch, model, args):
-    total_loss, logging_dict, predictions = 0, OrderedDict(), OrderedDict()
+    loss, logging_dict, predictions = 0, OrderedDict(), OrderedDict()
+    
+    B, C, H, W = model_output["activ_2d"].shape
 
-    B, C, H, W = model_output["activ"].shape
+    batch_mask = batch["projection_has_annotation"]
 
-    batch_mask = batch["has_annotation"]
-
-    if model_output.get("image_attention", None) is not None:
-        if len(batch["image_annotations"].shape) == 3:
-            batch["image_annotations"] = batch["image_annotations"].unsqueeze(1)
+    if model_output.get("image_attention_2d", None) is not None:
+        if len(batch["projection_image_annotations"].shape) == 3:
+            batch["projection_image_annotations"] = batch["projection_image_annotations"].unsqueeze(1)
 
         # resize annotation to 'activ' size
-        annotation_gold = F.interpolate(batch["image_annotations"], (H, W), mode="area")
+        annotation_gold = F.interpolate(batch["projection_image_annotations"], (H, W), mode="area")
         annotation_gold = annotation_gold * batch_mask[:, None, None, None] # (B, 1, H, W)
 
         # renormalize scores
@@ -177,26 +177,42 @@ def get_2d_annotation_loss(model_output, batch, model, args):
         num_annotated_samples = batch_mask.sum() # tensor(int), dim=0
         num_annotated_samples = max(1, num_annotated_samples)
 
-        pred_attn = model_output["image_attention"] * batch_mask[:, None] # (B, H * W)
+        pred_attn = model_output["image_attention_2d"] * batch_mask[:, None] # (B, H * W)
         kldiv = F.kl_div(pred_attn, annotation_gold, reduction="none") * annotation_gold_mask # (B, H * W)
 
         # sum loss per slice and average over batches
         loss = kldiv.sum() / num_annotated_samples # tensor(int), dim=0
-        logging_dict["image_attention_loss"] = loss.detach()
-        total_loss += args.image_attention_loss_lambda * loss
+        logging_dict["image_attention_loss_2d"] = loss.detach()
+    
+    return loss * args.annotation_loss_lambda_2d, logging_dict, predictions 
+
+
+@register_object("guided_side_attention_2d", "loss")
+def get_2d_side_annotation_loss(model_output, batch, model, args):
+    loss, logging_dict, predictions = 0, OrderedDict(), OrderedDict()
+
+    B, C, H, W = model_output["activ_2d"].shape
+
+    batch_mask = batch["projection_has_annotation"]
+
+    if model_output.get("image_attention_2d", None) is not None:
+        if len(batch["projection_image_annotations"].shape) == 3:
+            batch["projection_image_annotations"] = batch["projection_image_annotations"].unsqueeze(1)
+
+        num_annotated_samples = batch_mask.sum() # tensor(int), dim=0
+        num_annotated_samples = max(1, num_annotated_samples)
 
         # attend to cancer side
         cancer_side_mask = (batch["cancer_laterality"][:, :2].sum(-1) == 1).float()[:, None]  # (B, 1), only one side is positive
         cancer_side_gold = batch["cancer_laterality"][:, 1] # (B, 1), left side (seen as lung on right) is positive class
         num_annotated_samples = max(cancer_side_mask.sum(), 1)
-        side_attn = torch.exp(model_output["image_attention"]) # (B, H * W)
+        side_attn = torch.exp(model_output["image_attention_2d"]) # (B, H * W)
         side_attn = side_attn.view(B, H, W) # (B, H, W)
         # sum across the H and then the W, so we find which lung side the attn was on
         side_attn = torch.stack([side_attn[:, :, : W // 2].sum((1, 2)), side_attn[:, :, W // 2 :].sum((1, 2)),], dim=-1,) # (B, 2)
         side_attn_log = F.log_softmax(side_attn, dim=-1) # .transpose(1, 2) # TODO: check this
 
         loss = (F.cross_entropy(side_attn_log, cancer_side_gold, reduction="none") * cancer_side_mask).sum() / num_annotated_samples
-        logging_dict["image_side_attention_loss"] = loss.detach()
-        total_loss += args.image_attention_loss_lambda * loss
-
-    return total_loss * args.annotation_loss_lambda, logging_dict, predictions
+        logging_dict["image_side_attention_loss_2d"] = loss.detach()
+        
+    return loss * args.image_side_attention_loss_lambda_2d * loss, logging_dict, predictions

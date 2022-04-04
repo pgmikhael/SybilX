@@ -1,5 +1,5 @@
 from sybilx.utils.registry import register_object
-from sybilx.learning.losses.basic import get_cross_entropy_loss
+from sybilx.learning.losses.basic import get_cross_entropy_loss, get_survival_loss
 import torch
 import torch.nn.functional as F
 import torch.nn as nn
@@ -9,6 +9,42 @@ import pdb
 
 EPSILON = 1e-6
 
+@register_object("vanilla_knowledge_distillation_loss", 'loss')
+def get_knowledge_distillation_loss(model_output, batch, model, args):
+    """
+    Computes distillation loss from original "Distilling the Knowledge in a Neural Network"
+    https://arxiv.org/abs/1503.02531v1
+    
+    NOTE: Includes CE or Survival loss, does not need to be run in conjunction with label loss fn
+    as it computes a weighted average of distilled loss and regular loss (ce or survival)
+
+    Returns:
+        loss: 
+        l_dict (dict): dictionary of loss values for each loss (detached from computation graph)
+        p_dict (dict): dictionary of predictions (subclass_probs, probs, preds) and the ground truth (golds)
+    """
+    loss = 0
+    l_dict, p_dict = OrderedDict(), OrderedDict()
+    
+    y_pred_student = model_output['logit']
+    y_pred_teacher = batch['teacher_hiddens']
+
+    soft_teacher_out = F.softmax(y_pred_teacher / args.distill_temperature, dim=1)
+    soft_student_out = F.softmax(y_pred_student / args.distill_temperature, dim=1)
+
+    distill_loss = (args.distill_temperature ** 2) * F.cross_entropy(soft_student_out, soft_teacher_out)
+    l_dict['distill_loss'] = distill_loss.detach()
+
+    if "survival" not in args.loss_fns:
+        ce_loss, _, _ = get_cross_entropy_loss(model_output, batch, model, args)
+    else:
+        ce_loss, _, _ = get_survival_loss(model_output, batch, model, args)
+
+    # weighted average: lambda * distill_loss + (1-lambda) * ce_loss
+    loss = args.distill_student_loss_lambda *  distill_loss + (1 - args.distill_student_loss_lambda) * ce_loss
+    l_dict['student_distill_loss'] = loss.detach()
+
+    return loss, l_dict, p_dict
 
 @register_object("subclass_distillation_teacher_loss", 'loss')
 def get_subclass_distill_loss_teacher(model_output, batch, model, args):
