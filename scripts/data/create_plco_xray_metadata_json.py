@@ -13,7 +13,7 @@ from tqdm import tqdm
 DEFAULT_SPLIT_PROBS = [0.7, 0.15, 0.15]
 
 parser = argparse.ArgumentParser()
-parser.add_argument('--tifs_dir', type = Path, default="")
+parser.add_argument('--tif_dirs', type = Path, nargs='+')
 parser.add_argument('--link_csv', type = Path)
 parser.add_argument('--person_csv', type = Path)
 parser.add_argument('--output_json_path', type = Path)
@@ -23,7 +23,7 @@ parser.add_argument('--split_probs', type = int, nargs = 3, default = DEFAULT_SP
 if __name__ == "__main__":
     args = parser.parse_args()
 
-    tifs = list(args.tifs_dir.glob('**/*.tif'))
+    tifs = list(path for tif_dir in args.tif_dirs for path in tif_dir.glob('**/*.tif'))
 
     print("Loading", args.link_csv)
     filename_to_id_map_df = pd.read_csv(args.link_csv)
@@ -60,21 +60,22 @@ if __name__ == "__main__":
 
         img_dict = {
             "path": str(path.absolute()),
-            "filename": filename
+            "filename": filename,
         }
-        # tif image metadata
-        #with open(str(path), 'rb') as f:
-        #    tags = exifread.process_file(f)
-        #    for tag in tags.keys():
-        #        if tag not in ('JPEGThumbnail', 'TIFFThumbnail', 'Filename', 
-        #                       'EXIF MakerNote', 'Image DateTime'): # DateTime is date of image-digitization, not of scan
-        #            value = tags[tag].values
-        #            if type(value[0]) not in (str, int, float, bool):
-        #                continue
-        #            if len(value) == 1:
-        #                value = value[0]
 
-        #            img_dict[tag] = value
+        # tif image metadata
+        with open(str(path), 'rb') as f:
+            tags = exifread.process_file(f)
+            for tag in tags.keys():
+                if tag not in ('JPEGThumbnail', 'TIFFThumbnail', 'Filename', 
+                               'EXIF MakerNote', 'Image DateTime'): # DateTime is date of image-digitization, not of scan
+                    value = tags[tag].values
+                    if type(value[0]) not in (str, int, float, bool):
+                        continue
+                    if len(value) == 1:
+                        value = value[0]
+
+                    img_dict[tag] = value
 
 
         if pid in pid2idx:
