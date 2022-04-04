@@ -4,7 +4,7 @@ import cv2
 import torch
 import os.path
 import pydicom
-import skimage
+import skimage.io
 from pydicom.pixel_data_handlers.util import apply_modality_lut
 import numpy as np
 from sybilx.datasets.utils import get_scaled_annotation_mask, IMG_PAD_TOKEN
