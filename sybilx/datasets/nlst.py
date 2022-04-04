@@ -21,7 +21,7 @@ from sybilx.datasets.utils import (
 )
 from sybilx.utils.registry import register_object
 from sybilx.datasets.nlst_risk_factors import NLSTRiskFactorVectorizer
-from parsing import parse_augmentations
+from sybilx.parsing import parse_augmentations
 
 GOOGLE_SPLITS_FILENAME = (
     "/Mounts/rbg-storage1/datasets/NLST/Shetty_et_al(Google)/data_splits.p"

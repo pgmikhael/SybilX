@@ -49,6 +49,7 @@ import sybilx.models.cxr_lc
 import sybilx.models.sybilxray
 import sybilx.models.sybilx_teacher_student
 import sybilx.models.sybil
+import sybilx.models.mlp
 
 # losses
 import sybilx.learning.losses.basic

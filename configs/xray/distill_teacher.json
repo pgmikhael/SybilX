@@ -66,7 +66,10 @@
     "cross_val_seed": [0],
     "split_probs": ["0.7 0.15 0.15"],
     "scale_annotations": [false],
-    "with_attention": [true]
+    "with_attention": [true],
+    "proj_encoder_model": ["sybilxray_inception"],
+    "hidden_size": ["512"],
+    "mlp_layer_configuration": ["512 256"]
   },
   "available_gpus": ["2,4,6,7"]
 }
