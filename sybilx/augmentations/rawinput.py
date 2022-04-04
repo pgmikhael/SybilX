@@ -488,13 +488,19 @@ class InvertPixels(Abstract_augmentation):
 
     def __init__(self, args, kwargs):
         super(InvertPixels, self).__init__()
-        assert len(kwargs.keys()) == 0
+        assert len(kwargs.keys()) == 2
+        self.max_pixel = float(kwargs["max_pixel"]) if "max_pixel" in kwargs else 255
+        self.all = bool(kwargs["all_images"]) if "all_images" in kwargs else True
         self.set_cachable()
+        # eg invert_pixels/max_pixel=255/all_images=0
 
     def transform_image(self, pixel_array):
         max_val = np.max(pixel_array)
         return max_val - pixel_array
 
     def __call__(self, input_dict, sample=None):
-        input_dict["input"] = self.transform_image(input_dict["input"])
+        if self.all:
+            input_dict["input"] = self.max_pixel - input_dict["input"]
+        if sample.get('invert_pixels', False):
+            input_dict["input"] = self.max_pixel - input_dict["input"]
         return input_dict
