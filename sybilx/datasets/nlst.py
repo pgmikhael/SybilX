@@ -722,24 +722,24 @@ class NLSTTeacher(NLST_Survival_Dataset):
         super(NLSTTeacher, self).__init__(args, split_group)
         
         # Projection can use different loader and does use different augmentations
-        projection_args = copy.deepcopy(args)
+        self.projection_args = copy.deepcopy(args)
 
         # check these exist
-        assert projection_args.train_projection_rawinput_augmentations
-        assert projection_args.train_projection_tnsr_augmentations
-        assert projection_args.test_projection_rawinput_augmentations
-        assert projection_args.test_projection_tnsr_augmentations
+        assert self.projection_args.train_projection_rawinput_augmentations
+        assert self.projection_args.train_projection_tnsr_augmentations
+        assert self.projection_args.test_projection_rawinput_augmentations
+        assert self.projection_args.test_projection_tnsr_augmentations
         
-        projection_args.img_mean = [127.2311, 127.2311, 127.2311]
-        projection_args.img_std = [74.1043, 74.1043, 74.1043]
+        self.projection_args.img_mean = [127.2311, 127.2311, 127.2311]
+        self.projection_args.img_std = [74.1043, 74.1043, 74.1043]
 
-        projection_args.train_rawinput_augmentations = parse_augmentations(projection_args.train_projection_rawinput_augmentations)
-        projection_args.train_tnsr_augmentations = parse_augmentations(projection_args.train_projection_tnsr_augmentations)
-        projection_args.test_rawinput_augmentations = parse_augmentations(projection_args.test_projection_rawinput_augmentations)
-        projection_args.test_tnsr_augmentations = parse_augmentations(projection_args.test_projection_tnsr_augmentations)
+        self.projection_args.train_rawinput_augmentations = parse_augmentations(self.projection_args.train_projection_rawinput_augmentations)
+        self.projection_args.train_tnsr_augmentations = parse_augmentations(self.projection_args.train_projection_tnsr_augmentations)
+        self.projection_args.test_rawinput_augmentations = parse_augmentations(self.projection_args.test_projection_rawinput_augmentations)
+        self.projection_args.test_tnsr_augmentations = parse_augmentations(self.projection_args.test_projection_tnsr_augmentations)
 
-        projection_args.input_loader = "ct_dicom_loader"
-        self.projection_loader = get_sample_loader(split_group, projection_args)
+        self.projection_args.input_loader = "ct_dicom_loader"
+        self.projection_loader = get_sample_loader(split_group, self.projection_args)
 
     def __getitem__(self, index):
         sample = self.dataset[index]
