@@ -8,7 +8,7 @@
     "precision": [16],
     "dataset": ["plco_xray"],
     "max_followup": [12],
-    "input_loader_name": ["cv_loader"],
+    "input_loader_name": ["tif_loader"],
     "lightning_name": ["base"],
     "weight_decay": [0.0001],
     "max_epochs": [10],
@@ -49,11 +49,11 @@
     "dropout": [0.1],
     "save_predictions": [true],
     "dataset_file_path": [
-        "/Mounts/rbg-storage1/datasets/PLCO_XRAY/metadata_2022_03_10_rotated.json"
+        "/Mounts/rbg-storage1/datasets/PLCO_XRAY/metadata_2022_03_05.json"
     ],
     "save_dir": ["snapshots"],
-    "img_dir": ["/Mounts/rbg-storage1/datasets//Mounts/rbg-storage1/datasets/PLCO_XRAY/tifs/"],
-    "cache_path": ["/storage/xray_cache/rotated"]
+    "img_dir": ["/Mounts/rbg-storage1/datasets/PLCO_XRAY/tifs/"],
+    "cache_path": ["/storage/xray_cache"]
   },
   "available_gpus": [
     6
