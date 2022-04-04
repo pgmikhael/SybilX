@@ -738,7 +738,7 @@ class NLSTTeacher(NLST_Survival_Dataset):
         self.projection_args.test_rawinput_augmentations = parse_augmentations(self.projection_args.test_projection_rawinput_augmentations)
         self.projection_args.test_tnsr_augmentations = parse_augmentations(self.projection_args.test_projection_tnsr_augmentations)
 
-        self.projection_args.input_loader = args.projection_loader
+        self.projection_args.input_loader_name = "ct_dicom_loader"
         self.projection_loader = get_sample_loader(split_group, self.projection_args)
 
     def __getitem__(self, index):
