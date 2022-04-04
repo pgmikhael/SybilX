@@ -30,11 +30,15 @@ class SybilXTeacher(nn.Module):
         output = {}
         # must use 'hidden' here to not use cumulative probablity layer, note includes dropout and activation
         # expects batch['ct'] and batch['projection']
-        output['ct_hidden'] = self.ct_encoder(x)['hidden']
-        output['proj_hidden'] = self.projection_encoder(batch['projection'])['hidden']
+        ct_encoded = self.ct_encoder(x)
+        output['ct_hidden'] = ct_encoded['hidden']
+        output.update(ct_encoded)
+
+        projection_encoded = self.projection_encoder(batch['projection'])
+        output['proj_hidden'] = projection_encoded['hidden']
+        output.update(projection_encoded)
 
         combined_encoding = torch.cat([output['ct_hidden'], output['proj_hidden']], dim=-1)
-
         output['hidden'] = self.mlp(combined_encoding)['logit']
         output["logit"] = self.prob_of_failure_layer(output["hidden"])
 
