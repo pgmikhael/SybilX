@@ -210,27 +210,42 @@ class DicomTransformLoader(abstract_loader):
         return str(path)
 
     def load_input(self, path, sample):
-        try:
-            dcm = pydicom.dcmread(path)
-            pixel_array = apply_modality_lut(dcm.pixel_array, dcm)
-            # below should do the same as 'apply_modality_lut'
-            # if hasattr(dcm, 'RescaleSlope') and hasattr(dcm, 'RescaleIntercept'):
-            #     pixel_array = dcm.pixel_array * dcm.RescaleSlope + dcm.RescaleIntercept
-            # else:
-            #     pixel_array = dcm.pixel_array
+        if path == self.pad_token:
+            mask = (
+            get_scaled_annotation_mask(sample["annotations"], self.args)
+            if self.args.use_annotations
+            else None
+        )
+            shape = (self.args.num_chan, self.args.img_size[0], self.args.img_size[1])
+            min_max_pixel_array = torch.zeros(*shape)
+            mask = (
+                torch.from_numpy(mask * 0).unsqueeze(0)
+                if self.args.use_annotations
+                else None
+            )
+            return {"input": min_max_pixel_array, "mask": mask}
+        else:
+            try:
+                dcm = pydicom.dcmread(path)
+                pixel_array = apply_modality_lut(dcm.pixel_array, dcm)
+                # below should do the same as 'apply_modality_lut'
+                # if hasattr(dcm, 'RescaleSlope') and hasattr(dcm, 'RescaleIntercept'):
+                #     pixel_array = dcm.pixel_array * dcm.RescaleSlope + dcm.RescaleIntercept
+                # else:
+                #     pixel_array = dcm.pixel_array
 
-            min_max_pixel_array = self.transform_image(pixel_array)
-            if hasattr(dcm, 'PhotometricInterpretation') and not 'MONOCHROME2' in dcm.PhotometricInterpretation:
-                min_max_pixel_array = 255 - min_max_pixel_array
+                min_max_pixel_array = self.transform_image(pixel_array)
+                if hasattr(dcm, 'PhotometricInterpretation') and not 'MONOCHROME2' in dcm.PhotometricInterpretation:
+                    min_max_pixel_array = 255 - min_max_pixel_array
 
-            if self.args.use_annotations:
-                mask = get_scaled_annotation_mask(sample["annotations"], self.args, scale_annotation=self.args.scale_annotations)
-                return {"input": min_max_pixel_array, "mask": mask}
-            else:
-                return {"input": min_max_pixel_array}
+                if self.args.use_annotations:
+                    mask = get_scaled_annotation_mask(sample["annotations"], self.args, scale_annotation=self.args.scale_annotations)
+                    return {"input": min_max_pixel_array, "mask": mask}
+                else:
+                    return {"input": min_max_pixel_array}
 
-        except Exception:
-            raise Exception(LOADING_ERROR.format("COULD NOT LOAD DICOM."))
+            except Exception:
+                raise Exception(LOADING_ERROR.format("COULD NOT LOAD DICOM."))
 
     def transform_image(self, pixel_array):
         min_val = np.min(pixel_array)
