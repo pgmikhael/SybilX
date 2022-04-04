@@ -738,7 +738,7 @@ class NLSTTeacher(NLST_Survival_Dataset):
         self.projection_args.test_rawinput_augmentations = parse_augmentations(self.projection_args.test_projection_rawinput_augmentations)
         self.projection_args.test_tnsr_augmentations = parse_augmentations(self.projection_args.test_projection_tnsr_augmentations)
 
-        self.projection_args.input_loader = "ct_dicom_loader"
+        self.projection_args.input_loader = args.projection_loader
         self.projection_loader = get_sample_loader(split_group, self.projection_args)
 
     def __getitem__(self, index):
@@ -752,6 +752,11 @@ class NLSTTeacher(NLST_Survival_Dataset):
             ################# LOAD CT ##############################
             ########################################################
 
+            # fit to length otherwise can't batch them
+            sample["paths"] = fit_to_length(sample["paths"], self.args.num_images)
+            sample["slice_locations"] = fit_to_length(
+                sample["slice_locations"], self.args.num_images, "<PAD>"
+            )
             # same as old method, must use loader that loads 1 slice at a time
             ct_dict = self.get_images(sample["paths"], sample) 
             x = ct_dict["input"]
