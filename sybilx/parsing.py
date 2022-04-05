@@ -365,6 +365,8 @@ def parse_args(args_strings=None):
     # Teacher Student Models
     parser.add_argument('--proj_encoder_model', type = str, default = 'sybilxray_r50', help = 'Name of molecular encoder')
 
+    # Fine-tuning
+    parser.add_argument('--freeze_encoder_weights', action='store_true', default = False, help = 'Freeze encoder weights during training/fine-tuning (only used in sybilxray models)')
     
     # augmentations
     parser.add_argument(
