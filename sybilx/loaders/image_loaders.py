@@ -65,7 +65,9 @@ class FullCTDicomLoader(abstract_loader):
                 raise Exception("Could not apply modality lut")
 
             # if hasattr(dcm, 'PhotometricInterpretation') and not 'MONOCHROME2' in dcm.PhotometricInterpretation:
-            #     x = np.max(x) - x
+            #     sample['invert_pixels'] = True
+            # else:
+            #     sample['invert_pixels'] = False
                 
             # TODO: this is a way to make the mask be the same size as the img
             annotation_mask_args = copy.deepcopy(self.args)
@@ -251,8 +253,8 @@ class DicomTransformLoader(abstract_loader):
                 #     pixel_array = dcm.pixel_array
 
                 min_max_pixel_array = self.transform_image(pixel_array)
-                if hasattr(dcm, 'PhotometricInterpretation') and not 'MONOCHROME2' in dcm.PhotometricInterpretation:
-                    min_max_pixel_array = 255 - min_max_pixel_array
+                # if hasattr(dcm, 'PhotometricInterpretation') and not 'MONOCHROME2' in dcm.PhotometricInterpretation:
+                #     min_max_pixel_array = 255 - min_max_pixel_array
 
                 if self.args.use_annotations:
                     mask = get_scaled_annotation_mask(sample["annotations"], self.args, scale_annotation=self.args.scale_annotations)
