@@ -20,12 +20,12 @@
     "use_only_thin_cuts_for_ct": [true],
     "region_annotations_filepath": ["/Mounts/rbg-storage1/datasets/NLST/annotations_122020.json"],
     "use_annotations": [true],
-    "annotation_loss_lambda_2d": [0.036],
+    "annotation_loss_lambda_2d": [0.03],
     "image_side_attention_loss_lambda_2d": [0.06],
     "num_chan": [3],
-    "metrics": ["survival"],
+    "metrics": ["classification"],
     "num_classes": [2],
-    "monitor": ["val_c_index"],
+    "monitor": ["val_roc_auc"],
     "num_workers": [10],
     "optimizer": ["adam"],
     "patience": [5],
@@ -55,16 +55,23 @@
     "cross_val_seed": [0],
     "split_probs": ["0.7 0.15 0.15"],
     "scale_annotations": [false],
-    "with_attention": [true]
+    "max_epochs": ["10"]
   },
   "paired_search_space": {
-    "loss_fns": [
-        "survival guided_attention_2d"
+    "with_attention": [
+      false, 
+      true, 
+      true
     ],
-    "max_epochs": ["10"],
+    "loss_fns": [
+        "classification",
+        "classification guided_attention_2d",
+        "classification side_attention_2d"
+    ],
     "comet_tags": [
-      "projections with_annotation_attention"
+      "projections with_annotation_attention",
+      "projections with_side_attention"
     ]
   },
-  "available_gpus": [0,1,2,4,6, 7]
+  "available_gpus": [0,1,2]
 }
