@@ -15,9 +15,11 @@
     "max_epochs": [10],
     "lr_decay": [0.1],
     "img_size": ["512 512"],
+    "img_mean": [127.4869],
+    "img_std": [74.7583],
     "limit_train_batches": [1.0],
     "limit_val_batches": [1.0],
-    "lr": [3e-5],
+    "lr": [3e-5, 1e-5, 3e-6, 3e-7],
     "base_model": ["sybilxray_inception"],
     "use_annotations": [false],
     "num_chan": [3],
@@ -51,5 +53,5 @@
     "cache_path": ["/storage/xray_cache"],
     "snapshot": ["/Mounts/rbg-storage1/snapshots/lung_xray/78ef98d3b91fb3bb5b53ed8d2b7bf33b/78ef98d3b91fb3bb5b53ed8d2b7bf33bepoch=0.ckpt"]
   },
-  "available_gpus": [7]
+  "available_gpus": [6,3,4]
 }
