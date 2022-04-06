@@ -62,6 +62,7 @@ class Base(pl.LightningModule):
     @property
     def UNLOG_KEYS(self):
         default = [
+            "activ",
             "hidden",
             "log_var",
             "mu",
@@ -69,6 +70,15 @@ class Base(pl.LightningModule):
             "encoder_hidden",
             "image_hidden",
             "shared_hidden",
+            "image_attention_1",
+            "multi_image_hidden_1",
+            "hidden_1",
+            "volume_attention_1",
+            "multi_image_hidden_2",
+            "volume_attention_2",
+            "hidden_2",
+            "maxpool_hidden",
+            "multi_image_hidden",
             "shared_reconstruction",
             "full_reconstruction",
         ]
@@ -281,7 +291,7 @@ class Base(pl.LightningModule):
             if isinstance(v, torch.Tensor) and any([i in k for i in self.LOG_KEYS]):
                 logging_dict["{}_{}".format(key, k)] = v.mean()
         # log clocktime of methods for epoch
-        if self.args.profiler is not None:
+        if (self.args.profiler is not None) and (self.args.log_profiler):
             logging_dict.update(self.get_time_profile(key))
         self.log_dict(logging_dict, prog_bar=True, logger=True)
 
