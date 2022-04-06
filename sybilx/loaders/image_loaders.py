@@ -174,7 +174,7 @@ class TensorLoader(abstract_loader):
         """
         loads as grayscale image
         """
-        return {"input": torch.load(path)}
+        return torch.load(path)
 
     @property
     def cached_extension(self):

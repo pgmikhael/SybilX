@@ -18,11 +18,7 @@ def cache_dataset(args):
 
         for batch in tqdm(dataset):
             for idx, eid in zip(enumerate(batch["exam"])):
-                d = (
-                    {"x": batch[idx]["x"], "mask": batch[idx]["mask"]}
-                    if args.use_annotations
-                    else {"x": batch[idx]["x"]}
-                )
+                d = {k: v for k, v in batch[idx].items()}
                 filename = get_tensor_path(eid, args.cache_path)
                 torch.save(d, filename)
 

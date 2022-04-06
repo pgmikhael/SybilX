@@ -787,18 +787,7 @@ class NLST_Tensors(NLST_Survival_Dataset):
             item = {}
             path = self.input_loader.configure_path("", sample)
             input_dict = self.input_loader.load_input(path, sample)
-
-            x = input_dict["input"]
-
-            if self.args.use_risk_factors:
-                item["risk_factors"] = sample["risk_factors"]
-
-            item["x"] = x
-            item["y"] = sample["y"]
-            for key in CT_ITEM_KEYS:
-                if key in sample:
-                    item[key] = sample[key]
-
             return item
+
         except Exception:
             warnings.warn(LOAD_FAIL_MSG.format(sample["exam"], traceback.print_exc()))
