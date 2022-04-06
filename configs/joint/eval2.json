@@ -2,20 +2,20 @@
 	"train_config": "configs/joint/full_adversarial.json",
 	"log_dir": "/Mounts/rbg-storage1/logs/lung_ct",
 	"eval_args": {
-		"dataset": ["nlst"],
+		"dataset": ["mgh_cohort2"],
         	"dataset_file_path": [
-			"/Mounts/rbg-storage1/datasets/NLST/full_nlst_google.json" 
+			"/Mounts/rbg-storage1/datasets/MGH_Lung_Fintelmann/mgh_lung_cancer_cohort2v2.json" 
 		],
         	"img_dir": [
-			"/Mounts/rbg-storage1/datasets/NLST/nlst-ct-png"
+			"/Mounts/rbg-storage1/datasets/MGH_Lung_Fintelmann/screening_pngs"
 		],
 		"hiddens_dir": [
-			"/Mounts/rbg-storage1/results/lung_ct/"
+			"/Mounts/rbg-storage1/results/lung_ct/mgh"
 		],
 		"snapshot": ["/storage/nlst_cache/snapshots/8ae3b01374674810ff14438a4a3e5638/8ae3b01374674810ff14438a4a3e5638epoch=7.ckpt"],
 		"save_predictions": [true],
-		"save_hiddens": [true]
+		"save_hiddens": [false]
 	},
-	"available_gpus": [0],
+	"available_gpus": [1],
 	"script": "main"
 }

@@ -2,7 +2,7 @@
   "script": "main",
   "grid_search_space": {
     "batch_size": [
-      3
+      4
     ],
     "accumulate_grad_batches": [
       1
@@ -11,13 +11,13 @@
       16
     ],
     "dataset": [
-      "nlst"
+      "nlst_siemens"
     ],
     "max_followup": [
       6
     ],
     "input_loader_name": [
-      "ct_16bit_loader"
+      "ct_loader"
     ],
     "lightning_name": [
       "base"
@@ -61,6 +61,8 @@
     "num_images": [
       200
     ],
+    "fit_to_length": [true],
+    "slice_thickness_filter": [2.5],
     "min_num_images": [
       0
     ],
@@ -134,7 +136,7 @@
       "nlst-cancer"
     ],
     "comet_tags": [
-      "sybil"
+      "sybil nlst ge"
     ],
     "num_sanity_val_steps": [
       0
@@ -142,8 +144,9 @@
     "profiler": [
       "simple"
     ],
+    "log_profiler": [false],
     "gpus": [
-      8
+      6
     ],
     "val_check_interval": [
       1.0
@@ -164,10 +167,10 @@
       "/Mounts/rbg-storage1/datasets/NLST/nlst-ct-png"
     ],
     "cache_path": [
-      "/storage/nlst_cache/bit16"
+      "/storage/nlst_cache"
     ]
   },
   "available_gpus": [
-    "0,1,2,3,4,5,6,7"
+    "2,3,4,5,6,7"
   ]
 }
