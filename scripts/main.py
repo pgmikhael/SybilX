@@ -16,6 +16,7 @@ from sybilx.utils.registry import get_object
 from sybilx.datasets.utils import get_censoring_dist
 import sybilx.utils.loading as loaders
 from sybilx.utils.callbacks import set_callbacks
+from sybilx.utils.dataset_cacher import cache_dataset
 
 
 def cli_main(args):
@@ -52,6 +53,10 @@ def cli_main(args):
             commit.message,
         )
     )
+
+    # Cache Full Dataset
+    if args.cache_dataset:
+        cache_dataset(args)
 
     train_dataset = loaders.get_train_dataset_loader(
         args, get_object(args.dataset, "dataset")(args, "train")

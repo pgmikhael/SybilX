@@ -65,7 +65,8 @@ EDUCAT_LEVEL = {
     6: 5,  # Bachelors = College Grad
     7: 6,  # Graduate School = Postrad/Prof
 }
-DEVICE_TO_NAME = {1:"GE MEDICAL SYSTEMS", 2:"Philips", 3:"SIEMENS", 4:"TOSHIBA"}
+DEVICE_TO_NAME = {1: "GE MEDICAL SYSTEMS", 2: "Philips", 3: "SIEMENS", 4: "TOSHIBA"}
+
 
 @register_object("nlst", "dataset")
 class NLST_Survival_Dataset(data.Dataset):
@@ -91,7 +92,9 @@ class NLST_Survival_Dataset(data.Dataset):
             raise Exception(METAFILE_NOTFOUND_ERR.format(args.dataset_file_path, e))
 
         self.input_loader = get_sample_loader(split_group, args)
-        self.always_resample_pixel_spacing = (args.resample_pixel_spacing) and (split_group == "test")
+        self.always_resample_pixel_spacing = (args.resample_pixel_spacing) and (
+            split_group == "test"
+        )
         if args.resample_pixel_spacing:
             self.resample_transform = tio.transforms.Resample(
                 target=tuple(args.ct_pixel_spacing)
@@ -568,8 +571,6 @@ class NLST_Survival_Dataset(data.Dataset):
         sample = self.dataset[index]
         if self.args.use_annotations:
             sample = self.get_ct_annotations(sample)
-            # sample["annotation_areas"] = get_scaled_annotation_area(sample, self.args)
-            # sample["has_annotation"] = np.sum(sample["volume_annotations"]) > 0
         try:
             item = {}
             input_dict = self.get_images(sample["paths"], sample)
@@ -626,7 +627,9 @@ class NLST_Survival_Dataset(data.Dataset):
             mask_arr = self.reshape_images(masks) if self.args.use_annotations else None
 
         # resample pixel spacing
-        resample_now = (self.args.resample_pixel_spacing_prob > np.random.uniform()) and self.args.resample_pixel_spacing
+        resample_now = (
+            self.args.resample_pixel_spacing_prob > np.random.uniform()
+        ) and self.args.resample_pixel_spacing
         if self.always_resample_pixel_spacing or resample_now:
             spacing = torch.tensor(sample["pixel_spacing"] + [1])
             input_arr = tio.ScalarImage(
@@ -673,6 +676,7 @@ class NLST_Survival_Dataset(data.Dataset):
         if self.args.slice_thickness_filter is not None:
             raise ValueError("THICKNESS > 2.5")
         return 4
+
 
 @register_object("nlst_plco", "dataset")
 class NLST_for_PLCO(NLST_Survival_Dataset):
@@ -739,22 +743,62 @@ class NLST_Risk_Factor_Task(NLST_Survival_Dataset):
             pt_metadata, screen_timepoint
         )
 
+
 @register_object("nlst_ge", "dataset")
 class NLST_GE(NLST_Survival_Dataset):
     """
     Dataset for GE devices model
     """
+
     def skip_sample(self, series_dict, pt_metadata):
-        if series_dict['series_data']["manufacturer"][0] != 1:
+        if series_dict["series_data"]["manufacturer"][0] != 1:
             return True
         return super().skip_sample(series_dict, pt_metadata)
+
 
 @register_object("nlst_siemens", "dataset")
 class NLST_GE(NLST_Survival_Dataset):
     """
     Dataset for Siemens devices model
     """
+
     def skip_sample(self, series_dict, pt_metadata):
-        if series_dict['series_data']["manufacturer"][0] != 3:
+        if series_dict["series_data"]["manufacturer"][0] != 3:
             return True
         return super().skip_sample(series_dict, pt_metadata)
+
+
+@register_object("nlst_tensors", "dataset")
+class NLST_Tensors(NLST_Survival_Dataset):
+    """
+    Dataset for NLST as preprocessed tensors
+    """
+
+    def __init__(self, args, split_group):
+        assert (
+            args.input_loader_name == "tensor_loader"
+        ), "TENSOR DATASET REQUIRES TENSOR LOADER"
+        super().__init__(args, split_group)
+
+    def __getitem__(self, index):
+        sample = self.dataset[index]
+
+        try:
+            item = {}
+            path = self.input_loader.configure_path("", sample)
+            input_dict = self.input_loader.load_input(path, sample)
+
+            x = input_dict["input"]
+
+            if self.args.use_risk_factors:
+                item["risk_factors"] = sample["risk_factors"]
+
+            item["x"] = x
+            item["y"] = sample["y"]
+            for key in CT_ITEM_KEYS:
+                if key in sample:
+                    item[key] = sample[key]
+
+            return item
+        except Exception:
+            warnings.warn(LOAD_FAIL_MSG.format(sample["exam"], traceback.print_exc()))

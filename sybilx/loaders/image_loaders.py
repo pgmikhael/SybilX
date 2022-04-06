@@ -1,5 +1,6 @@
 from sybilx.loaders.abstract_loader import abstract_loader
 from sybilx.utils.registry import register_object
+import os
 import cv2
 import torch
 import pydicom
@@ -162,3 +163,19 @@ def apply_windowing(image, center, width, bit_size=16):
         image[between] = ((image[between] - c) / w + 0.5) * y_range + y_min
 
     return image
+
+
+@register_object("tensor_loader", "input_loader")
+class TensorLoader(abstract_loader):
+    def configure_path(self, path, sample):
+        return os.path.join(self.args.cache_path, sample["exam"])
+
+    def load_input(self, path, sample):
+        """
+        loads as grayscale image
+        """
+        return {"input": torch.load(path)}
+
+    @property
+    def cached_extension(self):
+        return ".pt"
