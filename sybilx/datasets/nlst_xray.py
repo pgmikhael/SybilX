@@ -220,7 +220,6 @@ class NLST_XRay_Dataset(data.Dataset):
         if "corn" in self.args.loss_fns:
             y_seq, y_mask = get_cum_label(y, time_at_event, self.args.max_followup)
         else:
-            assert "survival" in self.args.loss_fns
             y_seq = np.zeros(self.args.max_followup)
             if y:
                 y_seq[years_to_cancer:] = 1
