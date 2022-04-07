@@ -161,6 +161,7 @@ class PLCO_XRay_Dataset(data.Dataset):
         visit_num = exam_dict["visit_num"] # series_data["study_yr"][0]
         days_since_rand = pt_metadata["xry_days{}".format(study_yr)]
         screen_timepoint = days_since_rand // 365
+        followup_days = pt_metadata["lung_exitdays"]
         days_to_cancer_since_rand = pt_metadata["lung_cancer_diagdays"]
         years_to_cancer = (
             int(days_to_cancer_since_rand // 365) if days_to_cancer_since_rand > -1 else 100
@@ -192,6 +193,10 @@ class PLCO_XRay_Dataset(data.Dataset):
             if (not series_dict["filename"] in split_dict) or (split_group == 'skip'):
                 self.NUM_SKIPPED_FROM_CXR_LC_SPLIT += 1
                 return True
+
+        # if scan happened after last followup date
+        if days_since_rand > followup_days:
+            return True
 
         # invalid label
         bad_label = not self.check_label(pt_metadata, study_yr)

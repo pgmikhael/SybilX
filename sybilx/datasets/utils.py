@@ -161,4 +161,6 @@ def get_cum_label(y, censor_time, max_followup=6):
                 mask = [1] * (min(max_followup, max_followup - year + 1)) + [0] * max(year - 1, 0)
                 break
 
+    labels = np.array(labels)
+    mask = np.array(mask)
     return labels, mask

@@ -41,7 +41,7 @@ def get_corn_survival_loss(model_output, batch, model, args):
         logit, y_seq.float(), weight=y_mask.float(), reduction="sum"
     ) / torch.sum(y_mask.float())
     logging_dict["survival_loss"] = loss.detach()
-    predictions["probs"] = torch.cumprod(torch.sigmoid(logit))[:, ::-1].detach()
+    predictions["probs"] = torch.flip(torch.cumprod(torch.sigmoid(logit), dim=-1), dims=(-1,)).detach()
     predictions["golds"] = batch["y"]
     predictions["censors"] = batch["time_at_event"]
     return loss, logging_dict, predictions
