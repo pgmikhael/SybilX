@@ -181,6 +181,7 @@ class NLST_XRay_Dataset(data.Dataset):
             # "device": device,
             "institution": pt_metadata["cen"][0],
             "cancer_laterality": self.get_cancer_side(pt_metadata),
+            "invert_pixels": series_dict["PhotometricInterpretation"] == "MONOCHROME1"
         }
 
         if self.args.use_risk_factors:
