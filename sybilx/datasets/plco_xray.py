@@ -179,6 +179,15 @@ class PLCO_XRay_Dataset(data.Dataset):
         if self.args.plco_use_only_one_image and exam_dict['image_series'].index(series_dict) > 0:
             return True
 
+        if self.args.min_img_width is not None and series_dict['Image ImageWidth'] < self.args.min_img_width:
+            return True
+        if self.args.max_img_width is not None and series_dict['Image ImageWidth'] > self.args.max_img_width:
+            return True
+        if self.args.min_img_height is not None and series_dict['Image ImageHeight'] < self.args.min_img_height:
+            return True
+        if self.args.max_img_height is not None and series_dict['Image ImageHeight'] > self.args.max_img_height:
+            return True
+
         if self.args.split_type == 'cxr_lc':
             assert split_dict is not None
             if (not series_dict["filename"] in split_dict) or (split_group == 'skip'):

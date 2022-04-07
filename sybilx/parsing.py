@@ -477,6 +477,11 @@ def parse_args(args_strings=None):
         help="Wether to use image series with thinnest cuts only.",
     )
 
+    parser.add_argument("--min_img_width", type=int, default=None, required=False, help="Restricts to images of a certain size.")
+    parser.add_argument("--max_img_width", type=int, default=None, required=False, help="Restricts to images of a certain size.")
+    parser.add_argument("--min_img_height", type=int, default=None, required=False, help="Restricts to images of a certain size.")
+    parser.add_argument("--max_img_height", type=int, default=None, required=False, help="Restricts to images of a certain size.")
+
     # region annotations
     parser.add_argument(
         "--use_annotations",
