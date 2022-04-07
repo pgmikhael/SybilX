@@ -776,7 +776,7 @@ class NLST_Smoking_Related_Cancers_1(NLST_Survival_Dataset):
         myeloid_leukemia_rel_cancers = {'C92.0', 'C92.1', 'C92.2', 'C92.3', 'C92.4', 'C92.5', 'C92.6', 'C92.A', 'C92.Z', 'C92.9'}
         
         smoking_rel_cancers = (
-            lung_and_bronchus_rel_cancers |
+#            lung_and_bronchus_rel_cancers |
             bladder_rel_cancers |
             ureter_rel_cancers |
             renal_pelvis_rel_cancers |
