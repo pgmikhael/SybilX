@@ -137,3 +137,28 @@ def get_censoring_dist(train_dataset):
 
     censoring_dist = {str(time): kmf.predict(time) for time in all_observed_times}
     return censoring_dist
+
+def get_cum_label(y, censor_time, max_followup=6):
+    """Gets cumulative label and mask for use in CORN setup
+
+    Example
+    -------
+    if y == 1 and censor_time <= 5:
+        return [1, 0, 0, 0, 0, 0], [1, 1, 0, 0, 0, 0]
+    if y == 1 and censor_time <= 4: 
+        return [1, 1, 0, 0, 0, 0], [1, 1, 1, 0, 0, 0] 
+    ...
+    """
+    # If negative
+    if y == 0:
+        labels = [0] * max_followup 
+        mask = [0] * (max_followup - censor_time - 1)  + [1] + [0] * censor_time
+    else:
+        # Now check all possible thresholds and return last
+        for year in range(max_followup):
+            if censor_time <= year:
+                labels = [1] * (max_followup - year) + [0] * year
+                mask = [1] * (min(max_followup, max_followup - year + 1)) + [0] * max(year - 1, 0)
+                break
+
+    return labels, mask

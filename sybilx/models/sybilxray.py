@@ -52,12 +52,14 @@ class SybilXrayInception(nn.Module):
         self.dropout = nn.Dropout(p=args.dropout)
 
         # if using survival setup then finish with cumulative prob layer, otherwise fc layer
-        if "survival" not in args.loss_fns:
-            self.fc = nn.Linear(args.hidden_size, args.num_classes)
-        else:
+        if "survival" in args.loss_fns:
             self.prob_of_failure_layer = Cumulative_Probability_Layer(
-            args.hidden_size, args, max_followup=args.max_followup
-        )
+                args.hidden_size, args, max_followup=args.max_followup
+            )
+        elif "corn" in self.args.loss_fns:
+            self.prob_of_failure_layer = nn.Linear(args.hidden_size, args.max_followup)
+        else:
+            self.fc = nn.Linear(args.hidden_size, args.num_classes)
         
         self.avg_pool = nn.AdaptiveAvgPool2d((1, 1))
 
@@ -105,10 +107,10 @@ class SybilXrayInception(nn.Module):
         pool_output['hidden'] = self.lin1(pool_output["hidden"])
         pool_output['hidden'] = self.dropout(self.relu(pool_output['hidden']))
 
-        if "survival" not in self.args.loss_fns:
-            pool_output["logit"] = self.fc(pool_output["hidden"])
-        else:
+        if "survival" in self.args.loss_fns or "corn" in self.args.loss_fns:
             pool_output["logit"] = self.prob_of_failure_layer(pool_output["hidden"])
+        else:
+            pool_output["logit"] = self.fc(pool_output["hidden"])
 
         return pool_output
 

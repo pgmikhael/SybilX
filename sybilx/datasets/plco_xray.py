@@ -15,8 +15,7 @@ from torch.utils import data
 #from sybilx.serie import Serie
 from sybilx.utils.loading import get_sample_loader
 from sybilx.datasets.utils import (
-    #fit_to_length,
-    #get_scaled_annotation_area,
+    get_cum_label,
     METAFILE_NOTFOUND_ERR,
     LOAD_FAIL_MSG,
 )
@@ -263,20 +262,27 @@ class PLCO_XRay_Dataset(data.Dataset):
         days_to_last_followup = int(pt_metadata["lung_exitdays"] - days_since_rand)
         years_to_last_followup = days_to_last_followup // 365
         y = years_to_cancer < self.args.max_followup
-        y_seq = np.zeros(self.args.max_followup)
         timepoint = days_since_rand // 365 # actual timepoint (year) of xray may be before study_yr
         cancer_timepoint = days_to_cancer_since_rand // 365
         if y:
             if years_to_cancer > -1:
                 assert timepoint <= cancer_timepoint
             time_at_event = years_to_cancer
-            y_seq[years_to_cancer:] = 1
         else:
             time_at_event = min(years_to_last_followup, self.args.max_followup - 1)
-        y_mask = np.array(
-            [1] * (time_at_event + 1)
-            + [0] * (self.args.max_followup - (time_at_event + 1))
-        )
+
+        if "corn" in self.args.loss_fns:
+            y_seq, y_mask = get_cum_label(y, time_at_event, self.args.max_followup)
+        else:
+            assert "survival" in self.args.loss_fns
+            y_seq = np.zeros(self.args.max_followup)
+            if y:
+                y_seq[years_to_cancer:] = 1
+            y_mask = np.array(
+                [1] * (time_at_event + 1)
+                + [0] * (self.args.max_followup - (time_at_event + 1))
+            )
+
         assert len(y_mask) == self.args.max_followup
         return y, y_seq.astype("float64"), y_mask.astype("float64"), time_at_event
 
