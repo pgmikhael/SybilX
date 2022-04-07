@@ -75,11 +75,12 @@ class SybilXrayInception(nn.Module):
 
     def forward(self, x, batch = None):
         output = {}
-        if self.args.freeze_encoder_weights:
-            with torch.no_grad():
-                x = self.image_encoder(x)
-        else:
-            x = self.image_encoder(x)
+        #if self.args.freeze_encoder_weights:
+        #    with torch.no_grad():
+        #        x = self.image_encoder(x)
+        #else:
+        x = self.image_encoder(x)
+
         output["activ_2d"] = x
         pool_output = self.aggregate_and_classify(x)
         output.update(pool_output)
