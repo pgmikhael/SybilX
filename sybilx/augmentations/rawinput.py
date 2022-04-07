@@ -483,7 +483,7 @@ class ElasticDeformation(Abstract_augmentation):
 @register_object("invert_pixels", "augmentation")
 class InvertPixels(Abstract_augmentation):
     """
-    Subtracts all pixels from max pixel value
+    Subtracts all pixels from fixed max pixel value (default: 255)
     """
 
     def __init__(self, args, kwargs):
@@ -494,13 +494,29 @@ class InvertPixels(Abstract_augmentation):
         self.set_cachable()
         # eg invert_pixels/max_pixel=255/all_images=0
 
-    def transform_image(self, pixel_array):
-        max_val = np.max(pixel_array)
-        return max_val - pixel_array
-
     def __call__(self, input_dict, sample=None):
         if self.all:
             input_dict["input"] = self.max_pixel - input_dict["input"]
         if sample.get('invert_pixels', False):
             input_dict["input"] = self.max_pixel - input_dict["input"]
+        return input_dict
+
+@register_object("invert_pixels_relative", "augmentation")
+class InvertPixelsRelative(Abstract_augmentation):
+    """
+    Subtracts all pixels from max pixel value in image
+    """
+
+    def __init__(self, args, kwargs):
+        super(InvertPixelsRelative, self).__init__()
+        assert len(kwargs.keys()) == 1
+        self.all = bool(kwargs["all_images"]) if "all_images" in kwargs else True
+        self.set_cachable()
+        # eg invert_pixels_relative/all_images=0
+
+    def __call__(self, input_dict, sample=None):
+        if self.all:
+            input_dict["input"] = input_dict["input"].max() - input_dict["input"]
+        if sample.get('invert_pixels', False):
+            input_dict["input"] = input_dict["input"].max() - input_dict["input"]
         return input_dict
