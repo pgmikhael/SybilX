@@ -720,6 +720,26 @@ class NLSTCTProjectionsDataset(NLST_Survival_Dataset):
     def get_images(self, paths, sample):
         pass
 
+@register_object("nlst_distill", "dataset")
+class NLSTDistill(NLSTCTProjectionsDataset):
+    def __init__(self, args, split_group):
+        """
+        NLST XRay Dataset which loads hiddens as well
+        """
+        super(NLSTDistill, self).__init__(args, split_group)
+
+    def __getitem__(self, index):
+        sample = self.dataset[index]
+        try:
+            item = super(NLSTDistill, self).__getitem__(index)
+            hidden_dict = pickle.load(open(self.args.hiddens_dir, 'rb'))
+            item['teacher_hidden'] = hidden_dict['hidden']
+            item['teacher_logit'] = hidden_dict['logit']
+            return item
+            
+        except Exception:
+            warnings.warn(LOAD_FAIL_MSG.format(sample["exam"], traceback.print_exc()))
+
 
 @register_object("nlst_teacher", "dataset")
 class NLSTTeacher(NLST_Survival_Dataset):
