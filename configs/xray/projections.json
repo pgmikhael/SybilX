@@ -64,9 +64,9 @@
       true
     ],
     "loss_fns": [
-        "classification",
-        "classification guided_attention_2d",
-        "classification side_attention_2d"
+        "cross_entropy",
+        "cross_entropy guided_attention_2d",
+        "cross_entropy side_attention_2d"
     ],
     "comet_tags": [
       "projections with_annotation_attention",
