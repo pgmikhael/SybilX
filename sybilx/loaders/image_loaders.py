@@ -344,7 +344,12 @@ class DicomLoader(abstract_loader):
     def load_input(self, path, sample):
         try:
             dcm = pydicom.dcmread(path)
-            arr = apply_modality_lut(dcm.pixel_array, dcm)
+
+            # fix for certain NLST ACRIN X-Rays
+            if hasattr(dcm, 'RescaleSlope') and hasattr(dcm, 'RescaleIntercept') and (dcm.RescaleSlope is None or dcm.RescaleIntercept is None):
+                arr = dcm.pixel_array
+            else:
+                arr = apply_modality_lut(dcm.pixel_array, dcm)
 
             if self.args.use_annotations:
                 mask = get_scaled_annotation_mask(sample["annotations"], self.args)

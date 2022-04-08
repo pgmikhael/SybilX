@@ -1,7 +1,7 @@
 import torch
 import torch.nn as nn
 import pretrainedmodels
-from torchvision.models import resnet50, resnet152#, vit_l_32, convnext_large
+from torchvision.models import resnet50, resnet152, vit_l_16, vit_b_16#, convnext_large
 
 from sybilx.models.cumulative_probability_layer import Cumulative_Probability_Layer
 from sybilx.utils.registry import register_object
@@ -134,7 +134,43 @@ class SybilXrayR152(SybilXrayInception):
     def ENCODER_OUTPUT_DIM(self):
         return 2048
 
-#@register_object("sybilxray_vit", "model")
+# VISION TRANSFORMERS
+class ViTEncoder(nn.Module):
+    """ A pytorch ViT wrapper that returns the image encodings in the same shape as a conv model"""
+    def __init__(self, model, patch_size=(16,16)):
+        super(ViTEncoder, self).__init__()
+        self.model = model
+        self.encoder = nn.Sequential(*list(model.children())[:-1])[1]
+        self.patch_size = patch_size
+        self.output_size = (patch_size[0]-2, patch_size[1]-2)
+
+    def forward(self, img):
+        # Use conv layer to rescale to patch size
+        x = self.model._process_input(img)
+
+        # pass through ViT encoder
+        batch_class_token = self.model.class_token.expand(x.shape[0], -1, -1)
+        x = torch.cat([batch_class_token, x], dim=1)
+        x = self.encoder(x)
+
+        # remove class token and reshape
+        x = x[:, 1:] 
+        x = x.permute(0,2,1) # (B, W*H, C) -> (B, C, W*H)
+        x = x.view(-1, self.model.hidden_dim, self.output_size[0], self.output_size[1]) # (B, C, W*H) -> (B, C, W, H)
+
+        return x
+
+#@register_object("sybilxray_vit_h_14", "model")
+#class SybilXrayViT(SybilXrayInception):
+#    def get_image_encoder(self):
+#        encoder = vit_h_14(pretrained=True)
+#        return nn.Sequential(*list(encoder.children())[:-1])
+#
+#    @property
+#    def ENCODER_OUTPUT_DIM(self):
+#        return 3
+
+#@register_object("sybilxray_vit_l_32", "model")
 #class SybilXrayViT(SybilXrayInception):
 #    def get_image_encoder(self):
 #        encoder = vit_l_32(pretrained=True)
@@ -143,7 +179,27 @@ class SybilXrayR152(SybilXrayInception):
 #    @property
 #    def ENCODER_OUTPUT_DIM(self):
 #        return 3
-#
+
+@register_object("sybilxray_vit_l_16", "model")
+class SybilXrayViT(SybilXrayInception):
+    def get_image_encoder(self):
+        vit = vit_l_16(pretrained=True)
+        return ViTEncoder(vit, patch_size=(16,16))
+
+    @property
+    def ENCODER_OUTPUT_DIM(self):
+        return 1024
+
+@register_object("sybilxray_vit_b_16", "model")
+class SybilXrayViT(SybilXrayInception):
+    def get_image_encoder(self):
+        vit = vit_b_16(pretrained=True)
+        return ViTEncoder(vit, patch_size=(16,16))
+
+    @property
+    def ENCODER_OUTPUT_DIM(self):
+        return 768
+
 #@register_object("sybilxray_convnext", "model")
 #class SybilXrayConvNext(SybilXrayInception):
 #    def get_image_encoder(self):
