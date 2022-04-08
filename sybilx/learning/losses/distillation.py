@@ -1,5 +1,5 @@
 from sybilx.utils.registry import register_object
-from sybilx.learning.losses.basic import get_cross_entropy_loss, get_survival_loss
+from sybilx.learning.losses.basic import get_cross_entropy_loss, get_survival_loss, get_corn_survival_loss
 import torch
 import torch.nn.functional as F
 import torch.nn as nn
@@ -27,22 +27,69 @@ def get_knowledge_distillation_loss(model_output, batch, model, args):
     l_dict, p_dict = OrderedDict(), OrderedDict()
     
     y_pred_student = model_output['logit']
-    y_pred_teacher = batch['teacher_hiddens']
+    y_pred_teacher = batch['teacher_logit']
 
     soft_teacher_out = F.softmax(y_pred_teacher / args.distill_temperature, dim=1)
     soft_student_out = F.softmax(y_pred_student / args.distill_temperature, dim=1)
 
+
+    if "survival" in args.loss_fns:
+        ce_loss, _, prob_dict = get_survival_loss(model_output, batch, model, args)
+        p_dict['censors'] = prob_dict['censors']
+    elif "corn" in args.loss_fns:
+        ce_loss, _, prob_dict = get_corn_survival_loss(model_output, batch, model, args)
+        p_dict['censors'] = prob_dict['censors']
+    else:
+        # if not using survival setup then need to binarize teacher output
+        # select last value which corresponds to 6 yr risk
+        soft_teacher_out = soft_teacher_out[:, -1, :] 
+        complement = 1 - soft_teacher_out
+        # index 0 is prob of no cancer, index 1 is prob of 6 year cancer
+        soft_teacher_out = torch.cat([complement, soft_teacher_out], dim=1)
+
+        ce_loss, _, prob_dict = get_cross_entropy_loss(model_output, batch, model, args)
+        l_dict['cross_entropy'] = ce_loss.detach()
+
     distill_loss = (args.distill_temperature ** 2) * F.cross_entropy(soft_student_out, soft_teacher_out)
     l_dict['distill_loss'] = distill_loss.detach()
 
-    if "survival" not in args.loss_fns:
-        ce_loss, _, _ = get_cross_entropy_loss(model_output, batch, model, args)
-    else:
-        ce_loss, _, _ = get_survival_loss(model_output, batch, model, args)
-
     # weighted average: lambda * distill_loss + (1-lambda) * ce_loss
     loss = args.distill_student_loss_lambda *  distill_loss + (1 - args.distill_student_loss_lambda) * ce_loss
-    l_dict['student_distill_loss'] = loss.detach()
+    l_dict['student_loss'] = loss.detach()
+
+    return loss, l_dict, p_dict
+
+@register_object("mse_knowledge_distillation_loss", 'loss')
+def get_mse_knowledge_distillation_loss(model_output, batch, model, args):
+    """
+    differs from vanilla kd loss above because it uses mse loss of hiddens rather than cross entropy loss of soft targets
+    """
+    loss = 0
+    l_dict, p_dict = OrderedDict(), OrderedDict()
+    
+    y_pred_student = model_output['hidden']
+    y_pred_teacher = batch['teacher_hidden']
+
+    if "survival" in args.loss_fns:
+        ce_loss, _, prob_dict = get_survival_loss(model_output, batch, model, args)
+        p_dict['censors'] = prob_dict['censors']
+    elif "corn" in args.loss_fns:
+        ce_loss, _, prob_dict = get_corn_survival_loss(model_output, batch, model, args)
+        p_dict['censors'] = prob_dict['censors']
+    else:
+        ce_loss, _, prob_dict = get_cross_entropy_loss(model_output, batch, model, args)
+        l_dict['cross_entropy'] = ce_loss.detach()
+    
+    assert y_pred_student.shape == y_pred_teacher, "hiddens are not the same shape, so cant compute MSE"
+    distill_loss = F.mse_loss(y_pred_student, y_pred_teacher)
+    l_dict['distill_loss'] = distill_loss.detach()
+    
+    p_dict['probs'] = prob_dict['probs']
+    p_dict['golds'] = prob_dict['golds']
+    p_dict['preds'] = prob_dict['preds']
+    # weighted average: lambda * distill_loss + (1-lambda) * ce_loss
+    loss = args.distill_student_loss_lambda *  distill_loss + (1 - args.distill_student_loss_lambda) * ce_loss
+    l_dict['student_loss'] = loss.detach()
 
     return loss, l_dict, p_dict
 
