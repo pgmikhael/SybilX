@@ -39,7 +39,7 @@
       0.9
     ],
     "max_epochs": [
-      10
+      5
     ],
     "lr_decay": [
       0.1
@@ -48,7 +48,7 @@
       "256 256"
     ],
     "limit_train_batches": [
-      0.5
+      1.0
     ],
     "limit_val_batches": [
       1.0
@@ -153,7 +153,7 @@
       "nlst-cancer"
     ],
     "comet_tags": [
-      "sybil nlst mgh adversarial"
+      "sybil nlst mgh adversarial ensemble3"
     ],
     "num_sanity_val_steps": [
       0
