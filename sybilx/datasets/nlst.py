@@ -767,27 +767,3 @@ class NLST_GE(NLST_Survival_Dataset):
             return True
         return super().skip_sample(series_dict, pt_metadata)
 
-
-@register_object("nlst_tensors", "dataset")
-class NLST_Tensors(NLST_Survival_Dataset):
-    """
-    Dataset for NLST as preprocessed tensors
-    """
-
-    def __init__(self, args, split_group):
-        assert (
-            args.input_loader_name == "tensor_loader"
-        ), "TENSOR DATASET REQUIRES TENSOR LOADER"
-        super().__init__(args, split_group)
-
-    def __getitem__(self, index):
-        sample = self.dataset[index]
-
-        try:
-            item = {}
-            path = self.input_loader.configure_path("", sample)
-            input_dict = self.input_loader.load_input(path, sample)
-            return item
-
-        except Exception:
-            warnings.warn(LOAD_FAIL_MSG.format(sample["exam"], traceback.print_exc()))
