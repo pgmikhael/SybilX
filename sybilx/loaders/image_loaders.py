@@ -165,17 +165,3 @@ def apply_windowing(image, center, width, bit_size=16):
     return image
 
 
-@register_object("tensor_loader", "input_loader")
-class TensorLoader(abstract_loader):
-    def configure_path(self, path, sample):
-        return os.path.join(self.args.cache_path, sample["exam"])
-
-    def load_input(self, path, sample):
-        """
-        loads as grayscale image
-        """
-        return torch.load(path)
-
-    @property
-    def cached_extension(self):
-        return ".pt"
