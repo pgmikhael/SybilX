@@ -42,7 +42,7 @@ def get_knowledge_distillation_loss(model_output, batch, model, args):
     else:
         # if not using survival setup then need to binarize teacher output
         # select last value which corresponds to 6 yr risk
-        soft_teacher_out = soft_teacher_out[:, -1, :] 
+        soft_teacher_out = soft_teacher_out[:, -1].unsqueeze(-1) 
         complement = 1 - soft_teacher_out
         # index 0 is prob of no cancer, index 1 is prob of 6 year cancer
         soft_teacher_out = torch.cat([complement, soft_teacher_out], dim=1)
