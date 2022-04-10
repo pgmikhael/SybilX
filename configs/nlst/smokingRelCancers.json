@@ -1,6 +1,9 @@
 {
     "script": "main",
     "grid_search_space": {
+      "include_lung_cancers": [
+        true
+      ],
       "batch_size": [
         4
       ],
@@ -11,7 +14,7 @@
         16
       ],
       "dataset": [
-        "nlst_smoking_related_cancers_1"
+        "nlst_smoking_related_cancers"
       ],
       "max_followup": [
         6
@@ -77,7 +80,7 @@
         3
       ],
       "loss_fns": [
-        "cross_entropy survival guided_attention"
+        "survival guided_attention"
       ],
       "metrics": [
         "survival_classification survival"
@@ -152,7 +155,7 @@
         6
       ],
       "limit_train_batches": [
-        0.5
+        1.0
       ],
       "limit_val_batches": [
         1.0

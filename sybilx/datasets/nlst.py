@@ -698,8 +698,8 @@ class NLST_Risk_Factor_Task(NLST_Survival_Dataset):
             pt_metadata, screen_timepoint
         )
 
-@register_object("nlst_smoking_related_cancers_1", "dataset")
-class NLST_Smoking_Related_Cancers_1(NLST_Survival_Dataset):
+@register_object("nlst_smoking_related_cancers", "dataset")
+class NLST_Smoking_Related_Cancers(NLST_Survival_Dataset):
     """
     Dataset for risk factor-based risk model
     """
@@ -721,7 +721,7 @@ class NLST_Smoking_Related_Cancers_1(NLST_Survival_Dataset):
             ind: pt_metadata["confirmed_icd_topog"+str(ind)][0] for ind in range(1,5)
         }
         smoking_rel_cancers_in_pt = dict(filter(
-            lambda x: self.is_smoking_rel_cancers(x[1]), 
+            lambda x: self.is_smoking_rel_cancers(x[1], self.args.include_lung_cancers), 
             other_cancers_in_pt.items()
         ))
         smoking_rel_cancers_in_pt_dxdays = {
@@ -760,7 +760,7 @@ class NLST_Smoking_Related_Cancers_1(NLST_Survival_Dataset):
         assert len(y_mask) == self.args.max_followup
         return y, y_seq.astype("float64"), y_mask.astype("float64"), time_at_event
 
-    def is_smoking_rel_cancers(self, cancer_icd):
+    def is_smoking_rel_cancers(self, cancer_icd, include_lung):
         lung_and_bronchus_rel_cancers = {'C34.0', 'C34.1', 'C34.2', 'C34.3', 'C34.8', 'C34.9'}
         bladder_rel_cancers = {'C67.0', 'C67.1', 'C67.2', 'C67.3', 'C67.4', 'C67.5', 'C67.6', 'C67.7', 'C67.8'}
         ureter_rel_cancers = {'C66.1', 'C66.2'}
@@ -776,7 +776,6 @@ class NLST_Smoking_Related_Cancers_1(NLST_Survival_Dataset):
         myeloid_leukemia_rel_cancers = {'C92.0', 'C92.1', 'C92.2', 'C92.3', 'C92.4', 'C92.5', 'C92.6', 'C92.A', 'C92.Z', 'C92.9'}
         
         smoking_rel_cancers = (
-#            lung_and_bronchus_rel_cancers |
             bladder_rel_cancers |
             ureter_rel_cancers |
             renal_pelvis_rel_cancers |
@@ -790,6 +789,9 @@ class NLST_Smoking_Related_Cancers_1(NLST_Survival_Dataset):
             cervix_rel_cancers |
             myeloid_leukemia_rel_cancers
         )
+
+        if include_lung:
+            smoking_rel_cancers = smoking_rel_cancers | lung_and_bronchus_rel_cancers
         
         if cancer_icd in smoking_rel_cancers:
             return True
