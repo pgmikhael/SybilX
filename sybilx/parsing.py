@@ -183,6 +183,14 @@ def parse_dispatcher_config(config):
 
 def parse_args(args_strings=None):
     parser = argparse.ArgumentParser(description="Sybil research repo.")
+    # extra
+    parser.add_argument(
+        "--include_lung_cancers",
+        action="store_true",
+        default=True,
+        help="Whether or not to use lung cancers to guide training",
+    )
+
     # setup
     parser.add_argument(
         "--train",
