@@ -1,7 +1,7 @@
 import torch
 import torch.nn as nn
 import pretrainedmodels
-from torchvision.models import resnet50, resnet152, vit_l_16, vit_b_16#, convnext_large
+from torchvision.models import resnet50, resnet152 #, vit_l_16, vit_b_16#, convnext_large
 
 from sybilx.models.cumulative_probability_layer import Cumulative_Probability_Layer
 from sybilx.utils.registry import register_object

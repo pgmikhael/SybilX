@@ -732,7 +732,7 @@ class NLSTDistill(NLSTCTProjectionsDataset):
         sample = self.dataset[index]
         try:
             item = super(NLSTDistill, self).__getitem__(index)
-            hidden_dict = pickle.load(open(self.args.hiddens_dir, 'rb'))
+            hidden_dict = pickle.load(open(self.args.hiddens_dir + "/sample_{}".format(sample['exam']) + '.predictions', 'rb'))
             item['teacher_hidden'] = hidden_dict['hidden']
             item['teacher_logit'] = hidden_dict['logit']
             return item

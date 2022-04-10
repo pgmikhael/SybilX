@@ -56,7 +56,7 @@
     "split_probs": ["0.7 0.15 0.15"],
     "scale_annotations": [false],
     "max_epochs": ["10"],
-    "hiddens_dir": [],
+    "hiddens_dir": ["/Mounts/rbg-storage1/results/lung_ct/28a7cd44f5bcd3e6cc760b65c7e0d54depoch=10"],
     "hidden_size": ["512"]
   },
   "paired_search_space": {
@@ -73,8 +73,8 @@
         "mse_knowledge_distillation_loss",
         "vanilla_knowledge_distillation_loss guided_attention_2d",
         "mse_knowledge_distillation_loss guided_attention_2d",
-        "vanilla_knowledge_distillation_loss side_attention_2d",
-        "mse_knowledge_distillation_loss side_attention_2d"
+        "vanilla_knowledge_distillation_loss guided_side_attention_2d",
+        "mse_knowledge_distillation_loss guided_side_attention_2d"
     ],
     "comet_tags": [
       "projections without_attention vanilla_kd_loss",
@@ -85,5 +85,5 @@
       "projections with_side_attention mse_kd_loss"
     ]
   },
-  "available_gpus": [0,1,2,3]
+  "available_gpus": ["6,7"]
 }
