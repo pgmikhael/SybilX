@@ -2,7 +2,8 @@
     "script": "main",
     "grid_search_space": {
       "include_lung_cancers": [
-        true
+        true, 
+        false
       ],
       "batch_size": [
         4
