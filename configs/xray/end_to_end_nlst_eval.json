@@ -63,10 +63,10 @@
         "nlst_xray_test"
     ],
     "dataset_file_path": [
-        "/Mounts/rbg-storage1/datasets/ACRIN_XRAY/metadata_2022_04_06.json",
-        "/Mounts/rbg-storage1/datasets/ACRIN_XRAY/metadata_2022_04_06.json",
-        "/Mounts/rbg-storage1/datasets/ACRIN_XRAY/metadata_2022_04_06.json",
-        "/Mounts/rbg-storage1/datasets/ACRIN_XRAY/metadata_2022_04_06.json"
+        "/Mounts/rbg-storage1/datasets/ACRIN_XRAY/metadata_2022_04_10.json",
+        "/Mounts/rbg-storage1/datasets/ACRIN_XRAY/metadata_2022_04_10.json",
+        "/Mounts/rbg-storage1/datasets/ACRIN_XRAY/metadata_2022_04_10.json",
+        "/Mounts/rbg-storage1/datasets/ACRIN_XRAY/metadata_2022_04_10.json"
     ],
     "input_loader_name": [
         "dicom_loader",
