@@ -297,6 +297,9 @@ def parse_args(args_strings=None):
         "--num_classes", type=int, default=6, help="Number of classes to predict"
     )
 
+    parser.add_argument('--filter_derived_images', action='store_true', default = False, help="filters out derived imgs")
+    parser.add_argument('--filter_post_processed_images', action='store_true', default = False, help="filters out post processed imgs")
+
     parser.add_argument('--plco_train_study_yrs', type = int, nargs='+', required=False, default = None, help="filters to only include specific study_yrs when training for PLCO data.")
     parser.add_argument('--plco_test_study_yrs', type = int, nargs='+', required=False, default = None, help="filters to only include specific study_yrs for PLCO data when testing/validating.")
     parser.add_argument('--plco_use_only_visitnum', type = int, nargs='+', required=False, default = None, help="filters to only include specific visitnums for PLCO data.")
