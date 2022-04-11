@@ -138,7 +138,7 @@ def get_censoring_dist(train_dataset):
     censoring_dist = {str(time): kmf.predict(time) for time in all_observed_times}
     return censoring_dist
 
-def get_cum_label(y, censor_time, max_followup=6):
+def get_cum_label(y, censor_time, max_followup=6, use_faux_binary=False):
     """Gets cumulative label and mask for use in CORN setup
 
     Example
@@ -151,8 +151,12 @@ def get_cum_label(y, censor_time, max_followup=6):
     """
     # If negative
     if y == 0:
-        labels = [0] * max_followup 
-        mask = [0] * (max_followup - censor_time - 1)  + [1] + [0] * censor_time
+        if use_faux_binary:
+            labels = [0] * max_followup 
+            mask = [1] + [0] * (max_followup - 1)
+        else:
+            labels = [0] * max_followup 
+            mask = [0] * (max_followup - censor_time - 1)  + [1] + [0] * censor_time
     else:
         # Now check all possible thresholds and return last
         for year in range(max_followup):

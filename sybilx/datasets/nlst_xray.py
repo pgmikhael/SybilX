@@ -421,6 +421,17 @@ class NLST_XRay_Test_Dataset(NLST_XRay_Dataset):
         screen_timepoint = exam_dict["screen_timepoint"] 
         bad_label = not self.check_label(pt_metadata, screen_timepoint)
 
+        # filter out non-frontal x-rays
+        if type(series_dict["PatientOrientation"]) == list and series_dict["PatientOrientation"][0] == 'P':
+            return True
+
+        # optional filtering based on image type
+        if self.args.filter_derived_images and 'DERIVED' in series_dict["ImageType"]:
+            return True
+
+        if self.args.filter_post_processed_images and 'POST_PROCESSED' in series_dict["ImageType"]:
+            return True
+
         # invalid label
         if not bad_label:
             y, _, _, time_at_event = self.get_label(pt_metadata, screen_timepoint)

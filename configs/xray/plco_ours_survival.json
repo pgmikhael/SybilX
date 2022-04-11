@@ -51,7 +51,7 @@
     "ignore_warnings": [false],
     "dropout": [0.1],
     "dataset_file_path": [
-        "/Mounts/rbg-storage1/datasets/PLCO_XRAY/metadata_2022_03_05.json"
+        "/Mounts/rbg-storage1/datasets/PLCO_XRAY/metadata_2022_04_05_rotated.json"
     ],
     "save_dir": ["snapshots"],
     "img_dir": ["/Mounts/rbg-storage1/datasets/PLCO_XRAY/tifs/"],

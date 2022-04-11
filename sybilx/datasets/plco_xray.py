@@ -277,7 +277,7 @@ class PLCO_XRay_Dataset(data.Dataset):
             time_at_event = min(years_to_last_followup, self.args.max_followup - 1)
 
         if "corn" in self.args.loss_fns:
-            y_seq, y_mask = get_cum_label(y, time_at_event, self.args.max_followup)
+            y_seq, y_mask = get_cum_label(y, time_at_event, self.args.max_followup, self.args.use_faux_binary)
         else:
             y_seq = np.zeros(self.args.max_followup)
             if y:
