@@ -96,6 +96,12 @@
         false,
         "/Mounts/rbg-storage1/users/ludvig/SybilX/snapshots/e401aadd1d31eb42dab29f58c5963aba/e401aadd1d31eb42dab29f58c5963abaepoch=3.ckpt"
     ],
+    "from_checkpoint": [
+        false,
+        true,
+        false,
+        true
+    ],
     "with_attention": [
         false,
         true,
