@@ -491,6 +491,12 @@ def parse_args(args_strings=None):
     parser.add_argument(
         "--base_model", type=str, default="vgg", help="Name of parent model"
     )
+    parser.add_argument(
+        "--replace_batchnorm_with_layernorm",
+        action="store_true",
+        default=False,
+        help="Use layernorm in FC layers",
+    )
 
     # losses and metrics
     parser.add_argument(

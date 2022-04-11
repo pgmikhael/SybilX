@@ -79,9 +79,8 @@ def cli_main(args):
         else:
             raise FileType("Snapshot should be an args or ckpt file.")
         model = model.load_from_checkpoint(
-            checkpoint_path=modelpath, strict=not args.relax_checkpoint_matching
+                checkpoint_path=modelpath, strict=not args.relax_checkpoint_matching, **{'args': args}
         )
-        model.args = args
     else:
         model = get_object(args.lightning_name, "lightning")(args)
 
