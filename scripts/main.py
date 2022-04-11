@@ -16,7 +16,6 @@ from sybilx.utils.registry import get_object
 from sybilx.datasets.utils import get_censoring_dist
 import sybilx.utils.loading as loaders
 from sybilx.utils.callbacks import set_callbacks
-from sybilx.utils.dataset_cacher import cache_dataset
 
 
 def cli_main(args):
@@ -53,10 +52,6 @@ def cli_main(args):
             commit.message,
         )
     )
-
-    # Cache Full Dataset
-    if args.cache_dataset:
-        cache_dataset(args)
 
     train_dataset = loaders.get_train_dataset_loader(
         args, get_object(args.dataset, "dataset")(args, "train")
@@ -111,6 +106,18 @@ def cli_main(args):
             args, get_object(args.dataset, "dataset")(args, "test"), False
         )
         trainer.test(model, test_dataset)
+    
+    if args.eval_on_train:
+        log.info("\nInference Phase on train set...")
+        train_dataset = loaders.get_eval_dataset_loader(
+            args, get_object(args.dataset, "dataset")(args, "train"), False
+        )
+        trainer.test(model, train_dataset)
+        
+        log.info("\nInference Phase on train set...")
+        trainer.test(model, dev_dataset)
+
+
 
     print("Saving args to {}.args".format(args.results_path))
     pickle.dump(vars(args), open("{}.args".format(args.results_path), "wb"))
