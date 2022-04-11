@@ -220,6 +220,12 @@ def parse_args(args_strings=None):
         help="Whether or not to fine_tune model",
     )
     parser.add_argument(
+        "--eval_on_train",
+        action="store_true",
+        default=False,
+        help="Whether or not to fine_tune model",
+    )
+    parser.add_argument(
         "--num_epochs_fine_tune",
         type=int,
         default=1,
@@ -742,7 +748,7 @@ def parse_args(args_strings=None):
 
     # logger
     parser.add_argument(
-        "--logger_name", type=str, default="comet", help="List of tags for comet logger"
+        "--logger_name", type=str, default=None, help="List of tags for comet logger"
     )
 
     # comet
