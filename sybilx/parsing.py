@@ -305,6 +305,12 @@ def parse_args(args_strings=None):
         default=False,
         help="filters to only include one image per exam/visitnum for PLCO data."
     )
+    parser.add_argument(
+        "--use_faux_binary",
+        action="store_true",
+        default=False,
+        help=""
+    )
 
     # Alternative training/testing schemes
     parser.add_argument(
