@@ -43,3 +43,35 @@ class SybilXTeacher(nn.Module):
         output["logit"] = self.prob_of_failure_layer(output["hidden"])
 
         return output
+
+
+@register_object("sybilx_student", "model")
+class SybilXStudent(nn.Module):
+    def __init__(self, args):
+        super(SybilXStudent, self).__init__()
+
+        self.args = args
+        # SybilXrayInception
+        self.projection_encoder = get_object(args.proj_encoder_model, 'model')(args)
+
+        # Sybil
+        self.encoder_args = copy.deepcopy(args)
+        self.encoder_args.base_model = "sybil"
+        self.ct_encoder = get_object(self.encoder_args.lightning_name, "lightning")(self.encoder_args)
+        modelpath = "/Mounts/rbg-storage1/snapshots/lung_ct/28a7cd44f5bcd3e6cc760b65c7e0d54d/28a7cd44f5bcd3e6cc760b65c7e0d54depoch=10.ckpt"
+
+        self.ct_encoder = self.ct_encoder.load_from_checkpoint(
+            checkpoint_path=modelpath, strict=not self.encoder_args.relax_checkpoint_matching
+        )
+        self.ct_encoder.args = self.encoder_args
+
+    def forward(self, x, batch = None):
+        output = {}
+        with torch.no_grad():
+            ct_encoded = self.ct_encoder(x)
+            output['teacher_hidden'] = ct_encoded['hidden']
+
+        projection_encoded = self.projection_encoder(batch['projection'])
+        output.update(projection_encoded)
+
+        return output

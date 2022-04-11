@@ -68,7 +68,8 @@ def get_mse_knowledge_distillation_loss(model_output, batch, model, args):
     l_dict, p_dict = OrderedDict(), OrderedDict()
     
     y_pred_student = model_output['hidden']
-    y_pred_teacher = batch['teacher_hidden']
+    # below should be batch not model_ouput if loading saved hiddens
+    y_pred_teacher = model_output['teacher_hidden']
 
     if "survival" in args.loss_fns:
         ce_loss, _, prob_dict = get_survival_loss(model_output, batch, model, args)
