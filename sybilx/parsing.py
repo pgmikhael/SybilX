@@ -375,7 +375,10 @@ def parse_args(args_strings=None):
     parser.add_argument('--proj_encoder_model', type = str, default = 'sybilxray_r50', help = 'Name of molecular encoder')
 
     # Fine-tuning
+    parser.add_argument('--finetune_model', type = str, default = None, help = 'Name of base model to finetune')
+    parser.add_argument('--finetune_model_path', type = str, help = '')
     parser.add_argument('--freeze_encoder_weights', action='store_true', default = False, help = 'Freeze encoder weights during training/fine-tuning (only used in sybilxray models)')
+    parser.add_argument('--reset_decoder', action='store_true', default = False, help = 'Reset decoder')
     
     # augmentations
     parser.add_argument(
