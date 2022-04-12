@@ -213,31 +213,47 @@ class SybilXrayViT(SybilXrayInception):
 @register_object("sybilxray_finetune", "model")
 class SybilXrayFinetune(SybilXrayInception):
     def __init__(self, args):
-        super(SybilXrayFinetune, self).__init__()
-
+        super(SybilXrayFinetune, self).__init__(args)
         self.finetune_model_args = copy.deepcopy(args)
-        self.finetune_model_args.base_model = self.args.finetune_model
-        self.model = get_object(self.finetune_model_args.lightning_name, "lightning")(self.finetune_model_args)
-        finetune_model = self.ct_encoder.load_from_checkpoint(
+        self.finetune_model_args.base_model = args.finetune_model
+        finetune_module = get_object(self.finetune_model_args.lightning_name, "lightning")(self.finetune_model_args)
+        finetune_module = finetune_module.load_from_checkpoint(
             checkpoint_path=args.finetune_model_path, strict=not self.finetune_model_args.relax_checkpoint_matching
-        ).model
+        )
+        finetune_model = finetune_module.model
         finetune_model.args = self.finetune_model_args
 
         self.image_encoder = finetune_model.image_encoder
 
-        if not self.args.reset_decoder:
+        if self.args.reset_decoder:
+            if args.with_attention:
+                self.pool = AttentionPool2D(num_chan=finetune_model.ENCODER_OUTPUT_DIM)
+                self.lin1 = nn.Linear(finetune_model.ENCODER_OUTPUT_DIM*2, args.hidden_size)
+            else:
+                self.lin1 = nn.Linear(finetune_model.ENCODER_OUTPUT_DIM, args.hidden_size)
+
+            # if using survival setup then finish with cumulative prob layer, otherwise fc layer
+            if "survival" in args.loss_fns:
+                self.prob_of_failure_layer = Cumulative_Probability_Layer(
+                    args.hidden_size, args, max_followup=args.max_followup
+                )
+            elif "corn" in self.args.loss_fns:
+                self.prob_of_failure_layer = nn.Linear(args.hidden_size, args.max_followup)
+            else:
+                self.fc = nn.Linear(args.hidden_size, args.num_classes)
+        else:
             if args.with_attention:
                 self.pool = finetune_model.pool
 
             self.lin1 = finetune_model.lin1
 
-            self.relu = nn.ReLU(inplace=False)
-            self.dropout = nn.Dropout(p=args.dropout)
             if "survival" in args.loss_fns or "corn" in self.args.loss_fns:
                 self.prob_of_failure_layer = finetune_model.prob_of_failure_layer
             else:
                 self.fc = finetune_model.fc
         
+        self.relu = nn.ReLU(inplace=False)
+        self.dropout = nn.Dropout(p=args.dropout)
         self.avg_pool = nn.AdaptiveAvgPool2d((1, 1))
 
     def forward(self, x, batch = None):
