@@ -168,7 +168,7 @@ class NLSTCTLocalizers(data.Dataset):
             num_images = len(series_dict['paths'])
             lateral_count = 0
             for path in series_dict['paths']:
-                ds = pydicom.dcmread(path.replace("nlst-ct-png", "nlst-ct").replace(".png", ""))
+                ds = pydicom.dcmread(path.replace("nlst-ct-png", "nlst-ct").replace(".png", ""), stop_before_pixels=True)
                 # TODO: here decision is to use arbitrary localizer in the paths if it is frontal
                 if ds.ImageOrientationPatient[0] == 0:
                     lateral_count += 1
