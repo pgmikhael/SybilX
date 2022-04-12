@@ -1,6 +1,5 @@
 from ast import arg
 from collections import OrderedDict
-from argparse import FileType, Namespace
 import pickle
 import os
 import sys
@@ -68,25 +67,8 @@ def cli_main(args):
     for key, value in sorted(vars(args).items()):
         print("{} -- {}".format(key.upper(), value))
 
-    if args.from_checkpoint:
-        if args.snapshot.endswith(".args"):
-            snargs = Namespace(**pickle.load(open(args.snapshot, "rb")))
-            # update saved args with new arguments
-            for k,v in vars(args).items():
-                if k not in snargs:
-                    snargs.__setattr__(k,v)
-            model = get_object(snargs.lightning_name, "lightning")(snargs)
-            modelpath = snargs.model_path
-        elif args.snapshot.endswith(".ckpt"):
-            model = get_object(args.lightning_name, "lightning")(args)
-            modelpath = args.snapshot
-        else:
-            raise FileType("Snapshot should be an args or ckpt file.")
-        model = model.load_from_checkpoint(
-                checkpoint_path=modelpath, strict=not args.relax_checkpoint_matching, **{'args': args}
-        )
-    else:
-        model = get_object(args.lightning_name, "lightning")(args)
+    # create or load lightning model from checkpoint
+    model = loaders.get_lightning_model(args)
 
     if args.logger_name == "comet":
         # log to comet
@@ -109,18 +91,16 @@ def cli_main(args):
             args, get_object(args.dataset, "dataset")(args, "test"), False
         )
         trainer.test(model, test_dataset)
-    
+
     if args.eval_on_train:
         log.info("\nInference Phase on train set...")
         train_dataset = loaders.get_eval_dataset_loader(
             args, get_object(args.dataset, "dataset")(args, "train"), False
         )
         trainer.test(model, train_dataset)
-        
+
         log.info("\nInference Phase on train set...")
         trainer.test(model, dev_dataset)
-
-
 
     print("Saving args to {}.args".format(args.results_path))
     pickle.dump(vars(args), open("{}.args".format(args.results_path), "wb"))
