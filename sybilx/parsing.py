@@ -389,7 +389,7 @@ def parse_args(args_strings=None):
     )
     parser.add_argument(
         "--resample_pixel_spacing_prob",
-        type = float,
+        type=float,
         default=0,
         help="Probability of resampling pixel spacing into fixed dimensions. 1 when eval and using resampling",
     )
@@ -774,7 +774,7 @@ def parse_args(args_strings=None):
         action="store_true",
         default=False,
         help="Log profiler times to logger",
-        )
+    )
     # run
     parser = Trainer.add_argparse_args(parser)
     if args_strings is None:
