@@ -1,0 +1,154 @@
+{
+    "script": "main",
+    "grid_search_space": {
+        "batch_size": [
+            3
+        ],
+        "accumulate_grad_batches": [
+            1
+        ],
+        "precision": [
+            16
+        ],
+        "dataset": [
+            "cgmh"
+        ],
+        "dataset_file_path": [
+            "/home/peter/ldct_dataset.json"
+        ],
+        "img_dir": [
+            "/home/images/ldct_pngs"
+        ],
+        "max_followup": [
+            6
+        ],
+        "input_loader_name": [
+            "ct_loader"
+        ],
+        "lightning_name": [
+            "base"
+        ],
+        "weight_decay": [
+            1e-2
+        ],
+        "momentum": [
+            0.9
+        ],
+        "max_epochs": [
+            10
+        ],
+        "lr_decay": [
+            0.1
+        ],
+        "img_mean": [
+            128.1722
+        ],
+        "img_std": [
+            87.1849
+        ],
+        "img_size": [
+            "256 256"
+        ],
+        "base_model": [
+            "sybil"
+        ],
+        "from_checkpoint": [
+            true
+        ],
+        "snapshot": [
+            "/home/peter/SybilModels/nlst_only.ckpt",
+	    "/home/peter/SybilModels/nlst_mgh_tune.ckpt"
+        ],
+	"relax_checkpoint_matching": [true],
+        "use_only_thin_cuts_for_ct": [
+            true
+        ],
+        "num_images": [
+            200
+        ],
+        "min_num_images": [
+            0
+        ],
+        "num_chan": [
+            3
+        ],
+        "loss_fns": [
+            "survival"
+        ],
+        "metrics": [
+            "survival"
+        ],
+        "monitor": [
+            "val_c_index"
+        ],
+        "num_workers": [
+            8
+        ],
+        "optimizer": [
+            "adam"
+        ],
+        "patience": [
+            5
+        ],
+        "train": [
+            false
+        ],
+        "dev": [
+            false
+        ],
+        "test": [
+            true
+        ],
+        "class_bal": [
+            false
+        ],
+        "train_rawinput_augmentations": [
+            "scale_2d rotate_range/deg=20"
+        ],
+        "train_tnsr_augmentations": [
+            "force_num_chan_2d normalize_2d"
+        ],
+        "test_rawinput_augmentations": [
+            "scale_2d"
+        ],
+        "test_tnsr_augmentations": [
+            "force_num_chan_2d normalize_2d"
+        ],
+        "fix_seed_for_multi_image_augmentations": [
+            true
+        ],
+        "workspace": [
+            "pgmikhael"
+        ],
+        "project_name": [
+            "nlst-cancer"
+        ],
+        "comet_tags": [
+            "cgmh sybil"
+        ],
+        "num_sanity_val_steps": [
+            0
+        ],
+	"gpus": [1],
+        "profiler": [
+            "simple"
+        ],
+        "val_check_interval": [
+            1.0
+        ],
+        "ignore_warnings": [
+            false
+        ],
+        "dropout": [
+            0.1
+        ],
+        "save_dir": [
+            "/home/peter/logs"
+        ],
+	"save_predictions": [true],
+	"hiddens_dir": ["/home/peter/logs"]
+    },
+    "available_gpus": [
+        "0"
+    ]
+}

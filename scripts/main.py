@@ -60,9 +60,6 @@ def cli_main(args):
         args, get_object(args.dataset, "dataset")(args, "dev"), False
     )
 
-    if "survival" in args.metrics:
-        # compute censoring distribution
-        args.censoring_distribution = get_censoring_dist(train_dataset.dataset)
 
     # print args
     for key, value in sorted(vars(args).items()):
@@ -81,10 +78,13 @@ def cli_main(args):
         model = model.load_from_checkpoint(
             checkpoint_path=modelpath, strict=not args.relax_checkpoint_matching
         )
+        if "survival" in args.metrics:
+            args.censoring_distribution = model.args.censoring_distribution
         model.args = args
     else:
         model = get_object(args.lightning_name, "lightning")(args)
 
+    
     if args.logger_name == "comet":
         # log to comet
         trainer.logger.experiment.set_model_graph(model)
@@ -95,6 +95,9 @@ def cli_main(args):
     trainer.callbacks = set_callbacks(trainer, args)
 
     if args.train:
+        if "survival" in args.metrics:
+            # compute censoring distribution
+            args.censoring_distribution = get_censoring_dist(train_dataset.dataset)
         log.info("\nTraining Phase...")
         trainer.fit(model, train_dataset, dev_dataset)
         args.model_path = trainer.checkpoint_callback.best_model_path

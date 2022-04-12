@@ -544,17 +544,6 @@ class NLST_Survival_Dataset(data.Dataset):
             }
 
         if sample["series"] in self.annotations_metadata:
-            # check if there is an annotation in a slice
-            # sample["volume_annotations"] = np.array(
-            #     [
-            #         int(
-            #             os.path.splitext(os.path.basename(path))[0]
-            #             in self.annotations_metadata[sample["series"]]
-            #         )
-            #         for path in sample["paths"]
-            #     ]
-            # )
-
             # store annotation(s) data (x,y,width,height) for each slice
             sample["annotations"] = [
                 {
@@ -565,7 +554,6 @@ class NLST_Survival_Dataset(data.Dataset):
                 for path in sample["paths"]
             ]
         else:
-            # sample["volume_annotations"] = np.array([0 for _ in sample["paths"]])
             sample["annotations"] = [
                 {"image_annotations": None} for path in sample["paths"]
             ]
@@ -578,8 +566,6 @@ class NLST_Survival_Dataset(data.Dataset):
         sample = self.dataset[index]
         if self.args.use_annotations:
             sample = self.get_ct_annotations(sample)
-            # sample["annotation_areas"] = get_scaled_annotation_area(sample, self.args)
-            # sample["has_annotation"] = np.sum(sample["volume_annotations"]) > 0
         try:
             item = {}
             input_dict = self.get_images(sample["paths"], sample)

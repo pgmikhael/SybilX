@@ -281,7 +281,7 @@ class Base(pl.LightningModule):
             if isinstance(v, torch.Tensor) and any([i in k for i in self.LOG_KEYS]):
                 logging_dict["{}_{}".format(key, k)] = v.mean()
         # log clocktime of methods for epoch
-        if self.args.profiler is not None:
+        if (self.args.profiler is not None) and (self.args.log_profiler):
             logging_dict.update(self.get_time_profile(key))
         self.log_dict(logging_dict, prog_bar=True, logger=True)
 
