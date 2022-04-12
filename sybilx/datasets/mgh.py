@@ -7,6 +7,7 @@ from collections import Counter
 from sybilx.datasets.utils import fit_to_length, get_scaled_annotation_area, DEVICE_ID
 from sybilx.utils.registry import register_object
 
+
 @register_object("mgh_cohort1", "dataset")
 class MGH_Dataset(NLST_Survival_Dataset):
     """

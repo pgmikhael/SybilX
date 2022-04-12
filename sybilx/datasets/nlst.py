@@ -547,7 +547,6 @@ class NLST_Survival_Dataset(data.Dataset):
             }
 
         if sample["series"] in self.annotations_metadata:
-
             # store annotation(s) data (x,y,width,height) for each slice
             sample["annotations"] = [
                 {
@@ -558,7 +557,6 @@ class NLST_Survival_Dataset(data.Dataset):
                 for path in sample["paths"]
             ]
         else:
-            # sample["volume_annotations"] = np.array([0 for _ in sample["paths"]])
             sample["annotations"] = [
                 {"image_annotations": None} for path in sample["paths"]
             ]
@@ -766,4 +764,3 @@ class NLST_GE(NLST_Survival_Dataset):
         if series_dict["series_data"]["manufacturer"][0] != 3:
             return True
         return super().skip_sample(series_dict, pt_metadata)
-
