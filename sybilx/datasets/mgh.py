@@ -270,9 +270,6 @@ class MGH_Screening(NLST_Survival_Dataset):
         return dataset
 
     def skip_sample(self, series_dict, exam_dict, mrn_row):
-        if mrn_row["in_cohort1"]:
-            return True
-
         # unknown cancer status
         if exam_dict["Future_cancer"] == "unkown":
             return True
