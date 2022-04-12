@@ -71,6 +71,10 @@ def cli_main(args):
     if args.from_checkpoint:
         if args.snapshot.endswith(".args"):
             snargs = Namespace(**pickle.load(open(args.snapshot, "rb")))
+            # update saved args with new arguments
+            for k,v in vars(args).items():
+                if k not in snargs:
+                    snargs.__setattr__(k,v)
             model = get_object(snargs.lightning_name, "lightning")(snargs)
             modelpath = snargs.model_path
         elif args.snapshot.endswith(".ckpt"):
