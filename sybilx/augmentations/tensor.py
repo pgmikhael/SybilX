@@ -1,8 +1,10 @@
 import torchvision
 import torch
 import numpy as np
+import random
 from sybilx.augmentations.abstract import Abstract_augmentation
 from sybilx.utils.registry import register_object
+import torchio as tio
 
 
 @register_object("normalize_2d", "augmentation")
@@ -116,7 +118,7 @@ class Force_Num_Chan_Tensor_2d(Abstract_augmentation):
         img = input_dict["input"]
         mask = input_dict.get("mask", None)
         if mask is not None:
-            input_dict['mask'] = mask.unsqueeze(0)
+            input_dict["mask"] = mask.unsqueeze(0)
 
         num_dims = len(img.shape)
         if num_dims == 2:

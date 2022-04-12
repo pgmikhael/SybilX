@@ -2,7 +2,7 @@
   "script": "main",
   "grid_search_space": {
     "batch_size": [
-      4
+      3
     ],
     "accumulate_grad_batches": [
       1
@@ -11,7 +11,7 @@
       16
     ],
     "dataset": [
-      "nlst"
+      "nlst_siemens", "nlst_ge"
     ],
     "max_followup": [
       6
@@ -43,6 +43,10 @@
     "img_size": [
       "256 256"
     ],
+    "slice_thickness_filter": [2.5],
+    "resample_pixel_spacing": [true],
+    "ct_pixel_spacing": ["0.703125 0.703125 2.5"],
+    "resample_pixel_spacing_prob": [1],
     "limit_train_batches": [
       0.5
     ],
@@ -61,8 +65,6 @@
     "num_images": [
       200
     ],
-    "fit_to_length": [true],
-    "slice_thickness_filter": [2.5],
     "min_num_images": [
       0
     ],
@@ -117,12 +119,8 @@
     "train_rawinput_augmentations": [
       "scale_2d rotate_range/deg=20"
     ],
-    "train_tnsr_augmentations": [
-      "force_num_chan_2d normalize_2d"
-    ],
-    "test_rawinput_augmentations": [
-      "scale_2d"
-    ],
+    "train_tnsr_augmentations": ["force_num_chan_2d normalize_2d"],
+    "test_rawinput_augmentations": ["scale_2d"],
     "test_tnsr_augmentations": [
       "force_num_chan_2d normalize_2d"
     ],
@@ -136,7 +134,7 @@
       "nlst-cancer"
     ],
     "comet_tags": [
-      "debug server"
+      "sybil spacing nlst ge"
     ],
     "num_sanity_val_steps": [
       0
@@ -144,7 +142,6 @@
     "profiler": [
       "simple"
     ],
-    "log_profiler": [false],
     "gpus": [
       8
     ],

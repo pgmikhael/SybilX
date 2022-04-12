@@ -1,20 +1,18 @@
 import json
 import os
+import pickle
 import numpy as np
 from tqdm import tqdm
 import argparse
 import numpy as np
 import pandas as pd
+import ijson
+
+# import ijson
 import time
+from collections import defaultdict
 from ast import literal_eval
 
-"""
-Script to create MGH Lung dataset json.
-
-python scripts/dicom_to_png/dicom_to_png.py --dicom_dir /Mounts/rbg-storage1/datasets/MGH_Lung_Fintelmann/dicoms/ --png_dir /Mounts/rbg-storage1/datasets/MGH_Lung_Fintelmann/pngs/ --dcmtk --dicom_types generic --window
-
-python scripts/dicom_metadata/dicom_metadata_to_json.py --directory /Mounts/rbg-storage1/datasets/MGH_Lung_Fintelmann/dicoms --results_path /Mounts/rbg-storage1/datasets/MGH_Lung_Fintelmann/dicom_metadata.json
-"""
 
 SPLIT_PROBS = [0.7, 0.15, 0.15]
 
@@ -28,6 +26,7 @@ SERIES_DICOMKEYS = [
     "WindowWidth",
     "SliceThickness",
     "ImageType",
+    "PixelSpacing",
 ]
 
 
@@ -60,19 +59,14 @@ parser.add_argument(
     default="/Mounts/rbg-storage1/datasets/MGH_Lung_Fintelmann/meta012022/mgh_screening_metadata.json",
 )
 parser.add_argument(
-    "--cohort1_path",
-    type=str,
-    default="/Mounts/rbg-storage1/datasets/MGH_Lung_Fintelmann/mgh_lung_cancer_cohort1.json",
-)
-parser.add_argument(
     "--output_json_path",
     type=str,
-    default="/Mounts/rbg-storage1/datasets/MGH_Lung_Fintelmann/mgh_lung_cancer_cohort2.json",
+    default="/Mounts/rbg-storage1/datasets/MGH_Lung_Fintelmann/mgh_lung_cancer_cohort2v2.json",
 )
 parser.add_argument(
     "--metadata_csv_path",
     type=str,
-    default="/Mounts/rbg-storage1/datasets/MGH_Lung_Fintelmann/meta012022/MIT_LDCT_MGH_cohort2_03012022.csv",
+    default="/Mounts/rbg-storage1/datasets/MGH_Lung_Fintelmann/meta012022/MIT_LDCT_key_sheet_anonymized_update_with_days_before_cancer_dx_and_last_follow_up_v3.csv",
 )
 parser.add_argument(
     "--png_path_replace_pattern",
@@ -80,11 +74,7 @@ parser.add_argument(
     nargs=2,
     default=["MIT_Lung_Cancer_Screening", "screening_pngs"],
 )
-parser.add_argument(
-    "--error_json_path",
-    type=str,
-    default="/Mounts/rbg-storage1/datasets/MGH_Lung_Fintelmann/meta012022/error.log",
-)
+parser.add_argument("--error_json_path", type=str, default=None)
 
 
 def log_error(errors, category, **args):
@@ -94,6 +84,7 @@ def log_error(errors, category, **args):
             category, ", ".join([key + "=" + args[key] for key in args.keys()])
         )
     )
+
     if category in errors:
         errors[category].append(error_dict)
     else:
@@ -101,12 +92,7 @@ def log_error(errors, category, **args):
 
 
 if __name__ == "__main__":
-    np.random.seed(2022)
-
     args = parser.parse_args()
-
-    cohort1_data = json.load(open(args.cohort1_path, "r"))
-    cohort1_pids = {d["pid"]: True for d in cohort1_data}
 
     errors = {}
 
@@ -115,18 +101,21 @@ if __name__ == "__main__":
         args.png_path_replace_pattern[1],
     )
 
+    json_dataset, pid_list = [], []
+
     patient_metadata = pd.read_csv(args.metadata_csv_path)
-    # patient_metadata.fillna(-1, inplace = True)
+    patient_metadata.fillna(-1, inplace=True)
     study_instance_uids = set(patient_metadata["Study Instance UID"])
 
     # Source json, output of OncoData ..
     print("> loading json")
     start = time.time()
     source_json = json.load(open(args.source_json_path, "r"))
-    # source_json = ijson.items(open(args.source_json_path, 'rb'), prefix='item') # streaming - slower, but skips initial wait which is better for debugging
+    #source_json = ijson.items(
+    #    open(args.source_json_path, "rb"), prefix="item"
+    #)  # streaming - slower, but skips initial wait which is better for debugging
     print("Took", time.time() - start, "seconds")
 
-    json_dataset, pid_list = [], []
     for row_dict in tqdm(
         source_json, desc="Processing metadata from {}".format(args.source_json_path)
     ):
@@ -137,14 +126,15 @@ if __name__ == "__main__":
             log_error(errors, "Skipped file starting with '.'", filename=filename)
             continue
 
+        dcm_keys = row_dict["dicom_metadata"].keys()
+
         path = (
             row_dict["dicom_path"]
             .replace(find_pattern, replace_with)
             .replace(".dcm", ".png")
         )
 
-        if not os.path.exists(path):
-            continue 
+        assert os.path.exists(path), f"Could not find path {path}!"
 
         if not row_dict["dicom_metadata"].get("SeriesInstanceUID", False):
             log_error(
@@ -164,38 +154,16 @@ if __name__ == "__main__":
             continue
 
         slice_location = float(row_dict["dicom_metadata"].get("SliceLocation", -1))
-        image_posn = literal_eval(
-                row_dict["dicom_metadata"].get("ImagePositionPatient", "[-1]")
-                )
-        
 
         # match metadata by StudyInstanceUID
         exam_meta_rows = patient_metadata[
             patient_metadata["Study Instance UID"] == study_instance_uid
         ]
-        if len(exam_meta_rows) == 0:
-            log_error(
-                errors,
-                "No rows with given studyuid found in metadata CSV!",
-                studyuid=study_instance_uid,
-                path=path,
-            )
-            continue
-        elif len(exam_meta_rows) > 1:
-            log_error(
-                errors,
-                "Multiple rows with given studyuid found in metadata CSV! Choosing first!",
-                studyuid=study_instance_uid,
-                path=path,
-            )
 
-        exam_dict = exam_meta_rows.iloc[0].to_dict()
-
-        exam_dict.update(
-            extract_from_dict(
-                row_dict["dicom_metadata"], EXAM_DICOMKEYS, replace_missing_with=-1
-            )
+        exam_dict = extract_from_dict(
+            row_dict["dicom_metadata"], EXAM_DICOMKEYS, replace_missing_with=-1
         )
+        exam_dict.update( exam_meta_rows.to_dict('records')[0] )
 
         pid = exam_dict["bridge_uid"]
 
@@ -207,15 +175,15 @@ if __name__ == "__main__":
         img_series_dict = {
             "paths": [path],
             "slice_location": [slice_location],
-            "image_posn": [image_posn],
-            "series_data": series_dict,
+            "series_data": series_dict
+            #'slice_number': # filled in by post-processing step
         }
 
         if pid in pid_list:
             # if we have already inserted an exam for a patient
             pt_idx = pid_list.index(pid)
             existing_exams = [
-                exam["StudyInstanceUID"] for exam in json_dataset[pt_idx]["accessions"]
+                exam['StudyInstanceUID'] for exam in json_dataset[pt_idx]["accessions"]
             ]
             # check if the exam for the current image already exists in the data
             if study_instance_uid in existing_exams:
@@ -241,9 +209,6 @@ if __name__ == "__main__":
                     json_dataset[pt_idx]["accessions"][exam_idx]["image_series"][
                         series_id
                     ]["slice_location"].append(slice_location)
-                    json_dataset[pt_idx]["accessions"][exam_idx]["image_series"][
-                        series_id
-                    ]["image_posn"].append(image_posn)
             else:
                 # if the exam doesn't exists, create a new one
                 exam_dict["image_series"] = {series_id: img_series_dict}
@@ -256,11 +221,11 @@ if __name__ == "__main__":
                 "accessions": [exam_dict],
                 "pid": pid,
                 "split": np.random.choice(["train", "dev", "test"], p=SPLIT_PROBS),
-                "in_cohort1": cohort1_pids.get(pid, False),
             }
 
             json_dataset.append(pt_dict)
             pid_list.append(pid)
+
 
     json.dump(json_dataset, open(args.output_json_path, "w"))
     print("Saved output json to ", args.output_json_path)

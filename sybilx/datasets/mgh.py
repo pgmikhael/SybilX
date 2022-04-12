@@ -4,19 +4,8 @@ from ast import literal_eval
 import copy
 from sybilx.datasets.nlst import NLST_Survival_Dataset
 from collections import Counter
-from sybilx.datasets.utils import fit_to_length, get_scaled_annotation_area
+from sybilx.datasets.utils import fit_to_length, get_scaled_annotation_area, DEVICE_ID
 from sybilx.utils.registry import register_object
-
-DEVICE_ID = {
-    "GE MEDICAL SYSTEMS": 0,
-    "TOSHIBA": 1,
-    "Philips": 2,
-    "SIEMENS": 3,
-    "Siemens Healthcare": 3,  # note: same id as SIEMENS
-    "Vital Images, Inc.": 4,
-    "Hitachi Medical Corporation": 5,
-    "LightSpeed16": 6,
-}
 
 
 @register_object("mgh_cohort1", "dataset")
@@ -65,11 +54,7 @@ class MGH_Dataset(NLST_Survival_Dataset):
                     img_paths = [p.replace("Data082021", "pngs") for p in img_paths]
                     slice_locations = series_dict["image_posn"]
                     series_data = series_dict["series_data"]
-                    device = (
-                        -1
-                        if series_data["Manufacturer"] == -1
-                        else DEVICE_ID[series_data["Manufacturer"]]
-                    )
+                    device = DEVICE_ID[series_data["Manufacturer"]]
 
                     sorted_img_paths, sorted_slice_locs = self.order_slices(
                         img_paths, slice_locations
@@ -105,6 +90,11 @@ class MGH_Dataset(NLST_Survival_Dataset):
                         ),  # has to be int, while cancer_location has to be float
                         "num_original_slices": len(series_dict["paths"]),
                         "annotations": [],
+                        "pixel_spacing": series_dict["pixel_spacing"]
+                        + [series_dict["slice_thickness"]],
+                        "slice_thickness": self.get_slice_thickness_class(
+                            series_dict["slice_thickness"]
+                        ),
                     }
 
                     if self.args.fit_to_length:
@@ -137,20 +127,23 @@ class MGH_Dataset(NLST_Survival_Dataset):
         if not mrn_row["split"] == split:
             return True
 
+        if mrn_row["in_cohort2"]:
+            return True
+
         # check if screen is localizer screen or not enough images
         if self.is_localizer(series_dict["series_data"]):
             return True
 
-        slice_thickness = (
-            series_dict["series_data"]["SliceThickness"]
-            if series_dict["series_data"]["SliceThickness"] == ""
-            else float(series_dict["series_data"]["SliceThickness"])
-        )
+        slice_thickness = series_dict["slice_thickness"]
         # check if restricting to specific slice thicknesses
         if (self.args.slice_thickness_filter is not None) and (
-            (slice_thickness not in self.args.slice_thickness_filter)
-            or (slice_thickness == "")
+            (slice_thickness in ["", None])
+            or (slice_thickness > self.args.slice_thickness_filter)
+            or (slice_thickness < 0)
         ):
+            return True
+
+        if series_dict["pixel_spacing"] is None:
             return True
 
         # remove where slice location doesn't change (different axis):
@@ -230,10 +223,6 @@ class MGH_Dataset(NLST_Survival_Dataset):
         statement += "\n" + "Censor Times: {}".format(
             Counter([d["time_at_event"] for d in dataset])
         )
-        annotation_msg = (
-            self.annotation_summary_msg(dataset) if self.args.use_annotations else ""
-        )
-        statement += annotation_msg
         return statement
 
     def assign_splits(self, meta):
@@ -241,27 +230,6 @@ class MGH_Dataset(NLST_Survival_Dataset):
             meta[idx]["split"] = np.random.choice(
                 ["train", "dev", "test"], p=self.args.split_probs
             )
-
-    def get_images(self, paths, sample):
-        """
-        Returns a stack of transformed images by their absolute paths.
-        If cache is used - transformed images will be loaded if available,
-        and saved to cache if not.
-        """
-        out_dict = {}
-        if self.args.fix_seed_for_multi_image_augmentations:
-            sample["seed"] = np.random.randint(0, 2**32 - 1)
-
-        # get images for multi image input
-        input_dicts = [
-            self.input_loader.get_image(path, sample) for e, path in enumerate(paths)
-        ]
-
-        images = [i["input"] for i in input_dicts]
-        out_dict["input"] = self.reshape_images(images)
-        out_dict["mask"] = None
-
-        return out_dict
 
 
 @register_object("mgh_cohort2", "dataset")
@@ -303,28 +271,29 @@ class MGH_Screening(NLST_Survival_Dataset):
         return dataset
 
     def skip_sample(self, series_dict, exam_dict, mrn_row):
-        if mrn_row["in_cohort1"]:
-            return True
-
         # unknown cancer status
         if exam_dict["Future_cancer"] == "unkown":
+            return True
+
+        if (exam_dict["days_before_cancer_dx"] < 0) or (
+            exam_dict["days_to_last_follow_up"] < 0
+        ):
             return True
 
         # check if screen is localizer screen or not enough images
         if self.is_localizer(series_dict["series_data"]):
             return True
 
+        slice_thickness = series_dict["SliceThickness"]
         # check if restricting to specific slice thicknesses
-        slice_thickness = (
-            series_dict["series_data"]["SliceThickness"]
-            if series_dict["series_data"]["SliceThickness"] == ""
-            else float(series_dict["series_data"]["SliceThickness"])
-        )
-
         if (self.args.slice_thickness_filter is not None) and (
-            (slice_thickness not in self.args.slice_thickness_filter)
-            or (slice_thickness == "")
+            (slice_thickness in ["", None])
+            or (slice_thickness > self.args.slice_thickness_filter)
+            or (slice_thickness < 0)
         ):
+            return True
+
+        if series_dict["PixelSpacing"] is None:
             return True
 
         if len(series_dict["paths"]) < self.args.min_num_images:
@@ -343,16 +312,12 @@ class MGH_Screening(NLST_Survival_Dataset):
         ]
         slice_locations = series_dict["slice_location"]
         series_data = series_dict["series_data"]
-
+        pixel_spacing = series_dict["PixelSpacing"] + [series_dict["SliceThickness"]]
         sorted_img_paths, sorted_slice_locs = self.order_slices(
-            img_paths, slice_locations
+            img_paths, slice_locations, reverse=True
         )
 
-        device = (
-            -1
-            if series_data["Manufacturer"] == -1
-            else DEVICE_ID[series_data["Manufacturer"]]
-        )
+        device = DEVICE_ID[series_data["Manufacturer"]]
 
         studyuid = exam_dict["StudyInstanceUID"]
         bridge_uid = exam_dict["bridge_uid"]
@@ -389,6 +354,8 @@ class MGH_Screening(NLST_Survival_Dataset):
             "laterality1": exam_dict["Laterality"],
             "laterality2": exam_dict["Laterality.1"],
             "icdo3": exam_dict["Histo/Behavior ICD-O-3"],
+            "pixel_spacing": pixel_spacing,
+            "slice_thickness": self.get_slice_thickness_class(pixel_spacing[-1]),
         }
 
         if self.args.fit_to_length:
@@ -409,7 +376,6 @@ class MGH_Screening(NLST_Survival_Dataset):
         return sample
 
     def get_label(self, exam_dict, mrn_row):
-
         is_cancer_cohort = exam_dict["Future_cancer"].lower().strip() == "yes"
         days_to_cancer = exam_dict["days_before_cancer_dx"]
 
@@ -434,23 +400,8 @@ class MGH_Screening(NLST_Survival_Dataset):
                 )
                 time_at_event = self.args.max_followup - 1
             else:
-                days_from_init_to_last_neg_fup = max(
-                    [
-                        e["number of days after the oldest study of the patient"]
-                        for e in mrn_row["accessions"]
-                        if e["Future_cancer"].lower() == "no"
-                    ]
-                )
-                days_since_init = exam_dict[
-                    "number of days after the oldest study of the patient"
-                ]
-                days_to_last_neg_followup = (
-                    days_from_init_to_last_neg_fup - days_since_init
-                )
-                assert (
-                    days_to_last_neg_followup > -1
-                ), "Days to last negative followup is < 0"
-                years_to_last_neg_followup = days_to_last_neg_followup // 365
+                days_to_last_neg_followup = exam_dict["days_to_last_follow_up"]
+                years_to_last_neg_followup = int(days_to_last_neg_followup // 365)
                 time_at_event = min(
                     years_to_last_neg_followup, self.args.max_followup - 1
                 )
@@ -503,10 +454,6 @@ class MGH_Screening(NLST_Survival_Dataset):
         statement += "\n" + "Censor Times: {}".format(
             Counter([d["time_at_event"] for d in dataset])
         )
-        annotation_msg = (
-            self.annotation_summary_msg(dataset) if self.args.use_annotations else ""
-        )
-        statement += annotation_msg
         return statement
 
     def assign_splits(self, meta):
@@ -514,39 +461,6 @@ class MGH_Screening(NLST_Survival_Dataset):
             meta[idx]["split"] = np.random.choice(
                 ["train", "dev", "test"], p=self.args.split_probs
             )
-
-    def get_images(self, paths, sample):
-        """
-        Returns a stack of transformed images by their absolute paths.
-        If cache is used - transformed images will be loaded if available,
-        and saved to cache if not.
-        """
-        out_dict = {}
-        if self.args.fix_seed_for_multi_image_augmentations:
-            sample["seed"] = np.random.randint(0, 2**32 - 1)
-
-        # get images for multi image input
-        input_dicts = [
-            self.input_loader.get_image(path, sample) for e, path in enumerate(paths)
-        ]
-
-        images = [i["input"] for i in input_dicts]
-        out_dict["input"] = self.reshape_images(images)
-        out_dict["mask"] = None
-
-        return out_dict
-
-
-@register_object("mgh_cohort2-1", "dataset")
-class MGH_ScreeningExclude1(MGH_Screening):
-    """
-    MGH Dataset Cohort 2 without patients in cohort 1
-    """
-
-    def skip_sample(self, series_dict, exam_dict, mrn_row):
-        if mrn_row["in_cohort1"]:
-            return True
-        return super().skip_sample(series_dict, exam_dict, mrn_row)
 
 
 @register_object("mgh_cohort_outpatient", "dataset")
@@ -572,16 +486,16 @@ class MGH_Cohort1Eval(MGH_Dataset):
         if self.is_localizer(series_dict["series_data"]):
             return True
 
-        slice_thickness = (
-            series_dict["series_data"]["SliceThickness"]
-            if series_dict["series_data"]["SliceThickness"] == ""
-            else float(series_dict["series_data"]["SliceThickness"])
-        )
+        slice_thickness = series_dict["slice_thickness"]
         # check if restricting to specific slice thicknesses
         if (self.args.slice_thickness_filter is not None) and (
-            (slice_thickness not in self.args.slice_thickness_filter)
-            or (slice_thickness == "")
+            (slice_thickness in ["", None])
+            or (slice_thickness > self.args.slice_thickness_filter)
+            or (slice_thickness < 0)
         ):
+            return True
+
+        if series_dict["pixel_spacing"] is None:
             return True
 
         # remove where slice location doesn't change (different axis):

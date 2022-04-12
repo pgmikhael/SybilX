@@ -218,10 +218,3 @@ class abstract_loader:
             )
 
         return input_dict
-
-    def reshape_images(self, images):
-        images = [im.unsqueeze(0) for im in images]
-        images = torch.cat(images, dim=0)
-        # Convert from (T, C, H, W) to (C, T, H, W)
-        images = images.permute(1, 0, 2, 3)
-        return images

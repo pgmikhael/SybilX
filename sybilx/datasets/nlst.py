@@ -1,3 +1,4 @@
+import enum
 import os
 from posixpath import split
 import traceback, warnings
@@ -17,9 +18,13 @@ from sybilx.datasets.utils import (
     get_scaled_annotation_area,
     METAFILE_NOTFOUND_ERR,
     LOAD_FAIL_MSG,
+    DEVICE_ID,
 )
 from sybilx.utils.registry import register_object
 from sybilx.datasets.nlst_risk_factors import NLSTRiskFactorVectorizer
+import pydicom
+import torchio as tio
+
 
 GOOGLE_SPLITS_FILENAME = (
     "/Mounts/rbg-storage1/datasets/NLST/Shetty_et_al(Google)/data_splits.p"
@@ -37,6 +42,8 @@ CT_ITEM_KEYS = [
     "cancer_laterality",
     "has_annotation",
     "origin_dataset",
+    "device",
+    "slice_thickness",
 ]
 
 RACE_ID_KEYS = {
@@ -58,6 +65,7 @@ EDUCAT_LEVEL = {
     6: 5,  # Bachelors = College Grad
     7: 6,  # Graduate School = Postrad/Prof
 }
+DEVICE_TO_NAME = {1: "GE MEDICAL SYSTEMS", 2: "Philips", 3: "SIEMENS", 4: "TOSHIBA"}
 
 
 @register_object("nlst", "dataset")
@@ -84,6 +92,16 @@ class NLST_Survival_Dataset(data.Dataset):
             raise Exception(METAFILE_NOTFOUND_ERR.format(args.dataset_file_path, e))
 
         self.input_loader = get_sample_loader(split_group, args)
+        self.always_resample_pixel_spacing = (args.resample_pixel_spacing) and (
+            split_group == "test"
+        )
+        if args.resample_pixel_spacing:
+            self.resample_transform = tio.transforms.Resample(
+                target=tuple(args.ct_pixel_spacing)
+            )
+            self.padding_transform = tio.transforms.CropOrPad(
+                target_shape=tuple(args.img_size + [args.num_images]), padding_mode=0
+            )
 
         if self.args.region_annotations_filepath:
             self.annotations_metadata = json.load(
@@ -213,7 +231,7 @@ class NLST_Survival_Dataset(data.Dataset):
         # check if restricting to specific slice thicknesses
         slice_thickness = series_data["reconthickness"][0]
         wrong_thickness = (self.args.slice_thickness_filter is not None) and (
-            slice_thickness not in self.args.slice_thickness_filter
+            slice_thickness > self.args.slice_thickness_filter or (slice_thickness < 0)
         )
 
         # check if valid label (info is not missing)
@@ -246,7 +264,7 @@ class NLST_Survival_Dataset(data.Dataset):
         img_paths = series_dict["paths"]
         slice_locations = series_dict["img_position"]
         series_data = series_dict["series_data"]
-        device = series_data["manufacturer"][0]
+        device = DEVICE_ID[DEVICE_TO_NAME[series_data["manufacturer"][0]]]
         screen_timepoint = series_data["study_yr"][0]
         assert screen_timepoint == exam_dict["screen_timepoint"]
 
@@ -299,6 +317,11 @@ class NLST_Survival_Dataset(data.Dataset):
             "institution": pt_metadata["cen"][0],
             "cancer_laterality": self.get_cancer_side(pt_metadata),
             "num_original_slices": len(series_dict["paths"]),
+            "pixel_spacing": series_dict["pixel_spacing"]
+            + [series_dict["slice_thickness"]],
+            "slice_thickness": self.get_slice_thickness_class(
+                series_dict["slice_thickness"]
+            ),
         }
 
         if self.args.use_risk_factors:
@@ -356,6 +379,21 @@ class NLST_Survival_Dataset(data.Dataset):
         )
         return is_localizer
 
+    def get_pixel_spacing(self, dcm_path):
+        """Get slice thickness and row/col spacing
+
+        Args:
+            path (str): path to sample png file in the series
+
+        Returns:
+            pixel spacing: [thickness, spacing[0], spacing[1]]
+                thickness (float): CT slice thickness
+                spacing (list): spacing along x and y axes
+        """
+        dcm = pydicom.dcmread(dcm_path, stop_before_pixels=True)
+        spacing = [float(d) for d in dcm.PixelSpacing] + [float(dcm.SliceThickness)]
+        return spacing
+
     def get_cancer_side(self, pt_metadata):
         """
         Return if cancer in left or right
@@ -374,8 +412,10 @@ class NLST_Survival_Dataset(data.Dataset):
 
         return np.array([int(right), int(left), int(other)])
 
-    def order_slices(self, img_paths, slice_locations):
+    def order_slices(self, img_paths, slice_locations, reverse=False):
         sorted_ids = np.argsort(slice_locations)
+        if reverse:
+            sorted_ids = sorted_ids[::-1]
         sorted_img_paths = np.array(img_paths)[sorted_ids].tolist()
         sorted_slice_locs = np.sort(slice_locations).tolist()
 
@@ -574,16 +614,48 @@ class NLST_Survival_Dataset(data.Dataset):
         s = copy.deepcopy(sample)
         input_dicts = []
         for e, path in enumerate(paths):
-            s["annotations"] = sample["annotations"][e]
+            if self.args.use_annotations:
+                s["annotations"] = sample["annotations"][e]
             input_dicts.append(self.input_loader.get_image(path, s))
 
         images = [i["input"] for i in input_dicts]
-        masks = [i["mask"] for i in input_dicts]
+        input_arr = self.reshape_images(images)
+        if self.args.use_annotations:
+            masks = [i["mask"] for i in input_dicts]
+            mask_arr = self.reshape_images(masks) if self.args.use_annotations else None
 
-        out_dict["input"] = self.reshape_images(images)
-        out_dict["mask"] = (
-            self.reshape_images(masks) if self.args.use_annotations else None
-        )
+        # resample pixel spacing
+        resample_now = (
+            self.args.resample_pixel_spacing_prob > np.random.uniform()
+        ) and self.args.resample_pixel_spacing
+        if self.always_resample_pixel_spacing or resample_now:
+            spacing = torch.tensor(sample["pixel_spacing"] + [1])
+            input_arr = tio.ScalarImage(
+                affine=torch.diag(spacing),
+                tensor=input_arr.permute(0, 2, 3, 1),
+            )
+            input_arr = self.resample_transform(input_arr)
+            input_arr = self.padding_transform(input_arr.data)
+
+            if self.args.use_annotations:
+                mask_arr = tio.ScalarImage(
+                    affine=torch.diag(spacing),
+                    tensor=mask_arr.permute(0, 2, 3, 1),
+                )
+                mask_arr = self.resample_transform(mask_arr)
+                mask_arr = self.padding_transform(mask_arr.data)
+        elif self.args.resample_pixel_spacing:
+            input_arr = self.padding_transform(input_arr.permute(0, 2, 3, 1))
+            mask_arr = self.padding_transform(mask_arr.permute(0, 2, 3, 1))
+
+        if self.args.resample_pixel_spacing:
+            out_dict["input"] = input_arr.data.permute(0, 3, 1, 2)
+            if self.args.use_annotations:
+                out_dict["mask"] = mask_arr.data.permute(0, 3, 1, 2)
+        else:
+            out_dict["input"] = input_arr
+            if self.args.use_annotations:
+                out_dict["mask"] = mask_arr
 
         return out_dict
 
@@ -593,6 +665,15 @@ class NLST_Survival_Dataset(data.Dataset):
         # Convert from (T, C, H, W) to (C, T, H, W)
         images = images.permute(1, 0, 2, 3)
         return images
+
+    def get_slice_thickness_class(self, thickness):
+        BINS = [1, 1.5, 2, 2.5]
+        for i, tau in enumerate(BINS):
+            if thickness <= tau:
+                return i
+        if self.args.slice_thickness_filter is not None:
+            raise ValueError("THICKNESS > 2.5")
+        return 4
 
 
 @register_object("nlst_plco", "dataset")
@@ -659,3 +740,27 @@ class NLST_Risk_Factor_Task(NLST_Survival_Dataset):
         return self.risk_factor_vectorizer.get_risk_factors_for_sample(
             pt_metadata, screen_timepoint
         )
+
+
+@register_object("nlst_ge", "dataset")
+class NLST_GE(NLST_Survival_Dataset):
+    """
+    Dataset for GE devices model
+    """
+
+    def skip_sample(self, series_dict, pt_metadata):
+        if series_dict["series_data"]["manufacturer"][0] != 1:
+            return True
+        return super().skip_sample(series_dict, pt_metadata)
+
+
+@register_object("nlst_siemens", "dataset")
+class NLST_GE(NLST_Survival_Dataset):
+    """
+    Dataset for Siemens devices model
+    """
+
+    def skip_sample(self, series_dict, pt_metadata):
+        if series_dict["series_data"]["manufacturer"][0] != 3:
+            return True
+        return super().skip_sample(series_dict, pt_metadata)

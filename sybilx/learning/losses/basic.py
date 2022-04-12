@@ -61,6 +61,7 @@ def get_ordinal_ce_loss(model_output, batch, model, args):
     probs = torch.tril(probs).sum(2)
     probs = torch.exp(probs)
 
+    p_dict["logits"] = logit.detach()
     p_dict["probs"] = probs.detach()
     preds = probs > 0.5  # class = last prob > 0.5
     preds = preds.sum(-1)
@@ -68,3 +69,50 @@ def get_ordinal_ce_loss(model_output, batch, model, args):
     p_dict["golds"] = batch["y"]
 
     return loss * args.ce_loss_lambda, l_dict, p_dict
+
+
+@register_object("source_discrimination", "loss")
+def discriminator_loss(model_output, batch, model, args):
+    logging_dict, predictions = OrderedDict(), OrderedDict()
+    d_output = model.discriminator(model_output, batch)
+    loss = (
+        F.cross_entropy(d_output["logit"], batch[args.adv_key].long())
+        * args.adv_loss_lambda
+    )
+    logging_dict["discrim_loss"] = loss.detach()
+    predictions["discrim_probs"] = F.softmax(d_output["logit"], dim=-1).detach()
+    predictions["discrim_golds"] = batch[args.adv_key]
+
+    if model.reverse_discrim_loss:
+        loss = -loss
+
+    return loss, logging_dict, predictions
+
+
+@register_object("device_thickness_discrimination", "loss")
+def device_discriminator_loss(model_output, batch, model, args):
+    logging_dict, predictions = OrderedDict(), OrderedDict()
+    d_output = model.discriminator(model_output, batch)
+    device_loss = (
+        F.cross_entropy(d_output["device_logit"], batch["device"].long())
+        * args.adv_loss_lambda
+    )
+    logging_dict["device_loss"] = device_loss.detach()
+    predictions["device_probs"] = F.softmax(d_output["device_logit"], dim=-1).detach()
+    predictions["device_golds"] = batch["device"]
+
+    thick_loss = (
+        F.cross_entropy(d_output["thickness_logit"], batch["slice_thickness"].long())
+        * args.adv_loss_lambda
+    )
+    logging_dict["thickness_loss"] = thick_loss.detach()
+    predictions["thickness_probs"] = F.softmax(
+        d_output["thickness_logit"], dim=-1
+    ).detach()
+    predictions["thickness_golds"] = batch["slice_thickness"]
+
+    loss = thick_loss + device_loss
+    if model.reverse_discrim_loss:
+        loss = -loss
+
+    return loss, logging_dict, predictions

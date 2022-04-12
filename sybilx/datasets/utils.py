@@ -8,6 +8,18 @@ LOAD_FAIL_MSG = "Failed to load image: {}\nException: {}"
 # Constants
 IMG_PAD_TOKEN = "<PAD>"
 
+DEVICE_ID = {
+        "GE MEDICAL SYSTEMS": 0,
+        "Philips": 1,
+        "PHIs": 1,
+        "SIEMENS": 2,
+        "Siemens Healthcare": 2,  # note: same id as SIEMENS
+        "TOSHIBA": 3,
+        "Vital Images, Inc.": 4,
+        "Hitachi Medical Corporation": 5,
+        "LightSpeed16": 6,
+        -1: 7
+        }
 
 def order_slices(img_paths, slice_locations):
     sorted_ids = np.argsort(slice_locations)

@@ -91,10 +91,13 @@ def prepare_training_config_for_eval(train_config):
 
     experiments, flags, experiment_axies = parse_dispatcher_config(eval_args)
 
-    for (idx, e), s in zip(enumerate(experiments), stem_names):
-        experiments[idx] += " --snapshot {}".format(
-            os.path.join(train_config["log_dir"], "{}.args".format(s))
-        )
+    if ("snapshot" not in eval_args["grid_search_space"]) or (
+        "snapshot" in train_args["grid_search_space"]
+    ):
+        for (idx, e), s in zip(enumerate(experiments), stem_names):
+            experiments[idx] += " --snapshot {}".format(
+                os.path.join(train_config["log_dir"], "{}.args".format(s))
+            )
 
     return experiments, flags, experiment_axies
 
@@ -212,6 +215,12 @@ def parse_args(args_strings=None):
     )
     parser.add_argument(
         "--fine_tune",
+        action="store_true",
+        default=False,
+        help="Whether or not to fine_tune model",
+    )
+    parser.add_argument(
+        "--eval_on_train",
         action="store_true",
         default=False,
         help="Whether or not to fine_tune model",
@@ -371,17 +380,37 @@ def parse_args(args_strings=None):
     )
 
     # handling CT slices
+
     parser.add_argument(
-        "--fit_to_length",
+        "--resample_pixel_spacing",
         action="store_true",
         default=False,
-        help="Whether to fit num slices using padding and slice sampling",
+        help="Whether to resample pixel spacing into fixed dimensions",
+    )
+    parser.add_argument(
+        "--resample_pixel_spacing_prob",
+        type=float,
+        default=0,
+        help="Probability of resampling pixel spacing into fixed dimensions. 1 when eval and using resampling",
+    )
+    parser.add_argument(
+        "--ct_pixel_spacing",
+        type=float,
+        nargs=3,
+        default=[1, 1, 1],
+        help="Target pixel spacing [x,y,z] in mm when resampling.",
     )
     parser.add_argument(
         "--num_images",
         type=int,
         default=200,
         help="In multi image setting, the number of images per single sample.",
+    )
+    parser.add_argument(
+        "--fit_to_length",
+        action="store_true",
+        default=False,
+        help="Whether to fit num slices using padding and slice sampling",
     )
     parser.add_argument(
         "--min_num_images",
@@ -462,6 +491,12 @@ def parse_args(args_strings=None):
     parser.add_argument(
         "--base_model", type=str, default="vgg", help="Name of parent model"
     )
+    parser.add_argument(
+        "--replace_batchnorm_with_layernorm",
+        action="store_true",
+        default=False,
+        help="Use layernorm in FC layers",
+    )
 
     # losses and metrics
     parser.add_argument(
@@ -522,6 +557,24 @@ def parse_args(args_strings=None):
         type=float,
         default=0.001,
         help="Initial learning rate for adversary model [default: 0.001]",
+    )
+    parser.add_argument(
+        "--adv_num_classes",
+        type=int,
+        default=2,
+        help="Number of classes for adversary",
+    )
+    parser.add_argument(
+        "--adv_key",
+        type=str,
+        default="devices",
+        help="Name of classes for adversary",
+    )
+    parser.add_argument(
+        "--adv_conditional",
+        action="store_true",
+        default=False,
+        help="Adversarial learning conditioned on output of interest",
     )
 
     # schedule
@@ -701,7 +754,7 @@ def parse_args(args_strings=None):
 
     # logger
     parser.add_argument(
-        "--logger_name", type=str, default="comet", help="List of tags for comet logger"
+        "--logger_name", type=str, default=None, help="List of tags for comet logger"
     )
 
     # comet
@@ -722,7 +775,6 @@ def parse_args(args_strings=None):
         default=False,
         help="Log profiler times to logger",
     )
-
     # run
     parser = Trainer.add_argparse_args(parser)
     if args_strings is None:
