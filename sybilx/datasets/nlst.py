@@ -726,7 +726,85 @@ class NLSTDistill(NLSTCTProjectionsDataset):
         """
         NLST XRay Dataset which loads hiddens as well
         """
+        self.count_failed = 0
         super(NLSTDistill, self).__init__(args, split_group)
+
+    def create_dataset(self, split_group):
+        """
+        Gets the dataset from the paths and labels in the json.
+        Arguments:
+            split_group(str): One of ['train'|'dev'|'test'].
+        Returns:
+            The dataset as a dictionary with img paths, label,
+            and additional information regarding exam or participant
+        """
+        self.corrupted_paths = self.CORRUPTED_PATHS["paths"]
+        self.corrupted_series = self.CORRUPTED_PATHS["series"]
+
+        if self.args.assign_splits:
+            np.random.seed(self.args.cross_val_seed)
+            self.assign_splits(self.metadata_json)
+
+        dataset = []
+
+        for mrn_row in tqdm(self.metadata_json, position=0):
+            pid, split, exams, pt_metadata = (
+                mrn_row["pid"],
+                mrn_row["split"],
+                mrn_row["accessions"],
+                mrn_row["pt_metadata"],
+            )
+
+            if not split == split_group:
+                continue
+
+            for exam_dict in exams:
+
+                if self.args.use_only_thin_cuts_for_ct and split_group in [
+                    "train",
+                    "dev",
+                ]:
+                    thinnest_series_id = self.get_thinnest_cut(exam_dict)
+
+                elif split == "test" and self.args.assign_splits:
+                    thinnest_series_id = self.get_thinnest_cut(exam_dict)
+
+                elif split == "test":
+                    google_series = list(self.GOOGLE_SPLITS[pid]["exams"])
+                    nlst_series = list(exam_dict["image_series"].keys())
+                    thinnest_series_id = [s for s in nlst_series if s in google_series]
+                    assert len(thinnest_series_id) < 2
+                    if len(thinnest_series_id) > 0:
+                        thinnest_series_id = thinnest_series_id[0]
+                    elif len(thinnest_series_id) == 0:
+                        if self.args.assign_splits:
+                            thinnest_series_id = self.get_thinnest_cut(exam_dict)
+                        else:
+                            continue
+
+                for series_id, series_dict in exam_dict["image_series"].items():
+                    if self.skip_sample(series_dict, pt_metadata):
+                        continue
+
+                    if self.args.use_only_thin_cuts_for_ct and (
+                        not series_id == thinnest_series_id
+                    ):
+                        continue
+
+                    sample = self.get_volume_dict(
+                        series_id, series_dict, exam_dict, pt_metadata, pid, split
+                    )
+                    if len(sample) == 0:
+                        continue
+                    
+                    if not os.path.isfile(self.args.hiddens_dir + "/sample_{}".format(sample['exam']) + '.predictions'):
+                        self.count_failed += 1
+                        continue
+                    
+                    dataset.append(sample)
+        
+        print(self.count_failed)
+        return dataset
 
     def __getitem__(self, index):
         sample = self.dataset[index]
