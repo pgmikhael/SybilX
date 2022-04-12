@@ -61,6 +61,7 @@ def get_ordinal_ce_loss(model_output, batch, model, args):
     probs = torch.tril(probs).sum(2)
     probs = torch.exp(probs)
 
+    p_dict["logits"] = logit.detach()
     p_dict["probs"] = probs.detach()
     preds = probs > 0.5  # class = last prob > 0.5
     preds = preds.sum(-1)

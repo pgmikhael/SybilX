@@ -1,6 +1,5 @@
 from ast import arg
 from collections import OrderedDict
-from argparse import FileType, Namespace
 import pickle
 import os
 import sys
@@ -65,24 +64,8 @@ def cli_main(args):
     for key, value in sorted(vars(args).items()):
         print("{} -- {}".format(key.upper(), value))
 
-    if args.from_checkpoint:
-        if args.snapshot.endswith(".args"):
-            snargs = Namespace(**pickle.load(open(args.snapshot, "rb")))
-            model = get_object(snargs.lightning_name, "lightning")(snargs)
-            modelpath = snargs.model_path
-        elif args.snapshot.endswith(".ckpt"):
-            model = get_object(args.lightning_name, "lightning")(args)
-            modelpath = args.snapshot
-        else:
-            raise FileType("Snapshot should be an args or ckpt file.")
-        model = model.load_from_checkpoint(
-            checkpoint_path=modelpath, strict=not args.relax_checkpoint_matching
-        )
-        if "survival" in args.metrics:
-            args.censoring_distribution = model.args.censoring_distribution
-        model.args = args
-    else:
-        model = get_object(args.lightning_name, "lightning")(args)
+    # create or load lightning model from checkpoint
+    model = loaders.get_lightning_model(args)
 
     
     if args.logger_name == "comet":
@@ -102,13 +85,31 @@ def cli_main(args):
         trainer.fit(model, train_dataset, dev_dataset)
         args.model_path = trainer.checkpoint_callback.best_model_path
 
+    if args.dev:
+        log.info("\nValidation Phase...")
+        trainer.validate(
+            model, dev_dataset, ckpt_path=args.model_path
+        ) if args.train else trainer.validate(model, dev_dataset)
+
     # testing
     if args.test:
         log.info("\nInference Phase on test set...")
         test_dataset = loaders.get_eval_dataset_loader(
             args, get_object(args.dataset, "dataset")(args, "test"), False
         )
-        trainer.test(model, test_dataset)
+        trainer.test(
+            model, test_dataset, ckpt_path=args.model_path
+        ) if args.train else trainer.test(model, test_dataset)
+
+    if args.eval_on_train:
+        log.info("\nInference Phase on train set...")
+        train_dataset = loaders.get_eval_dataset_loader(
+            args, get_object(args.dataset, "dataset")(args, "train"), False
+        )
+        trainer.test(model, train_dataset)
+
+        log.info("\nInference Phase on train set...")
+        trainer.test(model, dev_dataset)
 
     print("Saving args to {}.args".format(args.results_path))
     pickle.dump(vars(args), open("{}.args".format(args.results_path), "wb"))

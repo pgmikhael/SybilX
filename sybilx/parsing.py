@@ -220,6 +220,12 @@ def parse_args(args_strings=None):
         help="Whether or not to fine_tune model",
     )
     parser.add_argument(
+        "--eval_on_train",
+        action="store_true",
+        default=False,
+        help="Whether or not to fine_tune model",
+    )
+    parser.add_argument(
         "--num_epochs_fine_tune",
         type=int,
         default=1,
@@ -383,8 +389,8 @@ def parse_args(args_strings=None):
     )
     parser.add_argument(
         "--resample_pixel_spacing_prob",
-        type = float,
-        default=1,
+        type=float,
+        default=0,
         help="Probability of resampling pixel spacing into fixed dimensions. 1 when eval and using resampling",
     )
     parser.add_argument(
@@ -484,6 +490,12 @@ def parse_args(args_strings=None):
     parser.add_argument("--lightning_name", type=str, default="vgg", help="Name of DNN")
     parser.add_argument(
         "--base_model", type=str, default="vgg", help="Name of parent model"
+    )
+    parser.add_argument(
+        "--replace_batchnorm_with_layernorm",
+        action="store_true",
+        default=False,
+        help="Use layernorm in FC layers",
     )
 
     # losses and metrics
@@ -742,7 +754,7 @@ def parse_args(args_strings=None):
 
     # logger
     parser.add_argument(
-        "--logger_name", type=str, default="comet", help="List of tags for comet logger"
+        "--logger_name", type=str, default=None, help="List of tags for comet logger"
     )
 
     # comet
@@ -763,7 +775,6 @@ def parse_args(args_strings=None):
         default=False,
         help="Log profiler times to logger",
     )
-
     # run
     parser = Trainer.add_argparse_args(parser)
     if args_strings is None:

@@ -11,7 +11,7 @@
       16
     ],
     "dataset": [
-      "nlst"
+      "nlst_siemens", "nlst_ge"
     ],
     "max_followup": [
       6
@@ -46,6 +46,7 @@
     "slice_thickness_filter": [2.5],
     "resample_pixel_spacing": [true],
     "ct_pixel_spacing": ["0.703125 0.703125 2.5"],
+    "resample_pixel_spacing_prob": [1],
     "limit_train_batches": [
       0.5
     ],
@@ -133,7 +134,7 @@
       "nlst-cancer"
     ],
     "comet_tags": [
-      "sybil"
+      "sybil spacing nlst ge"
     ],
     "num_sanity_val_steps": [
       0

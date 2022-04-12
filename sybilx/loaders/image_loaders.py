@@ -1,5 +1,6 @@
 from sybilx.loaders.abstract_loader import abstract_loader
 from sybilx.utils.registry import register_object
+import os
 import cv2
 import torch
 import pydicom
@@ -162,3 +163,5 @@ def apply_windowing(image, center, width, bit_size=16):
         image[between] = ((image[between] - c) / w + 0.5) * y_range + y_min
 
     return image
+
+
