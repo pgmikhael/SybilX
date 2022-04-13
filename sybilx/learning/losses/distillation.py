@@ -29,8 +29,9 @@ def get_knowledge_distillation_loss(model_output, batch, model, args):
     y_pred_student = model_output['logit']
     y_pred_teacher = batch['teacher_logit']
 
-    soft_teacher_out = F.softmax(y_pred_teacher / args.distill_temperature, dim=1)
-    soft_student_out = F.softmax(y_pred_student / args.distill_temperature, dim=1)
+    soft_teacher_out = F.sigmoid(y_pred_teacher / args.distill_temperature, dim=1)
+    # soft_student_out = F.softmax(y_pred_student / args.distill_temperature, dim=1)
+    soft_student_out = y_pred_student / args.distill_temperature
 
 
     if "survival" in args.loss_fns:
@@ -45,7 +46,7 @@ def get_knowledge_distillation_loss(model_output, batch, model, args):
         soft_teacher_out = soft_teacher_out[:, -1].unsqueeze(-1) 
         complement = 1 - soft_teacher_out
         # index 0 is prob of no cancer, index 1 is prob of 6 year cancer
-        soft_teacher_out = torch.cat([complement, soft_teacher_out], dim=1)
+        soft_teacher_out = torch.cat([complement, soft_teacher_out], dim=1) # B, 2
 
         ce_loss, _, prob_dict = get_cross_entropy_loss(model_output, batch, model, args)
         l_dict['cross_entropy'] = ce_loss.detach()
