@@ -9,7 +9,7 @@ from torch.utils import data
 from sybilx.utils.sampler import DistributedWeightedSampler
 from sybilx.utils.augmentations import get_augmentations
 from sybilx.loaders.image_loaders import OpenCVLoader, DicomLoader
-
+from pytorch_lightning.utilities.cloud_io import load as pl_load
 string_classes = (str, bytes)
 int_classes = int
 np_str_obj_array_pattern = re.compile(r"[SaUO]")
@@ -228,8 +228,15 @@ def get_lightning_model(args: Namespace):
         elif args.snapshot.endswith(".ckpt"):
             model = get_object(args.lightning_name, "lightning")(args)
             modelpath = args.snapshot
+            checkpoint = pl_load(args.snapshot, map_location=lambda storage, loc: storage)
+            snargs = checkpoint["hyper_parameters"]["args"]
         else:
             raise FileType("Snapshot should be an args or ckpt file.")
+        # update args with old args if not found
+        for k,v in vars(snargs).items():
+            if k not in args:
+                args.__setattr__(k,v)
+
         model = model.load_from_checkpoint(
             checkpoint_path=modelpath,
             strict=not args.relax_checkpoint_matching,
