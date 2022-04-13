@@ -2,6 +2,7 @@
   "script": "main",
   "grid_search_space": {
     "gpus": [1],
+    "precision": [16],
     "batch_size": [32],
     "accumulate_grad_batches": [1],
     "dataset": ["nlst_distill"],
@@ -57,7 +58,9 @@
     "scale_annotations": [false],
     "max_epochs": ["10"],
     "hiddens_dir": ["/Mounts/rbg-storage1/results/lung_ct/distillation/28a7cd44f5bcd3e6cc760b65c7e0d54depoch=10"],
-    "hidden_size": ["512"]
+    "hidden_size": ["512"],
+    "distill_student_loss_lambda": ["0.75"],
+    "distill_temperature": ["3"]
   },
   "paired_search_space": {
     "with_attention": [
