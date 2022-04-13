@@ -15,6 +15,7 @@ from sybilx.serie import Serie
 from sybilx.utils.loading import get_sample_loader
 from sybilx.datasets.utils import (
     fit_to_length,
+    get_cum_label,
     get_scaled_annotation_area,
     METAFILE_NOTFOUND_ERR,
     LOAD_FAIL_MSG,
@@ -369,6 +370,10 @@ class NLST_Survival_Dataset(data.Dataset):
             + [0] * (self.args.max_followup - (time_at_event + 1))
         )
         assert len(y_mask) == self.args.max_followup
+
+        if "corn" in self.args.loss_fns:
+            y_seq, y_mask = get_cum_label(y, time_at_event, self.args.max_followup)
+
         return y, y_seq.astype("float64"), y_mask.astype("float64"), time_at_event
 
     def is_localizer(self, series_dict):

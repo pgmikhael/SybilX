@@ -21,9 +21,12 @@ class SybilNet(nn.Module):
         self.relu = nn.ReLU(inplace=False)
         self.dropout = nn.Dropout(p=args.dropout)
 
-        self.prob_of_failure_layer = Cumulative_Probability_Layer(
-            self.hidden_dim, args, max_followup=args.max_followup
-        )
+        if "corn" in self.args.loss_fns:
+            self.prob_of_failure_layer = nn.Linear(self.hidden_dim, args.max_followup)
+        else:
+            self.prob_of_failure_layer = Cumulative_Probability_Layer(
+                self.hidden_dim, args, max_followup=args.max_followup
+            )
 
     def forward(self, x, batch = None):
         output = {}
