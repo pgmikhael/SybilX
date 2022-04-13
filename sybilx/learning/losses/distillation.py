@@ -54,6 +54,9 @@ def get_knowledge_distillation_loss(model_output, batch, model, args):
     distill_loss = (args.distill_temperature ** 2) * F.cross_entropy(soft_student_out, soft_teacher_out)
     l_dict['distill_loss'] = distill_loss.detach()
 
+    p_dict['probs'] = prob_dict['probs']
+    p_dict['golds'] = prob_dict['golds']
+    p_dict['preds'] = prob_dict['preds']
     # weighted average: lambda * distill_loss + (1-lambda) * ce_loss
     loss = args.distill_student_loss_lambda *  distill_loss + (1 - args.distill_student_loss_lambda) * ce_loss
     l_dict['student_loss'] = loss.detach()
