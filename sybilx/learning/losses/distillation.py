@@ -81,7 +81,7 @@ def get_mse_knowledge_distillation_loss(model_output, batch, model, args):
         ce_loss, _, prob_dict = get_cross_entropy_loss(model_output, batch, model, args)
         l_dict['cross_entropy'] = ce_loss.detach()
     
-    assert y_pred_student.shape == y_pred_teacher, "hiddens are not the same shape, so cant compute MSE"
+    assert y_pred_student.shape == y_pred_teacher.shape, "hiddens are not the same shape, so cant compute MSE"
     distill_loss = F.mse_loss(y_pred_student, y_pred_teacher)
     l_dict['distill_loss'] = distill_loss.detach()
     
