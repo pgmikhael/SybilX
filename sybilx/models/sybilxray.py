@@ -1,11 +1,11 @@
+import copy
 import torch
 import torch.nn as nn
 import pretrainedmodels
 from torchvision.models import resnet50, resnet152 #, vit_l_16, vit_b_16#, convnext_large
 
 from sybilx.models.cumulative_probability_layer import Cumulative_Probability_Layer
-from sybilx.utils.registry import register_object
-
+from sybilx.utils.registry import register_object, get_object
 
 class AttentionPool2D(nn.Module):
     """Simple 2D version of Sybil's Attention Pool."""
@@ -209,3 +209,47 @@ class SybilXrayViT(SybilXrayInception):
 #    @property
 #    def ENCODER_OUTPUT_DIM(self):
 #        return 1536
+
+@register_object("sybilxray_finetune", "model")
+class SybilXrayFinetune(SybilXrayInception):
+    def __init__(self, args):
+        super(SybilXrayFinetune, self).__init__()
+
+        self.finetune_model_args = copy.deepcopy(args)
+        self.finetune_model_args.base_model = self.args.finetune_model
+        self.model = get_object(self.finetune_model_args.lightning_name, "lightning")(self.finetune_model_args)
+        finetune_model = self.ct_encoder.load_from_checkpoint(
+            checkpoint_path=args.finetune_model_path, strict=not self.finetune_model_args.relax_checkpoint_matching
+        ).model
+        finetune_model.args = self.finetune_model_args
+
+        self.image_encoder = finetune_model.image_encoder
+
+        if not self.args.reset_decoder:
+            if args.with_attention:
+                self.pool = finetune_model.pool
+
+            self.lin1 = finetune_model.lin1
+
+            self.relu = nn.ReLU(inplace=False)
+            self.dropout = nn.Dropout(p=args.dropout)
+            if "survival" in args.loss_fns or "corn" in self.args.loss_fns:
+                self.prob_of_failure_layer = finetune_model.prob_of_failure_layer
+            else:
+                self.fc = finetune_model.fc
+        
+        self.avg_pool = nn.AdaptiveAvgPool2d((1, 1))
+
+    def forward(self, x, batch = None):
+        output = {}
+        #if self.args.freeze_encoder_weights:
+        #    with torch.no_grad():
+        #        x = self.image_encoder(x)
+        #else:
+        x = self.image_encoder(x)
+
+        output["activ_2d"] = x
+        pool_output = self.aggregate_and_classify(x)
+        output.update(pool_output)
+
+        return output
