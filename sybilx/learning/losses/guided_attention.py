@@ -193,14 +193,7 @@ def get_2d_side_annotation_loss(model_output, batch, model, args):
 
     B, C, H, W = model_output["activ_2d"].shape
 
-    batch_mask = batch["projection_has_annotation"]
-
     if model_output.get("image_attention_2d", None) is not None:
-        if len(batch["projection_image_annotations"].shape) == 3:
-            batch["projection_image_annotations"] = batch["projection_image_annotations"].unsqueeze(1)
-
-        num_annotated_samples = batch_mask.sum() # tensor(int), dim=0
-        num_annotated_samples = max(1, num_annotated_samples)
 
         # attend to cancer side
         cancer_side_mask = (batch["cancer_laterality"][:, :2].sum(-1) == 1).float()[:, None]  # (B, 1), only one side is positive
