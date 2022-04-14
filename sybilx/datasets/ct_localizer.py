@@ -186,6 +186,8 @@ class NLSTCTLocalizers(data.Dataset):
 
     def get_volume_dict(self, series_id, series_dict, exam_dict, pt_metadata, pid, split):
         path = series_dict["paths"]
+        if type(path) == list:
+            path = path[0]
         screen_timepoint = exam_dict["screen_timepoint"] # series_data["study_yr"][0]
 
         if self.args.img_file_type == "dicom":
@@ -383,7 +385,7 @@ class NLSTCTLocalizers(data.Dataset):
         return pickle.load(open(CORRUPTED_PATHS, "rb"))
 
     def get_summary_statement(self, dataset, split_group):
-        summary = "Contructed NLST X-Ray Cancer Risk {} dataset with {} records, {} exams, {} patients, and the following class balance \n {}"
+        summary = "Contructed NLST CT Localizer {} dataset with {} records, {} exams, {} patients, and the following class balance \n {}"
         class_balance = Counter([d["y"] for d in dataset])
         exams = set([d["exam"] for d in dataset])
         patients = set([d["pid"] for d in dataset])
@@ -397,39 +399,8 @@ class NLSTCTLocalizers(data.Dataset):
         return statement
 
     def get_ct_annotations(self, sample):
-        # correct empty lists of annotations
-        if sample["series"] in self.annotations_metadata:
-            self.annotations_metadata[sample["series"]] = {
-                k: v
-                for k, v in self.annotations_metadata[sample["series"]].items()
-                if len(v) > 0
-            }
-
-        if sample["series"] in self.annotations_metadata:
-            # check if there is an annotation in a slice
-            sample["volume_annotations"] = np.array(
-                [
-                    int(
-                        os.path.splitext(os.path.basename(path))[0]
-                        in self.annotations_metadata[sample["series"]]
-                    )
-                    for path in sample["paths"]
-                ]
-            )
-            # store annotation(s) data (x,y,width,height) for each slice
-            sample["annotations"] = [
-                {
-                    "image_annotations": self.annotations_metadata[
-                        sample["series"]
-                    ].get(os.path.splitext(os.path.basename(path))[0], None)
-                }
-                for path in sample["paths"]
-            ]
-        else:
-            sample["volume_annotations"] = np.array([0 for _ in sample["paths"]])
-            sample["annotations"] = [
-                {"image_annotations": None} for path in sample["paths"]
-            ]
+        sample["volume_annotations"] = np.array([0])
+        sample["annotations"] = {"image_annotations": None}
         return sample
 
     def __len__(self):
@@ -437,32 +408,27 @@ class NLSTCTLocalizers(data.Dataset):
 
     def __getitem__(self, index):
         sample = self.dataset[index]
-        # if self.args.use_annotations:
-        #     sample = self.get_ct_annotations(sample)
-        #     sample["annotation_areas"] = get_scaled_annotation_area(sample, self.args)
-        #     sample["has_annotation"] = np.sum(sample["volume_annotations"]) > 0
+        if self.args.use_annotations:
+            sample = self.get_ct_annotations(sample)
+        item = {}
+        input_dict = self.get_image(sample["path"], sample)
+
         try:
-            item = {}
-            input_dict = self.get_image(sample["path"], sample)
+            x, mask = input_dict["input"], input_dict["mask"]
+        except KeyError:
+            x = input_dict["input"]
+            mask = None
 
-            try:
-                x, mask = input_dict["input"], input_dict["mask"]
-            except KeyError:
-                x = input_dict["input"]
-                mask = None
+        if self.args.use_risk_factors:
+            item["risk_factors"] = sample["risk_factors"]
 
-            if self.args.use_risk_factors:
-                item["risk_factors"] = sample["risk_factors"]
+        item["x"] = x
+        item["y"] = sample["y"]
+        for key in CT_ITEM_KEYS:
+            if key in sample:
+                item[key] = sample[key]
 
-            item["x"] = x
-            item["y"] = sample["y"]
-            for key in CT_ITEM_KEYS:
-                if key in sample:
-                    item[key] = sample[key]
-
-            return item
-        except Exception:
-            warnings.warn(LOAD_FAIL_MSG.format(sample["exam"], traceback.print_exc()))
+        return item
 
     def get_image(self, path, sample):
         """
