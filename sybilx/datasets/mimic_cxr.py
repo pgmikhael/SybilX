@@ -2,6 +2,7 @@ import json
 from collections import Counter
 from random import shuffle
 
+import torch
 import numpy as np
 from torch.utils import data
 from tqdm import tqdm
@@ -13,6 +14,8 @@ from sybilx.datasets.nlst_xray import METAFILE_NOTFOUND_ERR
 METADATA_PATH = "/Mounts/rbg-storage1/datasets/MIMIC/metadata_feb_2021.json"
 
 SUMMARY_MSG = "Contructed Mimic CXR {} {} dataset with {} records, {} exams, {} patients"
+MIMIC_TASKS = ["Pneumothorax", "Pneumonia", "Pleural", "Other", "Pleural", "Effusion", "Lung", "Lesion", "Fracture", "Enlarged", "Cardiomediastinum", "Edema",
+               "Consolidation", "Cardiomegaly", "Atelectasis", "Lung", "Opacity", "No Finding"]
 CXR_DATASET_NAMES = ["mimic_cxr_opacity", "mimic_cxr_atelectasis", "mimic_cxr_cardiomegaly", "mimic_cxr_consolidation", "mimic_cxr_edema",
                      "mimic_cxr_enlarged_cardiomediastinum", "mimic_cxr_fracture", "mimic_pleural_effusion", "mimic_pleural_other", "mimic_pneumonia", "mimic_pneumothorax"]
 
@@ -137,6 +140,25 @@ class Abstract_Mimic_Cxr(data.Dataset):
     #    args.test_image_augmentations = ["scale_2d"]
     #    args.test_tensor_augmentations = ["normalize_2d"]
 
+@register_object("mimic_all", "dataset")
+class Mimic_Cxr_All(Abstract_Mimic_Cxr):
+
+    def get_label(self, row):
+        if self.args.treat_ambiguous_as_positive:
+            y = [row['label_dict'][task] in ["1.0","-1.0"] for task in MIMIC_TASKS]
+        else:
+            y = [row['label_dict'][task] == "1.0" for task in MIMIC_TASKS]
+        return torch.tensor(y)
+
+    def check_label(self, row):
+        findings_correct = all(row['label_dict'][task] in ["1.0", "0.0", "-1.0", ""] for task in MIMIC_TASKS)
+        any_findings = any(row['label_dict'][task] == "1.0" for task in MIMIC_TASKS[:-1])
+        no_findings = row['label_dict']['No Finding'] == "1.0"
+        return findings_correct and (any_findings == (not no_findings))
+
+    @property
+    def task(self):
+        return "Combined"
 
 @register_object("mimic_pneumothorax", "dataset")
 class Mimic_Cxr_Pneumothorax(Abstract_Mimic_Cxr):
