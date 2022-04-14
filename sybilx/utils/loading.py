@@ -2,12 +2,14 @@ from argparse import Namespace, FileType
 import pickle
 import collections.abc as container_abcs
 import re
+from tabnanny import check
 from typing import Literal
 from sybilx.utils.registry import get_object
 import torch
 from torch.utils import data
 from sybilx.utils.sampler import DistributedWeightedSampler
 from sybilx.utils.augmentations import get_augmentations
+from pytorch_lightning.utilities.cloud_io import load as pl_load
 from sybilx.loaders.image_loaders import OpenCVLoader, DicomLoader
 
 string_classes = (str, bytes)
@@ -191,7 +193,7 @@ def get_sample_loader(split_group: Literal["train", "dev", "test"], args: Namesp
     NotImplementedError
         img_file_type must be one of "dicom" or "png"
     """
-    if split_group == "test":
+    if split_group in ["test", "dev"]:
         augmentations = get_augmentations(
             args.test_rawinput_augmentations, args.test_tnsr_augmentations, args
         )
@@ -228,8 +230,16 @@ def get_lightning_model(args: Namespace):
         elif args.snapshot.endswith(".ckpt"):
             model = get_object(args.lightning_name, "lightning")(args)
             modelpath = args.snapshot
+            checkpoint = pl_load(
+                args.snapshot, map_location=lambda storage, loc: storage
+            )
+            snargs = checkpoint["hyper_parameters"]["args"]
         else:
             raise FileType("Snapshot should be an args or ckpt file.")
+        # update args with old args if not found
+        for k, v in vars(snargs).items():
+            if k not in args:
+                args.__setattr__(k, v)
         model = model.load_from_checkpoint(
             checkpoint_path=modelpath,
             strict=not args.relax_checkpoint_matching,
