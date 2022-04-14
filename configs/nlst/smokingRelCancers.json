@@ -81,8 +81,7 @@
         3
       ],
       "loss_fns": [
-        "survival guided_attention",
-        "survival"
+        "survival guided_attention"
       ],
       "metrics": [
         "survival_classification survival"
