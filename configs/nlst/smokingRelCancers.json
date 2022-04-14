@@ -27,7 +27,7 @@
         "base"
       ],
       "weight_decay": [
-        1e-2
+        1e-4
       ],
       "momentum": [
         0.9
@@ -48,7 +48,7 @@
         "256 256"
       ],
       "lr": [
-        3e-6
+        3e-4
       ],
       "base_model": [
         "sybil"
