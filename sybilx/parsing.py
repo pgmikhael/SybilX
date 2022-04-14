@@ -314,6 +314,12 @@ def parse_args(args_strings=None):
         default=False,
         help=""
     )
+    parser.add_argument(
+        "--treat_ambiguous_as_positive",
+        action="store_true",
+        default=False,
+        help=""
+    )
 
     # Alternative training/testing schemes
     parser.add_argument(
