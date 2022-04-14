@@ -69,8 +69,8 @@
     "input_loader_name": [
         "tif_loader",
         "tif_loader",
-        "dicom_loader",
-        "dicom_loader"
+        "dicom_xray_loader",
+        "dicom_xray_loader"
     ],
     "img_file_type": [
         "tif",

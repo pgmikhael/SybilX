@@ -70,10 +70,10 @@
         "/Mounts/rbg-storage1/datasets/ACRIN_XRAY/metadata_2022_04_10.json"
     ],
     "input_loader_name": [
-        "dicom_loader",
-        "dicom_loader",
-        "dicom_loader",
-        "dicom_loader"
+        "dicom_xray_loader",
+        "dicom_xray_loader",
+        "dicom_xray_loader",
+        "dicom_xray_loader"
     ],
     "img_file_type": [
         "dicom",

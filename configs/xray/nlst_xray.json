@@ -6,7 +6,7 @@
     "accumulate_grad_batches": [1],
     "dataset": ["nlst_xray"],
     "max_followup": [6],
-    "input_loader_name": ["dicom_loader"],
+    "input_loader_name": ["dicom_xray_loader"],
     "img_file_type": ["dicom"],
     "lightning_name": ["base"],
     "weight_decay": [0.01],

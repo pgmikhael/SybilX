@@ -161,23 +161,9 @@ class NLSTCTLocalizers(data.Dataset):
         is_localizer = self.is_localizer(series_data)
         if not is_localizer:
             return True
-        else:
-            # is localizer, now check that is frontal screen (ie not lateral)
-            # TODO: update json with ImageOrientationPatient
-            # Here the test mutates the image paths
-            num_images = len(series_dict['paths'])
-            lateral_count = 0
-            for path in series_dict['paths']:
-                ds = pydicom.dcmread(path.replace("nlst-ct-png", "nlst-ct").replace(".png", ""), stop_before_pixels=True)
-                # TODO: here decision is to use arbitrary localizer in the paths if it is frontal
-                if ds.ImageOrientationPatient[0] == 0:
-                    lateral_count += 1
-                elif ds.ImageOrientationPatient[0] != 0:
-                    series_dict['paths'] = path
-                    break
-            # all localizer images are lateral, then skip this sample
-            if lateral_count == num_images:
-                return True
+
+        if series_dict['is_lateral']:
+            return True
 
         # check if valid label (info is not missing)
         screen_timepoint = exam_dict["screen_timepoint"] # series_data["study_yr"][0]
