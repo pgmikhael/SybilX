@@ -93,7 +93,7 @@ class NLST_Survival_Dataset(data.Dataset):
 
         self.input_loader = get_sample_loader(split_group, args)
         self.always_resample_pixel_spacing = (args.resample_pixel_spacing) and (
-            split_group == "test"
+            split_group in ["dev","test"]
         )
         if args.resample_pixel_spacing:
             self.resample_transform = tio.transforms.Resample(
