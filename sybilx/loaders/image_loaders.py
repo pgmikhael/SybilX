@@ -334,9 +334,9 @@ class CT16Loader(abstract_loader):
 
 
 @register_object("dicom_xray_loader", "input_loader")
-class DicomLoader(abstract_loader):
+class DicomXrayLoader(abstract_loader):
     def __init__(self, cache_path, augmentations, args):
-        super(DicomLoader, self).__init__(cache_path, augmentations, args)
+        super(DicomXrayLoader, self).__init__(cache_path, augmentations, args)
 
     def configure_path(self, path, sample):
         return path
