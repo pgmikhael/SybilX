@@ -75,23 +75,8 @@ def cli_main(args):
         # compute censoring distribution
         args.censoring_distribution = get_censoring_dist(train_dataset.dataset)
     
-
-    if args.from_checkpoint:
-        if args.snapshot.endswith(".args"):
-            snargs = Namespace(**pickle.load(open(args.snapshot, "rb")))
-            model = get_object(snargs.lightning_name, "lightning")(snargs)
-            modelpath = snargs.model_path
-        elif args.snapshot.endswith(".ckpt"):
-            model = get_object(args.lightning_name, "lightning")(args)
-            modelpath = args.snapshot
-        else:
-            raise FileType("Snapshot should be an args or ckpt file.")
-        model = model.load_from_checkpoint(
-            checkpoint_path=modelpath, strict=not args.relax_checkpoint_matching
-        )
-        model.args = args
-    else:
-        model = get_object(args.lightning_name, "lightning")(args)
+    # create or load lightning model from checkpoint
+    model = loaders.get_lightning_model(args)
 
     if args.logger_name == "comet":
         # log to comet
@@ -118,7 +103,6 @@ def cli_main(args):
         test_dataset = loaders.get_eval_dataset_loader(
             args, get_object(args.dataset, "dataset")(args, "test"), False
         )
-        trainer.test(model, test_dataset)
         trainer.test(
             model, test_dataset, ckpt_path=args.model_path
         ) if args.train else trainer.test(model, test_dataset)
