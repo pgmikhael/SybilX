@@ -46,6 +46,7 @@
     "use_risk_factors": [true],
     "assign_splits": [true],
     "split_type": ["random"],
+    "split_probs": ["0.7 0.15 0.15"],
     "val_check_interval": [1.0],
     "ignore_warnings": [false],
     "dropout": [0.1],

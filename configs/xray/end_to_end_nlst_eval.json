@@ -2,6 +2,8 @@
   "script": "main",
   "grid_search_space": {
     "cross_val_seed": [0],
+    "assign_splits": [true],
+    "split_probs": ["0.7 0.15 0.15"],
     "gpus": [1],
     "batch_size": [32],
     "accumulate_grad_batches": [1],
@@ -39,7 +41,6 @@
     "num_sanity_val_steps": [0],
     "profiler": ["simple"],
     "use_risk_factors": [true],
-    "assign_splits": [true],
     "split_type": ["random"],
     "val_check_interval": [1.0],
     "ignore_warnings": [false],

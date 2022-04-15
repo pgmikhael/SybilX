@@ -4,6 +4,7 @@
     "cross_val_seed": [0],
     "assign_splits": [true],
     "split_type": ["random"],
+    "split_probs": ["0.7 0.15 0.15"],
     "gpus": [1],
     "batch_size": [32],
     "accumulate_grad_batches": [1],
