@@ -1,4 +1,5 @@
-from argparse import Namespace
+from argparse import Namespace, FileType
+import pickle
 import collections.abc as container_abcs
 import re
 from typing import Literal
@@ -7,6 +8,7 @@ import torch
 from torch.utils import data
 from sybilx.utils.sampler import DistributedWeightedSampler
 from sybilx.utils.augmentations import get_augmentations
+from pytorch_lightning.utilities.cloud_io import load as pl_load
 from sybilx.loaders.image_loaders import OpenCVLoader, DicomLoader
 
 string_classes = (str, bytes)
@@ -201,3 +203,46 @@ def get_sample_loader(split_group: Literal["train", "dev", "test"], args: Namesp
     return get_object(args.input_loader_name, "input_loader")(
         args.cache_path, augmentations, args
     )
+
+def get_lightning_model(args: Namespace):
+    """Create new model or load from checkpoint
+
+    Args:
+        args (Namespace): global args
+
+    Raises:
+        FileType: snapshot must be ".args" or ".ckpt" file
+
+    Returns:
+        model: pl.LightningModule instance
+    """
+    if args.from_checkpoint:
+        if args.snapshot.endswith(".args"):
+            snargs = Namespace(**pickle.load(open(args.snapshot, "rb")))
+            # update saved args with new arguments
+            for k, v in vars(args).items():
+                if k not in snargs:
+                    snargs.__setattr__(k, v)
+            model = get_object(snargs.lightning_name, "lightning")(snargs)
+            modelpath = snargs.model_path
+        elif args.snapshot.endswith(".ckpt"):
+            model = get_object(args.lightning_name, "lightning")(args)
+            modelpath = args.snapshot
+            checkpoint = pl_load(
+                args.snapshot, map_location=lambda storage, loc: storage
+            )
+            snargs = checkpoint["hyper_parameters"]["args"]
+        else:
+            raise FileType("Snapshot should be an args or ckpt file.")
+        # update args with old args if not found
+        for k, v in vars(snargs).items():
+            if k not in args:
+                args.__setattr__(k, v)
+        model = model.load_from_checkpoint(
+            checkpoint_path=modelpath,
+            strict=not args.relax_checkpoint_matching,
+            **{"args": args}
+        )
+    else:
+        model = get_object(args.lightning_name, "lightning")(args)
+    return model
