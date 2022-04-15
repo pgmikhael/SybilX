@@ -19,6 +19,8 @@ CHEXPERT_TASKS = ["Enlarged Cardiomediastinum", "Cardiomegaly", "Lung Opacity",
                   "Pneumothorax", "Pleural Effusion", "Pleural Other", "Fracture",
                   "Support Devices", "No Finding"]
 
+POSSIBLE_FINDINGS = CHEXPERT_TASKS[:-2] # "Support Devices" and "No Finding" don't count as findings
+
 class Abstract_Chexpert(data.Dataset):
     '''CheXpert dataset
     '''
@@ -138,7 +140,7 @@ class Chexpert_All(Abstract_Chexpert):
 
     def check_label(self, row):
         findings_correct = all(row['label_dict'][task] in ["1.0", "0.0", "-1.0", ""] for task in CHEXPERT_TASKS)
-        any_findings = any(row['label_dict'][task] == "1.0" for task in CHEXPERT_TASKS[:-1])
+        any_findings = any(row['label_dict'][task] == "1.0" for task in POSSIBLE_FINDINGS)
         no_findings = row['label_dict']['No Finding'] == "1.0"
         return findings_correct and (any_findings == (not no_findings))
 

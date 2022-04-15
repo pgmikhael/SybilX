@@ -14,8 +14,11 @@ from sybilx.datasets.nlst_xray import METAFILE_NOTFOUND_ERR
 METADATA_PATH = "/Mounts/rbg-storage1/datasets/MIMIC/metadata_feb_2021.json"
 
 SUMMARY_MSG = "Contructed Mimic CXR {} {} dataset with {} records, {} exams, {} patients"
-MIMIC_TASKS = ["Pneumothorax", "Pneumonia", "Pleural Other", "Pleural Effusion", "Lung Lesion", "Fracture", "Enlarged Cardiomediastinum", "Edema",
-               "Consolidation", "Cardiomegaly", "Atelectasis", "Lung Opacity", "No Finding"]
+MIMIC_TASKS = ["Atelectasis", "Cardiomegaly", "Consolidation", "Edema", "Enlarged Cardiomediastinum",
+               "Fracture", "Lung Lesion", "Lung Opacity", "Pleural Effusion", "Pleural Other",
+               "Pneumonia", "Pneumothorax", "Support Devices", "No Finding"]
+
+POSSIBLE_FINDINGS = MIMIC_TASKS[:-2] # "Support Devices" and "No Finding" don't count as findings
 
 class Abstract_Mimic_Cxr(data.Dataset):
     '''MIMIC-CXR dataset
@@ -153,7 +156,7 @@ class Mimic_Cxr_All(Abstract_Mimic_Cxr):
 
     def check_label(self, row):
         findings_correct = all(row['label_dict'][task] in ["1.0", "0.0", "-1.0", ""] for task in MIMIC_TASKS)
-        any_findings = any(row['label_dict'][task] == "1.0" for task in MIMIC_TASKS[:-1])
+        any_findings = any(row['label_dict'][task] == "1.0" for task in POSSIBLE_FINDINGS)
         no_findings = row['label_dict']['No Finding'] == "1.0"
         return findings_correct and (any_findings == (not no_findings))
 

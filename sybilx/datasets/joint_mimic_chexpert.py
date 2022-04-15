@@ -17,9 +17,11 @@ JOINT_METADATA_PATH = "/data/rsg/mammogram/CheXpert-v1.0-small/mimic_stanford_fe
 SUMMARY_MSG = "Contructed Joint MIMIC-CXR and CheXpert {} {} dataset with {} records, {} exams, {} patients"
 
 JOINT_TASKS = ["Enlarged Cardiomediastinum", "Cardiomegaly", "Lung Opacity",
-                  "Lung Lesion", "Edema", "Consolidation", "Pneumonia", "Atelectasis",
-                  "Pneumothorax", "Pleural Effusion", "Pleural Other", "Fracture",
-                  "Support Devices", "No Finding"]
+               "Lung Lesion", "Edema", "Consolidation", "Pneumonia", "Atelectasis",
+               "Pneumothorax", "Pleural Effusion", "Pleural Other", "Fracture",
+               "Support Devices", "No Finding"]
+
+POSSIBLE_FINDINGS = JOINT_TASKS[:-2] # "Support Devices" and "No Finding" don't count as findings
 
 class Mimic_Chexpert_Joint_Abstract_Dataset(data.Dataset):
     '''CheXpert dataset
@@ -147,7 +149,7 @@ class Mimic_Chexpert_Joint_All_Dataset(Mimic_Chexpert_Joint_Abstract_Dataset):
 
     def check_label(self, row):
         findings_correct = all(row['label_dict'][task] in ["1.0", "0.0", "-1.0", ""] for task in JOINT_TASKS)
-        any_findings = any(row['label_dict'][task] == "1.0" for task in JOINT_TASKS[:-1])
+        any_findings = any(row['label_dict'][task] == "1.0" for task in POSSIBLE_FINDINGS)
         no_findings = row['label_dict']['No Finding'] == "1.0"
         return findings_correct and (any_findings == (not no_findings))
 
