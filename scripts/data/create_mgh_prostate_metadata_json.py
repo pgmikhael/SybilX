@@ -9,6 +9,8 @@ import argparse
 import pandas as pd
 import pydicom
 
+import time 
+
 SPLIT_PROBS = [0.7, 0.15, 0.15]
 
 
@@ -23,27 +25,27 @@ parser.add_argument(
 )
 
 if __name__ == "__main__":
+    print("in name main section of code", flush=True)
     args = parser.parse_args()
 
     dicoms = []
+    print("parsed args")
     for root, _, files in os.walk(args.data_dir):
         dicoms.extend([os.path.join(root, f) for f in files if f.endswith(".dcm")])
-
-    def make_metadata_dict(
-        dataframe,
-        pid,
-    ):
-
-        df = dataframe.loc[(dataframe.pid == int(pid))]
-        if df.shape[0] > 0:
-            return df.to_dict("list")
-        else:
-            return {}
 
     json_dataset = []
     pid2idx = {}
     peid2idx = {}
+    print("collected dicoms, size is: ", len(dicoms))
+    i = 0
+    start = time.time()
     for path in tqdm(dicoms):
+        if i % 20 == 0:
+            print("on dicom ", i)
+            now = time.time()
+            print(now - start, " time has passed since starting")
+        i += 1
+
         dcm_meta = pydicom.dcmread(path, stop_before_pixels=True)
 
         dcm_keys = list(dcm_meta.keys())
@@ -107,10 +109,10 @@ if __name__ == "__main__":
                 "accessions": [exam_dict],
                 "pid": pid,
                 "split": np.random.choice(["train", "dev", "test"], p=SPLIT_PROBS),
-                "pt_metadata": make_metadata_dict(meta_data, pid),
             }
             pt_dict["accessions"][0]["image_series"] = [img_dict]
 
             json_dataset.append(pt_dict)
 
+    print("parsed info, about to dump into dataset")
     json.dump(json_dataset, open(args.output_json_path, "w"))
