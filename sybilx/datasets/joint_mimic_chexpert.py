@@ -134,6 +134,9 @@ class Mimic_Chexpert_Joint_Abstract_Dataset(data.Dataset):
 
         return sample
 
+    def __len__(self):
+        return self.dataset.__len__()
+
     @property
     def METADATA_FILENAME(self):
         return JOINT_METADATA_PATH

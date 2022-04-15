@@ -125,6 +125,9 @@ class Abstract_Chexpert(data.Dataset):
 
         return sample
 
+    def __len__(self):
+        return self.dataset.__len__()
+
     @property
     def METADATA_FILENAME(self):
         return METADATA_PATH

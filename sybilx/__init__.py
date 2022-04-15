@@ -29,6 +29,7 @@ import sybilx.datasets.mgh
 import sybilx.datasets.mnist
 import sybilx.datasets.mimic_cxr
 import sybilx.datasets.chexpert
+import sybilx.datasets.joint_mimic_chexpert
 # augmentation
 import sybilx.augmentations.rawinput
 import sybilx.augmentations.tensor
