@@ -103,7 +103,6 @@ def cli_main(args):
         test_dataset = loaders.get_eval_dataset_loader(
             args, get_object(args.dataset, "dataset")(args, "test"), False
         )
-        trainer.test(model, test_dataset)
         trainer.test(
             model, test_dataset, ckpt_path=args.model_path
         ) if args.train else trainer.test(model, test_dataset)
