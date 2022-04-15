@@ -1,6 +1,7 @@
 import json
 from collections import Counter
 from random import shuffle
+from shlex import join
 
 import torch
 import numpy as np
@@ -11,15 +12,16 @@ from sybilx.utils.registry import register_object
 from sybilx.utils.loading import get_sample_loader
 from sybilx.datasets.nlst_xray import METAFILE_NOTFOUND_ERR
 
-METADATA_PATH = "/data/rsg/mammogram/CheXpert-v1.0-small/metadata_feb_2021.json"
+JOINT_METADATA_PATH = "/data/rsg/mammogram/CheXpert-v1.0-small/mimic_stanford_feb_2021.json"
 
-SUMMARY_MSG = "Contructed CheXpert CXR {} {} dataset with {} records, {} exams, {} patients"
-CHEXPERT_TASKS = ["Enlarged Cardiomediastinum", "Cardiomegaly", "Lung Opacity",
+SUMMARY_MSG = "Contructed Joint MIMIC-CXR and CheXpert {} {} dataset with {} records, {} exams, {} patients"
+
+JOINT_TASKS = ["Enlarged Cardiomediastinum", "Cardiomegaly", "Lung Opacity",
                   "Lung Lesion", "Edema", "Consolidation", "Pneumonia", "Atelectasis",
                   "Pneumothorax", "Pleural Effusion", "Pleural Other", "Fracture",
                   "Support Devices", "No Finding"]
 
-class Abstract_Chexpert(data.Dataset):
+class Mimic_Chexpert_Joint_Abstract_Dataset(data.Dataset):
     '''CheXpert dataset
     '''
     def __init__(self, args, split_group):
@@ -30,14 +32,14 @@ class Abstract_Chexpert(data.Dataset):
 
         constructs: standard pytorch Dataset obj, which can be fed in a DataLoader for batching
         """
-        super(Abstract_Chexpert, self).__init__()
+        super(Mimic_Chexpert_Joint_Abstract_Dataset, self).__init__()
 
         self.split_group = split_group
         self.args = args
 
         # sanity check
-        if args.dataset_file_path != METADATA_PATH:
-            print(f"WARNING! Dataset path set to unexpected path!\nexpected: {METADATA_PATH}\nGot: {args.dataset_file_path}")
+        if args.dataset_file_path != JOINT_METADATA_PATH:
+            print(f"WARNING! Dataset path set to unexpected path!\nexpected: {JOINT_METADATA_PATH}\nGot: {args.dataset_file_path}")
 
         try:
             self.metadata_json = json.load(open(args.dataset_file_path, "r"))
@@ -82,6 +84,12 @@ class Abstract_Chexpert(data.Dataset):
             if split != split_group:
                 continue
 
+            if row['source'] == 'mimic':
+                source = 'mimic'
+            else:
+                assert row['source'] == 'stanford'
+                source = 'chexpert'
+
             if self.check_label(row):
                 label = self.get_label(row)
                 dataset.append({
@@ -90,6 +98,7 @@ class Abstract_Chexpert(data.Dataset):
                     'y': label,
                     'additional': {},
                     'exam': exam,
+                    'source': source
                 })
 
         return dataset
@@ -125,20 +134,20 @@ class Abstract_Chexpert(data.Dataset):
 
     @property
     def METADATA_FILENAME(self):
-        return METADATA_PATH
+        return JOINT_METADATA_PATH
 
-@register_object("chexpert_all", "dataset")
-class Chexpert_All(Abstract_Chexpert):
+@register_object("mimic+chexpert_all", "dataset")
+class Mimic_Chexpert_Joint_All_Dataset(Mimic_Chexpert_Joint_Abstract_Dataset):
     def get_label(self, row):
         if self.args.treat_ambiguous_as_positive:
-            y = [row['label_dict'][task] in ["1.0","-1.0"] for task in CHEXPERT_TASKS]
+            y = [row['label_dict'][task] in ["1.0","-1.0"] for task in JOINT_TASKS]
         else:
-            y = [row['label_dict'][task] == "1.0" for task in CHEXPERT_TASKS]
+            y = [row['label_dict'][task] == "1.0" for task in JOINT_TASKS]
         return torch.tensor(y)
 
     def check_label(self, row):
-        findings_correct = all(row['label_dict'][task] in ["1.0", "0.0", "-1.0", ""] for task in CHEXPERT_TASKS)
-        any_findings = any(row['label_dict'][task] == "1.0" for task in CHEXPERT_TASKS[:-1])
+        findings_correct = all(row['label_dict'][task] in ["1.0", "0.0", "-1.0", ""] for task in JOINT_TASKS)
+        any_findings = any(row['label_dict'][task] == "1.0" for task in JOINT_TASKS[:-1])
         no_findings = row['label_dict']['No Finding'] == "1.0"
         return findings_correct and (any_findings == (not no_findings))
 
@@ -146,36 +155,36 @@ class Chexpert_All(Abstract_Chexpert):
     def task(self):
         return "Combined"
 
-@register_object("chexpert_pneumothorax", "dataset")
-class Chexpert_Pneumothorax(Abstract_Chexpert):
+@register_object("mimic+chexpert_pneumothorax", "dataset")
+class Chexpert_Pneumothorax(Mimic_Chexpert_Joint_Abstract_Dataset):
     @property
     def task(self):
         return "Pneumothorax"
 
 
-@register_object("chexpert_cxr_edema", "dataset")
-class Chexpert_Edema(Abstract_Chexpert):
+@register_object("mimic+chexpert_edema", "dataset")
+class Chexpert_Edema(Mimic_Chexpert_Joint_Abstract_Dataset):
     @property
     def task(self):
         return 'Edema'
 
 
-@register_object("chexpert_cxr_consolidation", "dataset")
-class Chexpert_Consolidation(Abstract_Chexpert):
+@register_object("mimic+chexpert_consolidation", "dataset")
+class Chexpert_Consolidation(Mimic_Chexpert_Joint_Abstract_Dataset):
     @property
     def task(self):
         return 'Consolidation'
 
 
-@register_object("chexpert_cxr_cardiomegaly", "dataset")
-class Chexpert_Cardiomegaly(Abstract_Chexpert):
+@register_object("mimic+chexpert_cardiomegaly", "dataset")
+class Chexpert_Cardiomegaly(Mimic_Chexpert_Joint_Abstract_Dataset):
     @property
     def task(self):
         return 'Cardiomegaly'
 
 
-@register_object("chexpert_cxr_atelectasis", "dataset")
-class Chexpert_Atelectasis(Abstract_Chexpert):
+@register_object("mimic+chexpert_atelectasis", "dataset")
+class Chexpert_Atelectasis(Mimic_Chexpert_Joint_Abstract_Dataset):
     @property
     def task(self):
         return 'Atelectasis'
