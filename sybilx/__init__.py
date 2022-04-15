@@ -27,6 +27,7 @@ import sybilx.datasets.plco_xray
 import sybilx.datasets.ct_localizer
 import sybilx.datasets.mgh
 import sybilx.datasets.mnist
+import sybilx.datasets.mimic_cxr
 # augmentation
 import sybilx.augmentations.rawinput
 import sybilx.augmentations.tensor

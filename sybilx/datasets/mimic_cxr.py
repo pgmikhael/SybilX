@@ -14,10 +14,8 @@ from sybilx.datasets.nlst_xray import METAFILE_NOTFOUND_ERR
 METADATA_PATH = "/Mounts/rbg-storage1/datasets/MIMIC/metadata_feb_2021.json"
 
 SUMMARY_MSG = "Contructed Mimic CXR {} {} dataset with {} records, {} exams, {} patients"
-MIMIC_TASKS = ["Pneumothorax", "Pneumonia", "Pleural", "Other", "Pleural", "Effusion", "Lung", "Lesion", "Fracture", "Enlarged", "Cardiomediastinum", "Edema",
-               "Consolidation", "Cardiomegaly", "Atelectasis", "Lung", "Opacity", "No Finding"]
-CXR_DATASET_NAMES = ["mimic_cxr_opacity", "mimic_cxr_atelectasis", "mimic_cxr_cardiomegaly", "mimic_cxr_consolidation", "mimic_cxr_edema",
-                     "mimic_cxr_enlarged_cardiomediastinum", "mimic_cxr_fracture", "mimic_pleural_effusion", "mimic_pleural_other", "mimic_pneumonia", "mimic_pneumothorax"]
+MIMIC_TASKS = ["Pneumothorax", "Pneumonia", "Pleural Other", "Pleural Effusion", "Lung Lesion", "Fracture", "Enlarged Cardiomediastinum", "Edema",
+               "Consolidation", "Cardiomegaly", "Atelectasis", "Lung Opacity", "No Finding"]
 
 class Abstract_Mimic_Cxr(data.Dataset):
     '''MIMIC-CXR dataset
@@ -51,22 +49,23 @@ class Abstract_Mimic_Cxr(data.Dataset):
 
         print(self.get_summary_statement(self.dataset, split_group))
 
-        label_dist = [d[args.class_bal_key] for d in self.dataset]
-        label_counts = Counter(label_dist)
-        weight_per_label = 1.0 / len(label_counts)
-        label_weights = {
-            label: weight_per_label / count for label, count in label_counts.items()
-        }
+        if args.class_bal:
+            assert args.num_classes == 2
+            label_dist = [d[args.class_bal_key] for d in self.dataset]
+            label_counts = Counter(label_dist)
+            weight_per_label = 1.0 / len(label_counts)
+            label_weights = {
+                label: weight_per_label / count for label, count in label_counts.items()
+            }
 
-        print("Class counts are: {}".format(label_counts))
-        print("Label weights are {}".format(label_weights))
-        self.weights = [label_weights[d[args.class_bal_key]] for d in self.dataset]
+            print("Class counts are: {}".format(label_counts))
+            print("Label weights are {}".format(label_weights))
+            self.weights = [label_weights[d[args.class_bal_key]] for d in self.dataset]
 
-    def create_dataset(self, split_group, img_dir):
+    def create_dataset(self, split_group):
         """
         Return the dataset from the paths and labels in the json.
         :split_group: - ['train'|'dev'|'test'].
-        :img_dir: - The path to the dir containing the images.
         """
 
         if self.args.assign_splits:
@@ -101,9 +100,8 @@ class Abstract_Mimic_Cxr(data.Dataset):
 
     def get_summary_statement(self, dataset, split_group):
         exams = set([d['exam'] for d in dataset])
-        patients = set([d['ssn'] for d in dataset])
-        statement = SUMMARY_MSG.format(self.task, split_group, len(
-            dataset), len(exams), len(patients))
+        patients = set([d['pid'] for d in dataset])
+        statement = SUMMARY_MSG.format(self.task, split_group, len(dataset), len(exams), len(patients))
         return statement
 
     def get_label(self, row):
@@ -120,6 +118,9 @@ class Abstract_Mimic_Cxr(data.Dataset):
         #sample["mask"] = input_dict["mask"]
 
         return sample
+    
+    def __len__(self):
+        return self.dataset.__len__()
 
     @property
     def METADATA_FILENAME(self):
