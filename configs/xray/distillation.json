@@ -2,6 +2,7 @@
   "script": "main",
   "grid_search_space": {
     "gpus": [1],
+    "precision": [16],
     "batch_size": [32],
     "accumulate_grad_batches": [1],
     "dataset": ["nlst_distill"],
@@ -15,7 +16,7 @@
     "img_file_type": ["dicom"],
     "limit_train_batches": [1.0],
     "limit_val_batches": [1.0],
-    "lr": [3e-5],
+    "lr": [3e-7],
     "base_model": ["sybilxray_inception"],
     "use_only_thin_cuts_for_ct": [true],
     "region_annotations_filepath": ["/Mounts/rbg-storage1/datasets/NLST/annotations_122020.json"],
@@ -56,7 +57,7 @@
     "split_probs": ["0.7 0.15 0.15"],
     "scale_annotations": [false],
     "max_epochs": ["10"],
-    "hiddens_dir": ["/Mounts/rbg-storage1/results/lung_ct/distillation/28a7cd44f5bcd3e6cc760b65c7e0d54depoch=10"],
+    "hiddens_dir": ["/storage/NLST_CT_HIDDENS/28a7cd44f5bcd3e6cc760b65c7e0d54depoch=10"],
     "hidden_size": ["512"]
   },
   "paired_search_space": {
@@ -85,5 +86,5 @@
       "projections with_side_attention mse_kd_loss"
     ]
   },
-  "available_gpus": ["6,7"]
+  "available_gpus": ["4,5"]
 }
