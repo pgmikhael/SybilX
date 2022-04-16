@@ -18,6 +18,31 @@ def get_cross_entropy_loss(model_output, batch, model, args):
     return loss, logging_dict, predictions
 
 
+@register_object("multi_class_bce_loss", 'loss')
+def get_multiclass_bce_loss(model_output, batch, model, args):
+    '''
+    Computes cross-entropy loss for model with multiple classes where classes are independent (ie more than one class can be positive)
+
+    Expects model_output to contain 'logit'
+    
+    Returns:
+        loss: cross entropy loss
+        l_dict (dict): dictionary containing bce_loss detached from computation graph
+        p_dict (dict): dictionary of model predictions and ground truth labels (preds, probs, golds)
+    '''
+    loss = 0
+    l_dict, p_dict = OrderedDict(), OrderedDict()
+    
+    logit = model_output['logit']
+    loss =  F.binary_cross_entropy_with_logits(logit, batch['y'].float() )
+    l_dict['bce_loss'] = loss.detach()
+    p_dict['probs'] = torch.sigmoid(logit).detach()
+    p_dict['preds'] = (p_dict['probs'] > 0.5).int()
+    p_dict['golds'] = batch['y'].int()
+
+    return loss, l_dict, p_dict
+
+
 @register_object("survival", "loss")
 def get_survival_loss(model_output, batch, model, args):
     logging_dict, predictions = OrderedDict(), OrderedDict()
