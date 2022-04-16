@@ -9,7 +9,7 @@
     "img_mean": [128.1722],
     "img_std": [87.1849],
     "precision": [16],
-    "dataset": ["mimic_all"],
+    "dataset": ["mimic+chexpert_all"],
     "img_size": ["512 512"],
     "max_followup": [12],
     "input_loader_name": ["cv_loader"],
@@ -24,9 +24,9 @@
     "with_attention": [false],
     "use_annotations": [false],
     "num_chan": [3],
-    "loss_fns": ["cross_entropy"],
+    "loss_fns": ["multi_class_bce_loss"],
     "metrics": ["classification"],
-    "num_classes": [18],
+    "num_classes": [14],
     "monitor": ["val_roc_auc"],
     "num_workers": [8],
     "optimizer": ["adam"],
@@ -40,7 +40,7 @@
     "test_rawinput_augmentations": ["scale_2d min_max_8bit_scaler histogram_equalize"],
     "test_tnsr_augmentations": ["force_num_chan_2d normalize_2d"],
     "fix_seed_for_multi_image_augmentations": [true],
-    "workspace": ["mariehane"],
+    "workspace": ["itamar"],
     "project_name": ["xray-cancer"],
     "num_sanity_val_steps": [0],
     "profiler": ["simple"],
@@ -52,14 +52,10 @@
     "ignore_warnings": [false],
     "dropout": [0.1],
     "checkpoint_save_top_k": [1],
-    "dataset_file_path": [
-        "/Mounts/rbg-storage1/datasets/MIMIC/metadata_feb_2021.json"
-    ],
-    "save_dir": ["/storage/ludvig/snapshots"],
+    "dataset_file_path": ["/Mounts/rbg-storage1/datasets/MIMIC/metadata_feb_2021.json"],
+    "save_dir": ["/storage/itamar/snapshots"],
     "cache_path": ["/storage/xray_cache"],
     "save_predictions": [false]
   },
-  "available_gpus": [
-    7
-  ]
+  "available_gpus": [0]
 }
