@@ -208,4 +208,4 @@ def get_2d_side_annotation_loss(model_output, batch, model, args):
         loss = (F.cross_entropy(side_attn_log, cancer_side_gold, reduction="none") * cancer_side_mask).sum() / num_annotated_samples
         logging_dict["image_side_attention_loss_2d"] = loss.detach()
         
-    return loss * args.image_side_attention_loss_lambda_2d * loss, logging_dict, predictions
+    return loss * args.image_side_attention_loss_lambda_2d, logging_dict, predictions
