@@ -477,6 +477,8 @@ class ElasticDeformation(Abstract_augmentation):
                     p=0.5)
 
     def __call__(self, input_dict, sample=None):
+        if "seed" in sample:
+            self.set_seed(sample["seed"])
         input_dict["input"] = self.transform(image=input_dict["input"])["image"]
         return input_dict
 
