@@ -34,7 +34,7 @@
     "train": [true],
     "dev": [true],
     "test": [false],
-    "class_bal": [true],
+    "class_bal": [false],
     "train_rawinput_augmentations": ["scale_2d min_max_8bit_scaler histogram_equalize rotate_range/deg=20 random_brightness_contrast/brightness=0.2"],
     "train_tnsr_augmentations": ["force_num_chan_2d normalize_2d"],
     "test_rawinput_augmentations": ["scale_2d min_max_8bit_scaler histogram_equalize"],
@@ -52,10 +52,10 @@
     "ignore_warnings": [false],
     "dropout": [0.1],
     "checkpoint_save_top_k": [1],
-    "dataset_file_path": ["/Mounts/rbg-storage1/datasets/MIMIC/metadata_feb_2021.json"],
+    "dataset_file_path": ["/data/rsg/mammogram/CheXpert-v1.0-small/mimic_stanford_feb_2021.json"],
     "save_dir": ["/storage/itamar/snapshots"],
     "cache_path": ["/storage/xray_cache"],
     "save_predictions": [false]
   },
-  "available_gpus": [0]
+  "available_gpus": [4]
 }
