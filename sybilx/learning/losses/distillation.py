@@ -29,8 +29,8 @@ def get_knowledge_distillation_loss(model_output, batch, model, args):
     y_pred_student = model_output['logit']
     y_pred_teacher = batch['teacher_logit']
 
-    soft_teacher_out = torch.sigmoid(y_pred_teacher / args.distill_temperature)
-    # soft_student_out = F.softmax(y_pred_student / args.distill_temperature, dim=1)
+    soft_teacher_out = torch.sigmoid(y_pred_teacher / args.distill_temperature) # TODO: check that need to divide by temp here
+    # NOTE!!! Teacher network must be trained with same temperature
     soft_student_out = y_pred_student / args.distill_temperature
 
 
