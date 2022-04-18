@@ -92,7 +92,11 @@ class Random_Vertical_Flip(Abstract_augmentation):
     def __call__(self, input_dict, sample=None):
         if "seed" in sample:
             self.set_seed(sample["seed"])
-        input_dict["input"] = self.transform(image=input_dict["input"])["image"]
+        out = self.transform(
+            image=input_dict["input"], mask=input_dict.get("mask", None)
+        )
+        input_dict["input"] = out["image"]
+        input_dict["mask"] = out["mask"]
         return input_dict
 
 
