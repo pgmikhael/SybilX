@@ -143,6 +143,42 @@ class BaseClassification(object):
         return stats_dict
 
 
+@register_object("multi_class_classification", 'metric')
+class MultiClass_Classification(BaseClassification):
+    def __call__(self, logging_dict, args) -> Dict:
+        '''
+        Computes classification for metrics when predicting multiple independent classes
+
+        Args:
+            logging_dict: dictionary obtained from computing loss and model outputs
+            args: argparser Namespace
+        
+        Returns:
+            stats_dict (dict): contains (where applicable) values for accuracy, confusion matrix, precision, recall, f1, precision-recall auc, roc auc, prefixed by col index
+        '''
+
+        stats_dict = OrderedDict()
+        golds = logging_dict['golds']
+        preds = logging_dict['preds']
+        probs = logging_dict['probs']
+        targs = copy.deepcopy(args)
+        targs.num_classes = 2
+
+        tempstats_dict = OrderedDict()
+        for classindex in range(golds.shape[-1]):
+            minilog = {'probs': probs[:,classindex] , 'preds': preds[:, classindex], 'golds': golds[:, classindex] }
+            ministats = super().__call__(minilog, targs)
+            tempstats_dict.update( {'class{}_{}'.format(classindex, k): v for k,v in ministats.items() } )
+            if args.store_classwise_metrics:
+                stats_dict.update(tempstats_dict)
+
+        for metric in ministats.keys():
+            if not metric in ['confusion_matrix']:
+                stats_dict[metric] = torch.stack( [tempstats_dict[k] for k in tempstats_dict.keys() if k.endswith(metric) ] ).mean()
+        
+        return stats_dict
+
+
 @register_object("ordinal_classification", "metric")
 class Ordinal_Classification(BaseClassification):
     def __call__(self, logging_dict, args) -> Dict:
