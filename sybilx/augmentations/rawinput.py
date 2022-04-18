@@ -43,7 +43,37 @@ class Random_Horizontal_Flip(Abstract_augmentation):
     def __call__(self, input_dict, sample=None):
         if "seed" in sample:
             self.set_seed(sample["seed"])
-        input_dict["input"] = self.transform(image=input_dict["input"])["image"]
+        out = self.transform(
+            image=input_dict["input"], mask=input_dict.get("mask", None)
+        )
+        input_dict["input"] = out["image"]
+        input_dict["mask"] = out["mask"]
+        return input_dict
+
+@register_object("rand_hor_flip_laterality", "augmentation")
+class Random_Horizontal_Flip_Laterality(Abstract_augmentation):
+    """
+    Randomly flips image horizontally, and also flips 'cancer_laterality'
+    """
+
+    def __init__(self, args, kwargs):
+        super(Random_Horizontal_Flip_Laterality, self).__init__()
+        self.args = args
+        assert len(kwargs.keys()) == 0
+        self.transform = A.HorizontalFlip()
+
+    def __call__(self, input_dict, sample=None):
+        if "seed" in sample:
+            self.set_seed(sample["seed"])
+        out = self.transform(
+            image=input_dict["input"], mask=input_dict.get("mask", None)
+        )
+        input_dict["input"] = out["image"]
+        input_dict["mask"] = out["mask"]
+
+        if 'cancer_laterality' in sample:
+            right, left, other = sample["cancer_laterality"]
+            sample['cancer_laterality'] = np.array([left, right, other])
         return input_dict
 
 
