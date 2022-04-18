@@ -720,6 +720,29 @@ class NLSTCTProjectionsDataset(NLST_Survival_Dataset):
     def get_images(self, paths, sample):
         pass
 
+
+@register_object("nlst_lung_prediction", "dataset")
+class NLSTLungPrediction(NLSTCTProjectionsDataset):
+    def __init__(self, args, split_group):
+        """
+        NLST CT Dataset with adapted get_images to project CT to 2D
+        """
+        super(NLSTLungPrediction, self).__init__(args, split_group)
+
+    def __getitem__(self, index):
+        sample = self.dataset[index]
+
+        try:
+            item = super(NLSTLungPrediction, self).__getitem__(index)
+            assert sample["cancer_laterality"].sum(dim=-1) <= 1
+            # if no cancer, use label 3 (0 = right, 1 = left, 2 = other, 3 = no cancer)
+            item["y"] = sample["cancer_laterality"].argmax(dim=-1) if sample["cancer_laterality"].sum(dim=-1) == 1 else 3
+            return item
+
+        except Exception:
+            warnings.warn(LOAD_FAIL_MSG.format(sample["exam"], traceback.print_exc()))
+
+
 @register_object("nlst_distill", "dataset")
 class NLSTDistill(NLSTCTProjectionsDataset):
     def __init__(self, args, split_group):
