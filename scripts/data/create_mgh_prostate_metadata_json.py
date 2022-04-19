@@ -55,14 +55,18 @@ if __name__ == "__main__":
         dcm_meta = pydicom.dcmread(path, stop_before_pixels=True)
 
         dcm_keys = list(dcm_meta.keys())
+        print("dcm_keys: ", dcm_keys)
         if (
             ("PatientID" not in dcm_keys)
             or ("StudyDate" not in dcm_keys)
             or ("AccessionNumber" not in dcm_keys)
             or ("ClinicalTrialTimePointID" not in dcm_keys)
         ):
+            print("missing keys, skipped")
             continue
         pid = dcm_meta.PatientID
+        print("has PatientID: ", pid)
+        break
         date = dcm_meta.StudyDate
         accession_number = dcm_meta.AccessionNumber
         timepoint = int(dcm_meta.ClinicalTrialTimePointID[-1])  # convert from 'T1' to 1
@@ -120,5 +124,5 @@ if __name__ == "__main__":
 
             json_dataset.append(pt_dict)
 
-    print("parsed info, about to dump into dataset")
+    print("parsed info, about to dump into dataset: ", len(json_dataset))
     json.dump(json_dataset, open(args.output_json_path, "w"))
