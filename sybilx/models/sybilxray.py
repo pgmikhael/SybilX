@@ -249,11 +249,7 @@ class SybilXrayFinetune(SybilXrayInception):
             else:
                 self.fc = nn.Linear(args.hidden_size, args.num_classes)
         else:
-            if args.reset_attention:
-                # note reset_attention implies that you are using attention
-                self.pool = AttentionPool2D(num_chan=finetune_model.ENCODER_OUTPUT_DIM)
-                self.lin1 = nn.Linear(finetune_model.ENCODER_OUTPUT_DIM*2, args.hidden_size)
-            elif args.with_attention:
+            if args.with_attention:
                 self.pool = finetune_model.pool
                 self.lin1 = finetune_model.lin1
             else:
