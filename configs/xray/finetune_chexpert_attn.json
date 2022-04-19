@@ -7,7 +7,7 @@
     "accumulate_grad_batches": [1],
     "precision": [16],
     "img_size": ["512 512"],
-    "max_followup": [12],
+    "max_followup": [6],
     "lightning_name": ["base"],
     "weight_decay": [0.001],
     "max_epochs": [25],
@@ -45,13 +45,9 @@
     "checkpoint_save_top_k": [3],
     "save_dir": ["/storage/ludvig/snapshots"],
     "cache_path": ["/storage/xray_cache"],
-    "base_model": ["sybilxray_finetune"],
-    "finetune_model": ["sybilxray_r50"],
-    "reset_attention": [true],
-    "finetune_model_path": ["/storage/itamar/snapshots/e0d5c116d9617a4a05d33caf0e442ad9/e0d5c116d9617a4a05d33caf0e442ad9epoch=2.ckpt"],
-    "snapshot": [false],
-    "reset_decoder": [false],
-    "from_checkpoint": [false],
+    "base_model": ["sybilxray_r50"],
+    "snapshot": ["/storage/itamar/snapshots/e0d5c116d9617a4a05d33caf0e442ad9/e0d5c116d9617a4a05d33caf0e442ad9epoch=2.ckpt"],
+    "from_checkpoint": [true],
     "with_attention": [true],
     "hidden_size": [512]
   },
@@ -86,6 +82,6 @@
     ]
   },
   "available_gpus": [
-    6,7
+    0,1,2,3
   ]
 }
