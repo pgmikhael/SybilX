@@ -13,6 +13,18 @@ import time
 
 SPLIT_PROBS = [0.7, 0.15, 0.15]
 
+dcmTagsToNames = {
+    "PatientID": 0x00100020,
+    "StudyDate": 0x00080020,
+    "AccessionNumber": 0x00080050,
+    "ClinicalTrialTimePointID": 0x00120050,
+    "SeriesInstanceUID": 0x0020000e,
+    "SOPInstanceUID": 0x00080018,
+    "ImageType": 0x00080008,
+    "InstanceNumber": 0x00200013,
+    "WindowCenter": 0x00281050,
+    "WindowWidth": 0x00281051,
+}
 
 parser = argparse.ArgumentParser()
 parser.add_argument(
@@ -44,40 +56,31 @@ if __name__ == "__main__":
     peid2idx = {}
     print("collected dicoms, size is: ", len(dicoms))
     i = 0
-    start = time.time()
     for path in tqdm(dicoms):
         if i % 20 == 0:
             print("on dicom ", i)
-            now = time.time()
-            print(now - start, " time has passed since starting")
         i += 1
 
         dcm_meta = pydicom.dcmread(path, stop_before_pixels=True)
 
         dcm_keys = list(dcm_meta.keys())
-        print("dcm_keys: ", dcm_keys)
-        if (0x00100020 in dcm_keys):
-            print("yay patient id spotted")
-        elif (
-            ("PatientID" not in dcm_keys)
-            or ("StudyDate" not in dcm_keys)
-            or ("AccessionNumber" not in dcm_keys)
-            or ("ClinicalTrialTimePointID" not in dcm_keys)
+        skipped = 0
+        if (
+            (dcmTagsToNames["PatientID"] not in dcm_keys)
+            or (dcmTagsToNames["StudyDate"] not in dcm_keys)
+            or (dcmTagsToNames["AccessionNumber"] not in dcm_keys)
+            or (dcmTagsToNames["ClinicalTrialTimePointID"] not in dcm_keys)
         ):
-            print("missing keys, skipped")
+            skipped += 1
+            print("missing keys, skipped: ", skipped)
             continue
-        try:
-            pid = dcm_meta.PatientID
-        except IndexError:
-            pid = dcm_meta[0x0010020]
-        print("has PatientID: ", pid)
-        break
-        date = dcm_meta.StudyDate
-        accession_number = dcm_meta.AccessionNumber
-        timepoint = int(dcm_meta.ClinicalTrialTimePointID[-1])  # convert from 'T1' to 1
+        pid = dcm_meta[dcmTagsToNames["PatientID"]]
+        date = dcm_meta[dcmTagsToNames["StudyDate"]]
+        accession_number = dcm_meta[dcmTagsToNames["AccessionNumber"]]
+        timepoint = int(dcm_meta[dcmTagsToNames["ClinicalTrialTimePointID"]][-1])  # convert from 'T1' to 1
         exam = "{}_T{}".format(accession_number, timepoint)
-        series_id = dcm_meta.SeriesInstanceUID
-        sop_id = dcm_meta.SOPInstanceUID
+        series_id = dcm_meta["SeriesInstanceUID"]
+        sop_id = dcm_meta["SOPInstanceUID"]
 
         peid = "{}{}".format(pid, exam)
 
@@ -90,17 +93,12 @@ if __name__ == "__main__":
 
         img_dict = {
             "path": path,
-            "image_type": dcm_meta.ImageType,
+            "image_type": dcm_meta["ImageType"],
             "sop_id": sop_id,
             "series_id": series_id,
-            "instance_number": dcm_meta.InstanceNumber,
-            "window_center": dcm_meta.WindowCenter,
-            "window_width": dcm_meta.WindowWidth,
-            "kvp": dcm_meta.KVP,
-            "exposure_time": dcm_meta.ExposureTime,
-            "exposure": dcm_meta.Exposure,
-            "acquisition_desc": dcm_meta.AcquisitionDeviceProcessingDescription,
-            "tube_current": dcm_meta.XRayTubeCurrent,
+            "instance_number": dcm_meta["InstanceNumber"],
+            "window_center": dcm_meta["WindowCenter"],
+            "window_width": dcm_meta["WindowWidth"],
         }
 
         if pid in pid2idx:
