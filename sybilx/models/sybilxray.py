@@ -249,10 +249,15 @@ class SybilXrayFinetune(SybilXrayInception):
             else:
                 self.fc = nn.Linear(args.hidden_size, args.num_classes)
         else:
-            if args.with_attention:
+            if args.reset_attention:
+                # note reset_attention implies that you are using attention
+                self.pool = AttentionPool2D(num_chan=finetune_model.ENCODER_OUTPUT_DIM)
+                self.lin1 = nn.Linear(finetune_model.ENCODER_OUTPUT_DIM*2, args.hidden_size)
+            elif args.with_attention:
                 self.pool = finetune_model.pool
-
-            self.lin1 = finetune_model.lin1
+                self.lin1 = finetune_model.lin1
+            else:
+                self.lin1 = finetune_model.lin1
 
             if "survival" in args.loss_fns or "corn" in self.args.loss_fns:
                 self.prob_of_failure_layer = finetune_model.prob_of_failure_layer
