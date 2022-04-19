@@ -386,6 +386,7 @@ def parse_args(args_strings=None):
     parser.add_argument('--finetune_model_path', type = str, help = '')
     parser.add_argument('--freeze_encoder_weights', action='store_true', default = False, help = 'Freeze encoder weights during training/fine-tuning (only used in sybilxray models)')
     parser.add_argument('--reset_decoder', action='store_true', default = False, help = 'Reset decoder')
+    parser.add_argument('--reset_attention', action='store_true', default = False, help = 'note reset_attention implies that you are using attention')
     
     # augmentations
     parser.add_argument(
