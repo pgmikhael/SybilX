@@ -45,7 +45,10 @@ class SybilXrayInception(nn.Module):
 
         if args.with_attention:
             self.pool = AttentionPool2D(num_chan=self.ENCODER_OUTPUT_DIM)
-            self.lin1 = nn.Linear(self.ENCODER_OUTPUT_DIM*2, args.hidden_size)
+            if args.use_only_attention_hiddens:
+                self.lin1 = nn.Linear(self.ENCODER_OUTPUT_DIM, args.hidden_size)
+            else:
+                self.lin1 = nn.Linear(self.ENCODER_OUTPUT_DIM*2, args.hidden_size)
         else:
             self.lin1 = nn.Linear(self.ENCODER_OUTPUT_DIM, args.hidden_size)
 
@@ -103,7 +106,10 @@ class SybilXrayInception(nn.Module):
         pool_output["hidden"] = self.avg_pool(x).squeeze(2).squeeze(2)
         # if using attention concat
         if self.args.with_attention:
-            pool_output["hidden"] = torch.cat([pool_output["hidden"], pool_output["attn_hidden"]], axis=-1)
+            if self.args.use_only_attention_hiddens:
+                pool_output["hidden"] = pool_output["attn_hidden"]
+            else:
+                pool_output["hidden"] = torch.cat([pool_output["hidden"], pool_output["attn_hidden"]], axis=-1)
 
         pool_output['hidden'] = self.lin1(pool_output["hidden"])
         pool_output['hidden'] = self.dropout(self.relu(pool_output['hidden']))

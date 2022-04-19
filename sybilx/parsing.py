@@ -250,6 +250,7 @@ def parse_args(args_strings=None):
     )
     
     parser.add_argument('--with_attention', action='store_true', default = False, help = 'whether to use the attention layer or not')
+    parser.add_argument('--use_only_attention_hiddens', action='store_true', default = False, help = 'removes non-attention hiddens from sybilxray')
     parser.add_argument('--scale_annotations', action='store_true', default = False, help = 'whether to normalize the annotations per slice')
     parser.add_argument('--get_dataset_stats', action='store_true', default = False, help = 'whether to get mean, std of training set')
 
