@@ -30,7 +30,12 @@ if __name__ == "__main__":
 
     dicoms = []
     print("parsed args")
+    i = 0
     for root, _, files in os.walk(args.data_dir):
+        if i % 20 == 0:
+            print("walk iteration ", i)
+        if i > 100:
+            break
         dicoms.extend([os.path.join(root, f) for f in files if f.endswith(".dcm")])
 
     json_dataset = []
