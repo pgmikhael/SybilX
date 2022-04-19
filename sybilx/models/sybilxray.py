@@ -5,6 +5,7 @@ import pretrainedmodels
 from torchvision.models import resnet50, resnet152 #, vit_l_16, vit_b_16#, convnext_large
 
 from sybilx.models.cumulative_probability_layer import Cumulative_Probability_Layer
+from sybilx.utils.loading import get_lightning_model
 from sybilx.utils.registry import register_object, get_object
 
 class AttentionPool2D(nn.Module):
@@ -216,10 +217,10 @@ class SybilXrayFinetune(SybilXrayInception):
         super(SybilXrayFinetune, self).__init__(args)
         self.finetune_model_args = copy.deepcopy(args)
         self.finetune_model_args.base_model = args.finetune_model
-        finetune_module = get_object(self.finetune_model_args.lightning_name, "lightning")(self.finetune_model_args)
-        finetune_module = finetune_module.load_from_checkpoint(
-            checkpoint_path=args.finetune_model_path, strict=not self.finetune_model_args.relax_checkpoint_matching
-        )
+        self.finetune_model_args.from_checkpoint = True
+        self.finetune_model_args.snapshot = args.finetune_model_path
+
+        finetune_module = get_lightning_model(self.finetune_model_args)
         finetune_model = finetune_module.model
         finetune_model.args = self.finetune_model_args
 
