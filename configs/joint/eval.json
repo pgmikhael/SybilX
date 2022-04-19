@@ -1,5 +1,5 @@
 {
-	"train_config": "configs/joint/full_adversarial.json",
+	"train_config": "configs/nlst/fixed_spacing.json",
 	"log_dir": "/Mounts/rbg-storage1/logs/lung_ct",
 	"eval_args": {
 		"dataset": ["nlst"],
@@ -13,16 +13,16 @@
 			"/Mounts/rbg-storage1/results/lung_ct/nlst"
 		],
 		"snapshot": [
-			"/storage/nlst_cache/logs/lung_ct/386136260d44b25774d8b4e41d1b6bdd.args",
-			"/storage/nlst_cache/logs/lung_ct/a8094459073ec05a518d6f543a01069c.args",
-			"/storage/nlst_cache/logs/lung_ct/af6f0c97af717e7dd55583c723b7b651.args",
-			"/storage/nlst_cache/logs/lung_ct/d2f9065de0a828aa79f774c569e8d1ac.args",
-			"/storage/nlst_cache/logs/lung_ct/e819945ae4e480f576712e54a29d1938.args"
+			"/Mounts/rbg-storage1/logs/lung_ct/28a7cd44f5bcd3e6cc760b65c7e0d54d.args",
+			"/storage/nlst_cache/logs/lung_ct/624407ef8e3a2a009f9fa51f9846fe9a.args",
+			"/storage/nlst_cache/logs/lung_ct/65fd1f04cb4c5847d86a9ed8ba31ac1a.args",
+			"/storage/nlst_cache/logs/lung_ct/64a91b25f84141d32852e75a3aec7305.args",
+			"/storage/nlst_cache/logslung_ct/56ce1a7d241dc342982f5466c4a9d7ef.args"
 		],
 		"save_predictions": [true],
 		"save_hiddens": [true],
-		"replace_batchnorm_with_layernorm": [true]
+		"replace_batchnorm_with_layernorm": [false]
 	},
-	"available_gpus": [0,1,2,3,4],
+	"available_gpus": [0],
 	"script": "main"
 }
