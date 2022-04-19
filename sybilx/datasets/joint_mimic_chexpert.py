@@ -193,3 +193,9 @@ class Chexpert_Atelectasis(Mimic_Chexpert_Joint_Abstract_Dataset):
     @property
     def task(self):
         return 'Atelectasis'
+
+@register_object("mimic+chexpert_lung_lesion", "dataset")
+class Mimic_Chexpert_Lung_Lesion(Mimic_Chexpert_Joint_Abstract_Dataset):
+    @property
+    def task(self):
+        return "Lung Lesion"

@@ -734,9 +734,19 @@ class NLSTLungPrediction(NLSTCTProjectionsDataset):
 
         try:
             item = super(NLSTLungPrediction, self).__getitem__(index)
-            assert sample["cancer_laterality"].sum(dim=-1) <= 1
-            # if no cancer, use label 3 (0 = right, 1 = left, 2 = other, 3 = no cancer)
-            item["y"] = sample["cancer_laterality"].argmax(dim=-1) if sample["cancer_laterality"].sum(dim=-1) == 1 else 3
+            sum_labels = sample["cancer_laterality"].sum()
+            if sum_labels == 2 and sample["cancer_laterality"][2] == 1:
+                # if it's L/R and other make it L/R
+                item["y"] = 0 if sample["cancer_laterality"][1] == 1 else 1
+            elif sum_labels == 2 and not sample["cancer_laterality"][2] == 1:
+                # if it's left AND right then make it other
+                item['y'] = 2 
+            elif sum_labels == 3:
+                # if it's everything then skip it
+                assert False, "Left right and other -> skip sample"
+            else:
+                # if no cancer, use label 3 (0 = right, 1 = left, 2 = other, 3 = no cancer)
+                item["y"] = sample["cancer_laterality"].argmax(axis=-1) if sum_labels == 1 else 3
             return item
 
         except Exception:
