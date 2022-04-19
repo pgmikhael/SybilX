@@ -56,7 +56,9 @@ if __name__ == "__main__":
 
         dcm_keys = list(dcm_meta.keys())
         print("dcm_keys: ", dcm_keys)
-        if (
+        if (0x00100020 in dcm_keys):
+            print("yay patient id spotted")
+        elif (
             ("PatientID" not in dcm_keys)
             or ("StudyDate" not in dcm_keys)
             or ("AccessionNumber" not in dcm_keys)
@@ -64,7 +66,10 @@ if __name__ == "__main__":
         ):
             print("missing keys, skipped")
             continue
-        pid = dcm_meta.PatientID
+        try:
+            pid = dcm_meta.PatientID
+        except IndexError:
+            pid = dcm_meta[0x0010020]
         print("has PatientID: ", pid)
         break
         date = dcm_meta.StudyDate
