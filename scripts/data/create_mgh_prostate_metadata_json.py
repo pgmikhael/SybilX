@@ -37,6 +37,7 @@ if __name__ == "__main__":
         if i > 100:
             break
         dicoms.extend([os.path.join(root, f) for f in files if f.endswith(".dcm")])
+        i += 1
 
     json_dataset = []
     pid2idx = {}
