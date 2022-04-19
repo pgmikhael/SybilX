@@ -48,7 +48,7 @@
     "base_model": ["sybilxray_finetune"],
     "finetune_model": ["sybilxray_r50"],
     "reset_attention": [true],
-    "finetune_model_path": ["/storage/itamar/snapshots/737a30e9c8bf6550a2bc85d0a1d617ef/737a30e9c8bf6550a2bc85d0a1d617efepoch=7.ckpt"],
+    "finetune_model_path": ["/storage/itamar/snapshots/e0d5c116d9617a4a05d33caf0e442ad9/e0d5c116d9617a4a05d33caf0e442ad9epoch=2.ckpt"],
     "snapshot": [false],
     "reset_decoder": [false],
     "from_checkpoint": [false],
