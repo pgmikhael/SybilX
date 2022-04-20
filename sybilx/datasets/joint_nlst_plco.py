@@ -124,10 +124,6 @@ class NLST_PLCO_Combined_Dataset(NLST_Survival_Dataset):
         statement += "\n" + "Censor Times: {}".format(
             Counter([d["time_at_event"] for d in dataset])
         )
-        annotation_msg = (
-            self.annotation_summary_msg(dataset) if self.args.use_annotations else ""
-        )
-        statement += annotation_msg
         return statement
 
 @register_object("nlst+plco_only_plco_eval", "dataset")
@@ -227,8 +223,4 @@ class NLST_PLCO_Combined_Dataset_PLCO_eval(NLST_Survival_Dataset):
         statement += "\n" + "Censor Times: {}".format(
             Counter([d["time_at_event"] for d in dataset])
         )
-        annotation_msg = (
-            self.annotation_summary_msg(dataset) if self.args.use_annotations else ""
-        )
-        statement += annotation_msg
         return statement
