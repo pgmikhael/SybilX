@@ -56,6 +56,7 @@ if __name__ == "__main__":
     peid2idx = {}
     print("collected dicoms, size is: ", len(dicoms))
     i = 0
+    skipped = 0
     for path in tqdm(dicoms):
         if i % 20 == 0:
             print("on dicom ", i)
@@ -64,42 +65,48 @@ if __name__ == "__main__":
         dcm_meta = pydicom.dcmread(path, stop_before_pixels=True)
 
         dcm_keys = list(dcm_meta.keys())
-        skipped = 0
         if (
-            (dcmTagsToNames["PatientID"] not in dcm_keys)
-            or (dcmTagsToNames["StudyDate"] not in dcm_keys)
-            or (dcmTagsToNames["AccessionNumber"] not in dcm_keys)
-            or (dcmTagsToNames["ClinicalTrialTimePointID"] not in dcm_keys)
+            ("PatientID" not in dcm_keys)
+            or ("StudyDate" not in dcm_keys)
+            or ("AccessionNumber" not in dcm_keys)
         ):
             skipped += 1
             print("missing keys, skipped: ", skipped)
             continue
-        pid = dcm_meta[dcmTagsToNames["PatientID"]]
-        date = dcm_meta[dcmTagsToNames["StudyDate"]]
-        accession_number = dcm_meta[dcmTagsToNames["AccessionNumber"]]
-        timepoint = int(dcm_meta[dcmTagsToNames["ClinicalTrialTimePointID"]][-1])  # convert from 'T1' to 1
-        exam = "{}_T{}".format(accession_number, timepoint)
-        series_id = dcm_meta["SeriesInstanceUID"]
-        sop_id = dcm_meta["SOPInstanceUID"]
-
+        pid = dcm_meta.PatientID
+        date = dcm_meta.StudyDate
+        accession_number = dcm_meta.AccessionNumber
+        exam = "{}".format(accession_number)
+        series_id = dcm_meta.SeriesInstanceUID
+        second_series_id = dcm_meta.SeriesInstanceUID
+        sop_id = dcm_meta.SOPInstanceUID
         peid = "{}{}".format(pid, exam)
 
         exam_dict = {
             "exam": exam,
             "accession_number": accession_number,
-            "screen_timepoint": timepoint,
             "date": date,
         }
 
+        print("exam_dict: ")
+        for key in exam_dict:
+            print("key: ", key)
+            print("value type: ", type(exam_dict[key]))
+
         img_dict = {
             "path": path,
-            "image_type": dcm_meta["ImageType"],
+            # "image_type": dcm_meta.ImageType,
             "sop_id": sop_id,
             "series_id": series_id,
-            "instance_number": dcm_meta["InstanceNumber"],
-            "window_center": dcm_meta["WindowCenter"],
-            "window_width": dcm_meta["WindowWidth"],
+            "instance_number": dcm_meta.InstanceNumber,
+            "window_center": dcm_meta.WindowCenter,
+            "window_width": dcm_meta.WindowWidth,
         }
+
+        print("img dict: ")
+        for key in img_dict:
+            print("key: ", key)
+            print("value type: ", type(img_dict[key]))
 
         if pid in pid2idx:
             pt_idx = pid2idx[pid]
@@ -125,7 +132,13 @@ if __name__ == "__main__":
             }
             pt_dict["accessions"][0]["image_series"] = [img_dict]
 
+            print("pt_dict")
+            for key in pt_dict:
+                print("key: ", key)
+                print("value type: ", type(pt_dict[key]))
+
             json_dataset.append(pt_dict)
+        break
 
     print("parsed info, about to dump into dataset: ", len(json_dataset))
     json.dump(json_dataset, open(args.output_json_path, "w"))
