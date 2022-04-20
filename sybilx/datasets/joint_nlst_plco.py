@@ -109,9 +109,9 @@ class NLST_PLCO_Combined_Dataset(NLST_Survival_Dataset):
             # load using tif loader
             input_dict = self.tif_loader.get_image(sample["path"], sample)
             if self.args.use_annotations:
-                item["projection_volume_annotations"] = torch.tensor(0)
-                item["projection_annotation_areas"] = torch.tensor(0)
-                item["projection_image_annotations"] = torch.zeros(1, input_dict["input"].shape[1], input_dict["input"].shape[2])
+                item["projection_volume_annotations"] = torch.tensor(0, dtype=float)
+                item["projection_annotation_areas"] = torch.tensor(0, dtype=float)
+                item["projection_image_annotations"] = torch.zeros(1, input_dict["input"].shape[1], input_dict["input"].shape[2], dtype=float)
                 item["projection_has_annotation"] = torch.tensor(0)
 
         x = input_dict["input"]
