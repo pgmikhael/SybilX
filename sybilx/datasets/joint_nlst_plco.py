@@ -1,4 +1,5 @@
 from copy import copy, deepcopy
+from sybilx.parsing import parse_augmentations
 from sybilx.utils.registry import register_object
 from sybilx.utils.loading import get_sample_loader
 from sybilx.datasets.nlst import NLST_Survival_Dataset
@@ -52,8 +53,8 @@ class NLST_PLCO_Combined_Dataset(NLST_Survival_Dataset):
         )
         nlst_args.input_loader_name = "ct_dicom_loader"
         nlst_args.img_file_type = "dicom"
-        nlst_args.train_rawinput_augmentations = "project_ct/method=campo/annotation_method=max-threshold scale_2d min_max_8bit_scaler histogram_equalize rotate_range/deg=20 random_brightness_contrast/brightness=0.2"
-        nlst_args.test_rawinput_augmentations = "project_ct/method=campo/annotation_method=max-threshold scale_2d min_max_8bit_scaler histogram_equalize"
+        nlst_args.train_rawinput_augmentations = parse_augmentations("project_ct/method=campo/annotation_method=max-threshold scale_2d min_max_8bit_scaler histogram_equalize rotate_range/deg=20 random_brightness_contrast/brightness=0.2".split(" "))
+        nlst_args.test_rawinput_augmentations = parse_augmentations("project_ct/method=campo/annotation_method=max-threshold scale_2d min_max_8bit_scaler histogram_equalize".split(" "))
         nlst_dataset = NLST_Survival_Dataset(nlst_args, split_group)
         self.ct_proj_loader = get_sample_loader(split_group, nlst_args)
 
@@ -67,8 +68,8 @@ class NLST_PLCO_Combined_Dataset(NLST_Survival_Dataset):
         )
         plco_args.input_loader_name = "tif_loader"
         plco_args.img_file_type = "tif"
-        plco_args.train_rawinput_augmentations = "scale_2d min_max_8bit_scaler histogram_equalize rotate_range/deg=20 random_brightness_contrast/brightness=0.2"
-        plco_args.test_rawinput_augmentations = "invert_pixels_relative/all_images=0 scale_2d min_max_8bit_scaler histogram_equalize rotate_range/deg=20 random_brightness_contrast/brightness=0.2"
+        plco_args.train_rawinput_augmentations = parse_augmentations("scale_2d min_max_8bit_scaler histogram_equalize rotate_range/deg=20 random_brightness_contrast/brightness=0.2".split(" "))
+        plco_args.test_rawinput_augmentations = parse_augmentations("invert_pixels_relative/all_images=0 scale_2d min_max_8bit_scaler histogram_equalize rotate_range/deg=20 random_brightness_contrast/brightness=0.2".split(" "))
 
         plco_dataset = PLCO_XRay_Dataset(plco_args, split_group)
         self.tif_loader = get_sample_loader(split_group, plco_args)
@@ -157,8 +158,8 @@ class NLST_PLCO_Combined_Dataset_PLCO_eval(NLST_Survival_Dataset):
         )
         nlst_args.input_loader_name = "ct_dicom_loader"
         nlst_args.img_file_type = "dicom"
-        nlst_args.train_rawinput_augmentations = "project_ct/method=campo/annotation_method=max-threshold scale_2d min_max_8bit_scaler histogram_equalize rotate_range/deg=20 random_brightness_contrast/brightness=0.2"
-        nlst_args.test_rawinput_augmentations = "project_ct/method=campo/annotation_method=max-threshold scale_2d min_max_8bit_scaler histogram_equalize"
+        nlst_args.train_rawinput_augmentations = parse_augmentations("project_ct/method=campo/annotation_method=max-threshold scale_2d min_max_8bit_scaler histogram_equalize rotate_range/deg=20 random_brightness_contrast/brightness=0.2".split(" "))
+        nlst_args.test_rawinput_augmentations = parse_augmentations("project_ct/method=campo/annotation_method=max-threshold scale_2d min_max_8bit_scaler histogram_equalize".split(" "))
         nlst_dataset = NLST_Survival_Dataset(nlst_args, split_group)
         self.ct_proj_loader = get_sample_loader(split_group, nlst_args)
 
@@ -172,8 +173,8 @@ class NLST_PLCO_Combined_Dataset_PLCO_eval(NLST_Survival_Dataset):
         )
         plco_args.input_loader_name = "tif_loader"
         plco_args.img_file_type = "tif"
-        plco_args.train_rawinput_augmentations = "scale_2d min_max_8bit_scaler histogram_equalize rotate_range/deg=20 random_brightness_contrast/brightness=0.2"
-        plco_args.test_rawinput_augmentations = "invert_pixels_relative/all_images=0 scale_2d min_max_8bit_scaler histogram_equalize rotate_range/deg=20 random_brightness_contrast/brightness=0.2"
+        plco_args.train_rawinput_augmentations = parse_augmentations("scale_2d min_max_8bit_scaler histogram_equalize rotate_range/deg=20 random_brightness_contrast/brightness=0.2".split(" "))
+        plco_args.test_rawinput_augmentations = parse_augmentations("invert_pixels_relative/all_images=0 scale_2d min_max_8bit_scaler histogram_equalize rotate_range/deg=20 random_brightness_contrast/brightness=0.2".split(" "))
 
         plco_dataset = PLCO_XRay_Dataset(plco_args, split_group)
         self.tif_loader = get_sample_loader(split_group, plco_args)
