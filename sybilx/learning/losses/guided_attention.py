@@ -181,8 +181,8 @@ def get_2d_annotation_loss(model_output, batch, model, args):
         kldiv = F.kl_div(pred_attn, annotation_gold, reduction="none") * annotation_gold_mask # (B, H * W)
 
         if args.right_annotation_loss_lambda is not None:
-            cancer_side_mask = (batch["cancer_laterality"][:, :2].sum(-1) == 1).float()[:, None]  # (B, 1), only one side is positive
-            cancer_side_gold = batch["cancer_laterality"][:, 1] # (B, 1), left side (seen as lung on right) is positive class
+            cancer_side_mask = (batch["cancer_laterality"][:, :2].sum(-1) == 1)  # only one side is positive
+            cancer_side_gold = batch["cancer_laterality"][:, 1].bool() # left side (seen as lung on right) is positive class
             left_mask = cancer_side_gold & cancer_side_mask
             right_mask = (~cancer_side_gold) & cancer_side_mask
             kldiv[right_mask] *= args.right_annotation_loss_lambda
