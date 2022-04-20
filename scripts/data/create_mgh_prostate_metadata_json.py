@@ -13,19 +13,6 @@ import time
 
 SPLIT_PROBS = [0.7, 0.15, 0.15]
 
-dcmTagsToNames = {
-    "PatientID": 0x00100020,
-    "StudyDate": 0x00080020,
-    "AccessionNumber": 0x00080050,
-    "ClinicalTrialTimePointID": 0x00120050,
-    "SeriesInstanceUID": 0x0020000e,
-    "SOPInstanceUID": 0x00080018,
-    "ImageType": 0x00080008,
-    "InstanceNumber": 0x00200013,
-    "WindowCenter": 0x00281050,
-    "WindowWidth": 0x00281051,
-}
-
 parser = argparse.ArgumentParser()
 parser.add_argument(
     "--output_json_path",
@@ -74,52 +61,63 @@ if __name__ == "__main__":
             print("missing keys, skipped: ", skipped)
             continue
         pid = dcm_meta.PatientID
-        date = dcm_meta.StudyDate
+        study_date = dcm_meta.StudyDate
         accession_number = dcm_meta.AccessionNumber
         exam = "{}".format(accession_number)
         series_id = dcm_meta.SeriesInstanceUID
-        second_series_id = dcm_meta.SeriesInstanceUID
         sop_id = dcm_meta.SOPInstanceUID
         peid = "{}{}".format(pid, exam)
 
+        slice_location = float(dcm_meta.get("SliceLocation", -1))
+        
         exam_dict = {
             "exam": exam,
             "accession_number": accession_number,
-            "date": date,
+            "study_date": study_date,
+            "patient_age": dcm_meta.PatientAge,
         }
 
-        print("exam_dict: ")
-        for key in exam_dict:
-            print("key: ", key)
-            print("value type: ", type(exam_dict[key]))
-
-        img_dict = {
-            "path": path,
-            # "image_type": dcm_meta.ImageType,
+        series_dict = {
             "sop_id": sop_id,
             "series_id": series_id,
+            "series_date": dcm_meta.SeriesDate,
+            "series_time": dcm_meta.SeriesTime,
+            "slice_thickness": dcm_meta.SliceThickness,
             "instance_number": dcm_meta.InstanceNumber,
+            "image_position": dcm_meta.ImagePositionPatient,
             "window_center": dcm_meta.WindowCenter,
             "window_width": dcm_meta.WindowWidth,
+            # "image_type": dcm_meta.ImageType,
         }
 
-        print("img dict: ")
-        for key in img_dict:
-            print("key: ", key)
-            print("value type: ", type(img_dict[key]))
+        img_series_dict = {
+            "paths": [path],
+            "slice_location": [slice_location],
+            "series_data": series_dict,
+        }
 
         if pid in pid2idx:
             pt_idx = pid2idx[pid]
 
+            # check if patient's exam already exists in dataset
             if peid in peid2idx:
                 exam_idx = peid2idx[peid]
-                json_dataset[pt_idx]["accessions"][exam_idx]["image_series"].append(
-                    img_dict
-                )
-
+                # check if patient's series already exists in exam data
+                if series_id not in list(
+                    json_dataset[pt_idx]["accessions"][exam_idx]["image_series"].keys()
+                ):
+                    json_dataset[pt_idx]["accessions"][exam_idx]["image_series"][series_id] = img_series_dict
+                # check if patient's image already exists in series data
+                elif (
+                    path
+                    not in json_dataset[pt_idx]["accessions"][exam_idx]["image_series"][series_id]["paths"]
+                ):
+                    json_dataset[pt_idx]["accessions"][exam_idx]["image_series"][series_id]["paths"].append(path)
+                    json_dataset[pt_idx]["accessions"][exam_idx]["image_series"][series_id]["slice_location"].append(slice_location)
             else:
+                # case where exam doesn't exist. create a new one
                 peid2idx[peid] = len(json_dataset[pt_idx]["accessions"])
-                exam_dict["image_series"] = [img_dict]
+                exam_dict["image_series"] = {series_id: img_series_dict}
                 json_dataset[pt_idx]["accessions"].append(exam_dict)
 
         else:
@@ -129,13 +127,9 @@ if __name__ == "__main__":
                 "accessions": [exam_dict],
                 "pid": pid,
                 "split": np.random.choice(["train", "dev", "test"], p=SPLIT_PROBS),
+                "birth_date": dcm_meta.PatientBirthDate,
             }
-            pt_dict["accessions"][0]["image_series"] = [img_dict]
-
-            print("pt_dict")
-            for key in pt_dict:
-                print("key: ", key)
-                print("value type: ", type(pt_dict[key]))
+            pt_dict["accessions"][0]["image_series"] = {series_id: img_series_dict}
 
             json_dataset.append(pt_dict)
         break
