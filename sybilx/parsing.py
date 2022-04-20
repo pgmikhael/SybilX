@@ -576,6 +576,13 @@ def parse_args(args_strings=None):
         default=2,
         help="Lambda to weigh the adversary loss.",
     )
+    parser.add_argument(
+        "--right_annotation_loss_lambda",
+        type=float,
+        default=None,
+        required=False,
+        help="Lambda to weigh the right-lung annotation attention loss by.",
+    )
     
     # loader
     parser.add_argument(
