@@ -8,7 +8,7 @@
         true
       ],
       "batch_size": [
-        3
+        4
       ],
       "accumulate_grad_batches": [
         1
@@ -155,7 +155,7 @@
         "test_run"
       ],
       "gpus": [
-        8
+        6
       ],
       "limit_train_batches": [
         1.0
