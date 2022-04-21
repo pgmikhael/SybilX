@@ -191,6 +191,13 @@ def parse_args(args_strings=None):
         help="Whether or not to use lung cancers to guide training",
     )
 
+    parser.add_argument(
+        "--include_only_lung",
+        action="store_true",
+        default=True,
+        help="Whether or not to look only at lung cancers during training",
+    )
+
     # setup
     parser.add_argument(
         "--train",
