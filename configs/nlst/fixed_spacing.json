@@ -68,7 +68,7 @@
       "sybil"
     ],
     "use_only_thin_cuts_for_ct": [
-      true
+      false
     ],
     "num_images": [
       200
@@ -146,11 +146,12 @@
       "nlst-cancer"
     ],
     "comet_tags": [
-      "sybil spacing nlst"
+      "sybil spacing nlst ensemble saved"
     ],
     "num_sanity_val_steps": [
       0
     ],
+    "logger_name": ["comet"],
     "profiler": [
       "simple"
     ],

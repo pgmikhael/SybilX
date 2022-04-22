@@ -1,153 +1,28 @@
 {
-    "script": "main",
-    "grid_search_space": {
-        "batch_size": [
-            6
-        ],
-        "accumulate_grad_batches": [
-            1
-        ],
-        "precision": [
-            16
-        ],
-        "dataset": [
-            "mgh_cohort1"
-        ],
-        "dataset_file_path": [
-            "/Mounts/rbg-storage1/datasets/MGH_Lung_Fintelmann/mgh_lung_cancer_cohort1.json"
-        ],
-        "img_dir": [
-            "/Mounts/rbg-storage1/datasets/MGH_Lung_Fintelmann/pngs"
-        ],
-        "max_followup": [
-            6
-        ],
-        "input_loader_name": [
-            "ct_loader"
-        ],
-        "lightning_name": [
-            "base"
-        ],
-        "weight_decay": [
-            1e-2
-        ],
-        "momentum": [
-            0.9
-        ],
-        "max_epochs": [
-            10
-        ],
-        "lr_decay": [
-            0.1
-        ],
-        "img_mean": [
-            128.1722
-        ],
-        "img_std": [
-            87.1849
-        ],
-        "img_size": [
-            "256 256"
-        ],
-        "base_model": [
-            "sybil"
-        ],
-        "from_checkpoint": [
-            true
-        ],
-        "snapshot": [
-            "/Mounts/rbg-storage1/snapshots/lung_ct/bdda0534aaa7e680df7abe1828f095e2/last.ckpt"
-        ],
-	"relax_checkpoint_matching": [true],
-        "use_only_thin_cuts_for_ct": [
-            true
-        ],
-        "num_images": [
-            200
-        ],
-        "min_num_images": [
-            0
-        ],
-        "num_chan": [
-            3
-        ],
-        "loss_fns": [
-            "survival"
-        ],
-        "metrics": [
-            "survival"
-        ],
-        "monitor": [
-            "val_c_index"
-        ],
-        "num_workers": [
-            8
-        ],
-        "optimizer": [
-            "adam"
-        ],
-        "patience": [
-            5
-        ],
-        "train": [
-            false
-        ],
-        "dev": [
-            false
-        ],
-        "test": [
-            true
-        ],
-        "class_bal": [
-            false
-        ],
-        "train_rawinput_augmentations": [
-            "scale_2d rotate_range/deg=20"
-        ],
-        "train_tnsr_augmentations": [
-            "force_num_chan_2d normalize_2d"
-        ],
-        "test_rawinput_augmentations": [
-            "scale_2d"
-        ],
-        "test_tnsr_augmentations": [
-            "force_num_chan_2d normalize_2d"
-        ],
-        "fix_seed_for_multi_image_augmentations": [
-            true
-        ],
-        "workspace": [
-            "pgmikhael"
-        ],
-        "project_name": [
-            "nlst-cancer"
-        ],
-        "comet_tags": [
-            "mgh sybil"
-        ],
-        "num_sanity_val_steps": [
-            0
-        ],
-        "profiler": [
-            "simple"
-        ],
-        "gpus": [
-            1
-        ],
-        "val_check_interval": [
-            1.0
-        ],
-        "ignore_warnings": [
-            false
-        ],
-        "dropout": [
-            0.1
-        ],
-        "save_dir": [
-            "/Mounts/rbg-storage1/snapshots/lung_ct"
-        ]
-    },
-    "available_gpus": [
-        "7"
-    ]
+	"train_config": "configs/nlst/fixed_spacing.json",
+	"log_dir": "/Mounts/rbg-storage1/logs/lung_ct",
+	"eval_args": {
+		"dataset": ["mgh_cohort2"],
+        	"dataset_file_path": [
+			"/Mounts/rbg-storage1/datasets/MGH_Lung_Fintelmann/mgh_lung_cancer_cohort2v2.json" 
+		],
+        	"img_dir": [
+			"/Mounts/rbg-storage1/datasets/MGH_Lung_Fintelmann/screening_pngs"
+		],
+		"hiddens_dir": [
+			"/Mounts/rbg-storage1/results/lung_ct/mgh2"
+		],
+		"snapshot": [
+			"/Mounts/rbg-storage1/snapshots/lung_ct/28a7cd44f5bcd3e6cc760b65c7e0d54d/28a7cd44f5bcd3e6cc760b65c7e0d54depoch=10.ckpt",
+			"/storage/nlst_cache/logs/lung_ct/624407ef8e3a2a009f9fa51f9846fe9a.args",
+			"/storage/nlst_cache/logs/lung_ct/65fd1f04cb4c5847d86a9ed8ba31ac1a.args",
+			"/storage/nlst_cache/logs/lung_ct/64a91b25f84141d32852e75a3aec7305.args",
+			"/Mounts/rbg-storage1/snapshots/lung_ct/56ce1a7d241dc342982f5466c4a9d7ef/56ce1a7d241dc342982f5466c4a9d7efepoch=10.ckpt"
+		],
+		"save_predictions": [true],
+		"save_hiddens": [false],
+		"replace_batchnorm_with_layernorm": [false]
+	},
+	"available_gpus": [0,1,2,3,4],
+	"script": "main"
 }
