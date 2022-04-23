@@ -56,10 +56,15 @@ class PretrainedMoCo(nn.Module):
 
     def forward(self, x, batch = None):
         output = {}
-
-        output['hidden'] = self.image_encoder(x).squeeze(-1).squeeze(-1)
-        output["hidden"] = self.relu(output["hidden"])
-        output["hidden"] = self.dropout(output["hidden"])
+        if self.args.freeze_encoder_weights:
+            with torch.no_grad():
+                output['hidden'] = self.image_encoder(x).squeeze(-1).squeeze(-1)
+                output["hidden"] = self.relu(output["hidden"])
+                output["hidden"] = self.dropout(output["hidden"])
+        else:
+            output['hidden'] = self.image_encoder(x).squeeze(-1).squeeze(-1)
+            output["hidden"] = self.relu(output["hidden"])
+            output["hidden"] = self.dropout(output["hidden"])
         output['logit'] = self.fc(output["hidden"])
         
         return output
