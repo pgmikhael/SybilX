@@ -69,6 +69,7 @@ if __name__ == "__main__":
         peid = "{}{}".format(pid, exam)
 
         slice_location = float(dcm_meta.get("SliceLocation", -1))
+        image_position = [float(pos) for pos in dcm_meta.ImagePositionPatient]
         
         exam_dict = {
             "exam": exam,
@@ -84,7 +85,7 @@ if __name__ == "__main__":
             "series_time": dcm_meta.SeriesTime,
             "slice_thickness": dcm_meta.SliceThickness,
             "instance_number": dcm_meta.InstanceNumber,
-            "image_position": dcm_meta.ImagePositionPatient,
+            "image_position": image_position,
             "window_center": dcm_meta.WindowCenter,
             "window_width": dcm_meta.WindowWidth,
             # "image_type": dcm_meta.ImageType,
@@ -130,9 +131,19 @@ if __name__ == "__main__":
                 "birth_date": dcm_meta.PatientBirthDate,
             }
             pt_dict["accessions"][0]["image_series"] = {series_id: img_series_dict}
-            
+
+            peid2idx[peid] = 0
             json_dataset.append(pt_dict)
-        break
+
+    img_series = json_dataset[0]["accessions"][0]["image_series"]
+    
+    # # debugging purposes
+    # total_paths = 0
+    # for series_id in img_series:
+    #     num_paths = len(img_series[series_id]["paths"])
+    #     print("num paths: ", num_paths)
+    #     total_paths += num_paths
+    # print("total paths: ", total_paths)
 
     print("parsed info, about to dump into dataset: ", len(json_dataset))
     json.dump(json_dataset, open(args.output_json_path, "w"))
