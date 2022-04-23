@@ -130,7 +130,7 @@ if __name__ == "__main__":
                 "birth_date": dcm_meta.PatientBirthDate,
             }
             pt_dict["accessions"][0]["image_series"] = {series_id: img_series_dict}
-
+            
             json_dataset.append(pt_dict)
         break
 
