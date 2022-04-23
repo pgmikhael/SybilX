@@ -16,13 +16,13 @@
     "img_file_type": ["dicom"],
     "limit_train_batches": [1.0],
     "limit_val_batches": [1.0],
-    "lr": [1e-5, 5e-4],
+    "lr": [1e-5, 3e-6, 1e-7],
     "base_model": ["sybilxray_r50"],
     "use_only_thin_cuts_for_ct": [true],
     "region_annotations_filepath": ["/Mounts/rbg-storage1/datasets/NLST/annotations_122020.json"],
     "use_annotations": [true],
     "annotation_loss_lambda_2d": [0.03],
-    "image_side_attention_loss_lambda_2d": [0.03, 0.05],
+    "image_side_attention_loss_lambda_2d": [0.03],
     "num_chan": [3],
     "metrics": ["classification"],
     "num_classes": [2],
@@ -60,12 +60,12 @@
     "hiddens_dir": ["/storage/NLST_CT_HIDDENS/28a7cd44f5bcd3e6cc760b65c7e0d54depoch=10"],
     "hidden_size": ["512"],
     "distill_student_loss_lambda": [0.7],
-    "distill_temperature": [15,30],
+    "distill_temperature": [1],
     "with_attention": [true]
   },
   "paired_search_space": {
-    "loss_fns": ["vanilla_knowledge_distillation_loss guided_side_attention_2d", "vanilla_knowledge_distillation_loss guided_attention_2d"],
-    "comet_tags": ["projections with_side_attention vanilla_kd_loss", "projections with_annotation_attention vanilla_kd_loss"]
+    "loss_fns": ["vanilla_knowledge_distillation_loss", "mse_knowledge_distillation_loss", "vanilla_knowledge_distillation_loss guided_side_attention_2d", "vanilla_knowledge_distillation_loss guided_attention_2d", "mse_knowledge_distillation_loss guided_side_attention_2d", "mse_knowledge_distillation_loss guided_attention_2d"],
+    "comet_tags": ["projections no_attn temp1 vanilla_kd_loss", "projections no_attn mse_kd_loss", "projections with_side_attention temp1 vanilla_kd_loss", "projections with_annotation_attention temp1 vanilla_kd_loss", "projections with_side_attention mse_kd_loss", "projections with_annotation_attention mse_kd_loss"]
   },
   "available_gpus": [1,2,3]
 }

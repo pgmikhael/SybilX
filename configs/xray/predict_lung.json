@@ -16,7 +16,7 @@
     "img_file_type": ["dicom"],
     "limit_train_batches": [1.0],
     "limit_val_batches": [1.0],
-    "lr": [3e-5],
+    "lr": [1e-5, 3e-5, 3e-6],
     "base_model": ["sybilxray_r50"],
     "use_only_thin_cuts_for_ct": [true],
     "region_annotations_filepath": ["/Mounts/rbg-storage1/datasets/NLST/annotations_122020.json"],
@@ -25,7 +25,7 @@
     "image_side_attention_loss_lambda_2d": [0.03],
     "num_chan": [3],
     "metrics": ["classification"],
-    "num_classes": [2],
+    "num_classes": [4],
     "monitor": ["val_roc_auc"],
     "num_workers": [8],
     "optimizer": ["adam"],
@@ -33,10 +33,8 @@
     "train": [true],
     "dev": [true],
     "test": [false],
-    "class_bal": [true],
-    "train_rawinput_augmentations": ["project_ct/method=campo/annotation_method=max-threshold scale_2d min_max_8bit_scaler histogram_equalize rotate_range/deg=20"],
+    "class_bal": [true, false],
     "train_tnsr_augmentations": ["force_num_chan_2d normalize_2d"],
-    "test_rawinput_augmentations": ["project_ct/method=campo/annotation_method=max-threshold scale_2d min_max_8bit_scaler histogram_equalize"],
     "test_tnsr_augmentations": ["force_num_chan_2d normalize_2d"],
     "fix_seed_for_multi_image_augmentations": [true],
     "img_mean": ["127.2311"],
@@ -60,11 +58,13 @@
     "hidden_size": ["512"],
     "distill_student_loss_lambda": [0.7],
     "distill_temperature": [1],
-    "with_attention": [true]
+    "with_attention": [true],
+    "loss_fns": ["cross_entropy"],
+    "comet_tags": ["lung_pred"]
   },
   "paired_search_space": {
-    "loss_fns": ["cross_entropy"],
-    "comet_tags": ["debug lung_pred"]
+    "train_rawinput_augmentations": ["project_ct/method=campo/annotation_method=max-threshold scale_2d min_max_8bit_scaler histogram_equalize rotate_range/deg=20", "project_ct/method=campo/annotation_method=max-threshold scale_2d rotate_range/deg=20"],
+    "test_rawinput_augmentations": ["project_ct/method=campo/annotation_method=max-threshold scale_2d min_max_8bit_scaler histogram_equalize", "project_ct/method=campo/annotation_method=max-threshold scale_2d"]
   },
   "available_gpus": [1,2,3]
 }
