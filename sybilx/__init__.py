@@ -56,6 +56,7 @@ import sybilx.models.sybilxray
 import sybilx.models.sybilx_teacher_student
 import sybilx.models.sybil
 import sybilx.models.mlp
+import sybilx.models.pretrained_moco
 
 # losses
 import sybilx.learning.losses.basic
