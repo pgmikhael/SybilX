@@ -180,6 +180,14 @@ def get_2d_annotation_loss(model_output, batch, model, args):
         pred_attn = model_output["image_attention_2d"] * batch_mask[:, None] # (B, H * W)
         kldiv = F.kl_div(pred_attn, annotation_gold, reduction="none") * annotation_gold_mask # (B, H * W)
 
+        if args.right_annotation_loss_lambda is not None:
+            cancer_side_mask = (batch["cancer_laterality"][:, :2].sum(-1) == 1)  # only one side is positive
+            cancer_side_gold = batch["cancer_laterality"][:, 1].bool() # left side (seen as lung on right) is positive class
+            left_mask = cancer_side_gold & cancer_side_mask
+            right_mask = (~cancer_side_gold) & cancer_side_mask
+            kldiv[right_mask] *= args.right_annotation_loss_lambda
+            kldiv[left_mask] *= 1 - args.right_annotation_loss_lambda
+
         # sum loss per slice and average over batches
         loss = kldiv.sum() / num_annotated_samples # tensor(int), dim=0
         logging_dict["image_attention_loss_2d"] = loss.detach()

@@ -30,6 +30,7 @@ import sybilx.datasets.mnist
 import sybilx.datasets.mimic_cxr
 import sybilx.datasets.chexpert
 import sybilx.datasets.joint_mimic_chexpert
+import sybilx.datasets.joint_nlst_plco
 
 # augmentation
 import sybilx.augmentations.rawinput
