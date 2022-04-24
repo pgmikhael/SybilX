@@ -70,6 +70,7 @@ if __name__ == "__main__":
 
         slice_location = float(dcm_meta.get("SliceLocation", -1))
         image_position = [float(pos) for pos in dcm_meta.ImagePositionPatient]
+        pixel_spacing = [float(space) for space in dcm_meta.PixelSpacing]
         
         exam_dict = {
             "exam": exam,
@@ -83,11 +84,13 @@ if __name__ == "__main__":
             "series_id": series_id,
             "series_date": dcm_meta.SeriesDate,
             "series_time": dcm_meta.SeriesTime,
+            "series_desc": dcm_meta.SeriesDescription,
             "slice_thickness": dcm_meta.SliceThickness,
             "instance_number": dcm_meta.InstanceNumber,
             "image_position": image_position,
             "window_center": dcm_meta.WindowCenter,
             "window_width": dcm_meta.WindowWidth,
+            "pixel_spacing": pixel_spacing,
             # "image_type": dcm_meta.ImageType,
         }
 
