@@ -26,8 +26,10 @@
             "ct_loader"
         ],
         "lightning_name": [
-            "multi_domain_adapter"
+            "base"
         ],
+	"logger_name": ["comet"],
+	"adv_conditional": [true],
         "weight_decay": [
             1e-2
         ],
@@ -58,9 +60,14 @@
         "from_checkpoint": [
             true
         ],
-        "snapshot": [
-            "/home/peter/SybilModels/8ae3b01374674810ff14438a4a3e5638epoch=7.ckpt"
-        ],
+	"snapshot": [
+		"/home/peter/SybilModels/28a7cd44f5bcd3e6cc760b65c7e0d54depoch=10.ckpt",
+		"/home/peter/SybilModels/sybil_snapshots/65fd1f04cb4c5847d86a9ed8ba31ac1aepoch=10.ckpt", 
+		"/home/peter/SybilModels/sybil_snapshots/64a91b25f84141d32852e75a3aec7305epoch=10.ckpt",
+		"/home/peter/SybilModels/sybil_snapshots/56ce1a7d241dc342982f5466c4a9d7efepoch=10.ckpt", 
+		"/home/peter/SybilModels/sybil_snapshots/624407ef8e3a2a009f9fa51f9846fe9aepoch=10.ckpt"
+	],
+	"replace_batchnorm_with_layernorm": [false],
 	"relax_checkpoint_matching": [true],
         "use_only_thin_cuts_for_ct": [
             false
@@ -126,7 +133,7 @@
             "nlst-cancer"
         ],
         "comet_tags": [
-            "cgmh sybil"
+            "cgmh sybil nlst"
         ],
         "num_sanity_val_steps": [
             0
