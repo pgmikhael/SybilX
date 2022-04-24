@@ -96,6 +96,7 @@ class CGMH_Dataset(NLST_Survival_Dataset):
                 exam_dict["examid"][-5:],
                     series_id.replace(".", "")[-5:],
                 ),
+            "study": exam_dict["examid"],
             "series": series_id,
             "pid": mrn_row["pid"],
             "pixel_spacing": series_dict['pixel_spacing'] + [series_dict['slice_thickness'] ],
