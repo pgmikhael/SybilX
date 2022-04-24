@@ -17,10 +17,10 @@ parser = argparse.ArgumentParser()
 parser.add_argument(
     "--output_json_path",
     type=str,
-    default="/Mounts/rbg-storage1/datasets/MGH_Prostate_Salari/prostate_dataset.json",
+    default="/Mounts/rbg-storage1/users/janicey/prostate/prostate_dataset.json",
 )
 parser.add_argument(
-    "--data_dir", type=str, default="/Mounts/rbg-storage1/datasets/MGH_Prostate_Salari"
+    "--data_dir", type=str, default="/storage/prostate"
 )
 
 if __name__ == "__main__":
