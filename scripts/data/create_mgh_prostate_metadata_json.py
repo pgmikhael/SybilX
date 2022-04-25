@@ -31,9 +31,9 @@ if __name__ == "__main__":
     print("parsed args")
     i = 0
     for root, _, files in os.walk(args.data_dir):
-        if i % 20 == 0:
+        if i % 1000 == 0:
             print("walk iteration ", i)
-        if i > 100:
+        if i > 1000:
             break
         dicoms.extend([os.path.join(root, f) for f in files if f.endswith(".dcm")])
         i += 1
@@ -45,9 +45,9 @@ if __name__ == "__main__":
     i = 0
     skipped = 0
     for path in tqdm(dicoms):
-        if i % 20 == 0:
-            print("on dicom ", i)
-        i += 1
+        #if i % 20 == 0:
+        #    print("on dicom ", i)
+        #i += 1
 
         dcm_meta = pydicom.dcmread(path, stop_before_pixels=True)
 
