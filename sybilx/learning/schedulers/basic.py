@@ -11,7 +11,7 @@ class ReduceLROnPlateau(optim.lr_scheduler.ReduceLROnPlateau):
 
     def __init__(self, optimizer, args):
         super().__init__(
-            optimizer, patience=args.patience, factor=args.lr_decay, mode="min"
+            optimizer, patience=args.patience, factor=args.lr_decay, mode="min" if "loss" in args.monitor else "max"
         )
 
 

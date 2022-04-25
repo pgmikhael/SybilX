@@ -1,185 +1,27 @@
 {
-  "script": "main",
-  "grid_search_space": {
-    "batch_size": [
-      3
-    ],
-    "accumulate_grad_batches": [
-      1
-    ],
-    "precision": [
-      16
-    ],
-    "dataset": [
-      "nlst"
-    ],
-    "max_followup": [
-      6
-    ],
-    "input_loader_name": [
-      "ct_loader"
-    ],
-    "lightning_name": [
-      "base"
-    ],
-    "weight_decay": [
-      1e-2
-    ],
-    "momentum": [
-      0.9
-    ],
-    "max_epochs": [
-      10
-    ],
-    "lr_decay": [
-      0.1
-    ],
-    "img_mean": [
-      128.1722
-    ],
-    "img_std": [
-      87.1849
-    ],
-    "img_size": [
-      "256 256"
-    ],
-    "limit_train_batches": [
-      1.0
-    ],
-    "limit_val_batches": [
-      1.0
-    ],
-    "lr": [
-      3e-5
-    ],
-    "base_model": [
-      "sybil"
-    ],
-    "from_checkpoint": [true],
-    "snapshot": ["/Mounts/rbg-storage1/snapshots/lung_ct/28a7cd44f5bcd3e6cc760b65c7e0d54d/28a7cd44f5bcd3e6cc760b65c7e0d54depoch=10.ckpt"],
-    "relax_checkpoint_matching": [true],
-    "use_only_thin_cuts_for_ct": [
-      true
-    ],
-    "fit_to_length": [false],
-    "num_images": [
-      200
-    ],
-    "slice_thickness_filter": [2.5],
-    "resample_pixel_spacing": [true],
-    "ct_pixel_spacing": ["0.703125 0.703125 2.5"],
-    "resample_pixel_spacing_prob": [1],
-    "min_num_images": [
-      0
-    ],
-    "region_annotations_filepath": [
-      "/Mounts/rbg-storage1/datasets/NLST/annotations_122020.json"
-    ],
-    "use_annotations": [
-      true
-    ],
-    "annotation_loss_lambda": [
-      1.0
-    ],
-    "image_attention_loss_lambda": [
-      1.0
-    ],
-    "volume_attention_loss_lambda": [
-      1.0
-    ],
-    "num_chan": [
-      3
-    ],
-    "loss_fns": [
-      "survival guided_attention"
-    ],
-    "metrics": [
-      "survival"
-    ],
-    "monitor": [
-      "val_c_index"
-    ],
-    "num_workers": [
-      3
-    ],
-    "optimizer": [
-      "adam"
-    ],
-    "patience": [
-      5
-    ],
-    "train": [
-      false
-    ],
-    "dev": [
-      false
-    ],
-    "test": [
-      true
-    ],
-    "class_bal": [
-      true
-    ],
-    "train_rawinput_augmentations": [
-      "scale_2d rotate_range/deg=20"
-    ],
-    "train_tnsr_augmentations": [
-      "force_num_chan_2d normalize_2d"
-    ],
-    "test_rawinput_augmentations": [
-      "scale_2d"
-    ],
-    "test_tnsr_augmentations": [
-      "force_num_chan_2d normalize_2d"
-    ],
-    "fix_seed_for_multi_image_augmentations": [
-      true
-    ],
-    "workspace": [
-      "pgmikhael"
-    ],
-    "project_name": [
-      "nlst-cancer"
-    ],
-    "comet_tags": [
-      "sybil eval"
-    ],
-    "num_sanity_val_steps": [
-      0
-    ],
-    "profiler": [
-      "simple"
-    ],
-    "gpus": [
-      1
-    ],
-    "val_check_interval": [
-      1.0
-    ],
-    "ignore_warnings": [
-      false
-    ],
-    "dropout": [
-      0.1
-    ],
-    "dataset_file_path": [
-      "/Mounts/rbg-storage1/datasets/NLST/full_nlst_google.json"
-    ],
-    "save_dir": [
-      "/Mounts/rbg-storage1/snapshots/lung_ct"
-    ],
-    "img_dir": [
-      "/Mounts/rbg-storage1/datasets/NLST/nlst-ct-png"
-    ],
-    "save_predictions": [true],
-    "save_hiddens": [true],
-    "eval_on_train": [true],
-    "hiddens_dir": ["/Mounts/rbg-storage1/results/lung_ct/distillation"],
-    "cache_path": [
-      "/storage/nlst_cache"
-    ]
-  },
-  "available_gpus": [
-    "7"
-  ]
+	"train_config": "configs/nlst/fixed_spacing.json",
+	"log_dir": "/Mounts/rbg-storage1/logs/lung_ct",
+	"eval_args": {
+		"dataset": ["nlst"],
+        	"dataset_file_path": [
+			"/Mounts/rbg-storage1/datasets/NLST/full_nlst_google.json"
+		],
+        	"img_dir": [
+			"/Mounts/rbg-storage1/datasets/NLST/nlst-ct-png"
+		],
+		"hiddens_dir": [
+			"/Mounts/rbg-storage1/results/lung_ct/nlst"
+		],
+		"snapshot": [
+			"/storage/nlst_cache/logs/lung_ct/624407ef8e3a2a009f9fa51f9846fe9a.args",
+			"/storage/nlst_cache/logs/lung_ct/65fd1f04cb4c5847d86a9ed8ba31ac1a.args",
+			"/storage/nlst_cache/logs/lung_ct/64a91b25f84141d32852e75a3aec7305.args",
+			"/Mounts/rbg-storage1/snapshots/lung_ct/56ce1a7d241dc342982f5466c4a9d7ef/56ce1a7d241dc342982f5466c4a9d7efepoch=10.ckpt"
+		],
+		"save_predictions": [true],
+		"save_hiddens": [false],
+		"replace_batchnorm_with_layernorm": [false]
+	},
+	"available_gpus": [4,5,6,7],
+	"script": "main"
 }

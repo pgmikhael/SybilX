@@ -55,8 +55,20 @@
     "base_model": [
       "sybil"
     ],
-    "use_only_thin_cuts_for_ct": [
+    "slice_thickness_filter": [
+      2.5
+    ],
+    "resample_pixel_spacing": [
       true
+    ],
+    "ct_pixel_spacing": [
+      "0.703125 0.703125 2.5"
+    ],
+    "resample_pixel_spacing_prob": [
+      1
+    ],
+    "use_only_thin_cuts_for_ct": [
+      false,true
     ],
     "num_images": [
       200
@@ -135,14 +147,12 @@
       0.0
     ],
     "swa_lr": [
-      1e-4,
-      1e-3
+      1e-4
     ],
     "swa_annealing_epochs": [
       1
     ],
     "swa_annealing_strategy": [
-      "linear",
       "cos"
     ],
     "workspace": [
@@ -152,7 +162,7 @@
       "nlst-cancer"
     ],
     "comet_tags": [
-      "swa"
+      "swa nlst sybil ensemble"
     ],
     "num_sanity_val_steps": [
       0
@@ -160,6 +170,7 @@
     "profiler": [
       "simple"
     ],
+    "logger_name": ["comet"],
     "gpus": [
       8
     ],
@@ -185,7 +196,10 @@
       "/storage/nlst_cache"
     ],
     "snapshot": [
-      "/Mounts/rbg-storage1/logs/lung_ct/dfa0399d738fc388c44fa30e1cf1f50e.args"
+	"/storage/nlst_cache/logs/lung_ct/422414ca396ddc04034b1442fefa0fee.args",
+	"/storage/nlst_cache/logs/lung_ct/7e94d2ae2fb360ecc72e6a14afdcfa82.args",
+	"/storage/nlst_cache/logs/lung_ct/c259bc54c9b4be3a21bfd2026d5148a3.args",
+	"/storage/nlst_cache/logs/lung_ct/a6ff3978020f12c6d74257301c87ea20.args"
     ],
     "from_checkpoint": [
       true
