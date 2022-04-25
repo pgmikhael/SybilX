@@ -163,7 +163,7 @@ class MGH_Prostate(data.Dataset):
 
     def get_volume_dict(self, series_id, series_dict, exam_dict, pt_metadata, pid, split):
         img_paths = series_dict["paths"]
-        slice_locations = series_dict["image_position"]
+        slice_locations = series_dict["slice_location"]
         series_data = series_dict["series_data"]
         # screen_timepoint = series_data["study_yr"][0]
         # assert screen_timepoint == exam_dict["screen_timepoint"]
