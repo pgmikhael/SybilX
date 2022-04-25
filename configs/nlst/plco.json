@@ -1,0 +1,57 @@
+{
+  "script": "plcom2012/evaluate",
+  "grid_search_space": {
+    "max_followup": [
+      6
+    ],
+    "input_loader_name": [
+      "ct_loader"
+    ],
+    "slice_thickness_filter": [
+      2.5
+    ],
+    "resample_pixel_spacing": [
+      true
+    ],
+    "ct_pixel_spacing": [
+      "0.703125 0.703125 2.5"
+    ],
+    "resample_pixel_spacing_prob": [
+      1
+    ],
+    "use_only_thin_cuts_for_ct": [
+      true
+    ],
+    "num_images": [
+      200
+    ],
+    "min_num_images": [
+      0
+    ],
+    "region_annotations_filepath": [
+      "/Mounts/rbg-storage1/datasets/NLST/annotations_122020.json"
+    ],
+    "use_annotations": [
+      true
+    ],
+    "test": [
+      true
+    ],
+    "gpus": [
+      1
+    ],
+    "dataset_file_path": [
+      "/Mounts/rbg-storage1/datasets/NLST/full_nlst_google.json"
+    ],
+    "img_dir": [
+      "/Mounts/rbg-storage1/datasets/NLST/nlst-ct-png"
+    ],
+    "save_predictions": [true],
+    "hiddens_dir": ["/Mounts/rbg-storage1/results/lung_ct"]
+  },
+"paired_search_space": {  
+    "dataset": ["nlst_plco", "nlst_plco_screening"],
+    "base_model": ["plcom2012", "plcoresults"]
+  },
+  "available_gpus": [0,1]
+}

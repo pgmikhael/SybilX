@@ -1,7 +1,7 @@
 import math
 from tqdm import tqdm
 import pickle
-
+import os
 
 class RiskModel(object):
     def __init__(self, args):
@@ -29,7 +29,7 @@ class RiskModel(object):
             {k: v for k, v in d.items() if k in self.save_keys} for d in data
         ]
         predictions_filename = "{}.{}.predictions".format(
-            self.args.results_path, self.save_prefix
+            os.path.join(self.args.hiddens_dir, self.args.experiment_name), self.save_prefix
         )
         pickle.dump(predictions_dict, open(predictions_filename, "wb"))
 
@@ -121,3 +121,9 @@ class PLCOm2012(RiskModel):
             "y_mask",
             "screen_timepoint",
         ]
+
+class PLCOresults(PLCOm2012):
+    def forward(self, batch):
+        base_risk_score = super().forward(batch)/2
+        x = -4.4353800 +  (-0.2713125 * (base_risk_score**(-0.5) - 7.045149954)) + batch['scr_group_coef']
+        return 1/(1+math.exp(-x))  
