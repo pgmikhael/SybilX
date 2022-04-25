@@ -1,0 +1,155 @@
+{
+  "script": "main",
+  "grid_search_space": {
+    "batch_size": [
+      3
+    ],
+    "accumulate_grad_batches": [
+      1
+    ],
+    "precision": [
+      16
+    ],
+    "dataset": [
+      "mgh_prostate"
+    ],
+    "max_followup": [
+      6
+    ],
+    "input_loader_name": [
+      "dicom_loader"
+    ],
+    "lightning_name": [
+      "base"
+    ],
+    "weight_decay": [
+      1e-2
+    ],
+    "momentum": [
+      0.9
+    ],
+    "max_epochs": [
+      10
+    ],
+    "lr_decay": [
+      0.1
+    ],
+    "img_mean": [
+      128.1722
+    ],
+    "img_std": [
+      87.1849
+    ],
+    "img_size": [
+      "512 512"
+    ],
+    "slice_thickness_filter": [
+      4
+    ],
+    "resample_pixel_spacing": [
+      true
+    ],
+    "resample_pixel_spacing_prob": [
+      1
+    ],
+    "limit_train_batches": [
+      0.5
+    ],
+    "limit_val_batches": [
+      1.0
+    ],
+    "lr": [
+      3e-5
+    ],
+    "base_model": [
+      "sybil"
+    ],
+    "num_images": [
+      44
+    ],
+    "min_num_images": [
+      0
+    ],
+    "image_attention_loss_lambda": [
+      1.0
+    ],
+    "volume_attention_loss_lambda": [
+      1.0
+    ],
+    "num_chan": [
+      3
+    ],
+    "loss_fns": [
+      "cross_entropy"
+    ],
+    "metrics": [
+      "classification"
+    ],
+    "monitor": [
+      "val_c_index"
+    ],
+    "num_workers": [
+      3
+    ],
+    "optimizer": [
+      "adam"
+    ],
+    "patience": [
+      5
+    ],
+    "train": [
+      true
+    ],
+    "dev": [
+      true
+    ],
+    "test": [
+      true
+    ],
+    "class_bal": [
+      true
+    ],
+    "workspace": [
+      "janicey27"
+    ],
+    "project_name": [
+      "prostate"
+    ],
+    "comet_tags": [
+      "test"
+    ],
+    "num_sanity_val_steps": [
+      0
+    ],
+    "profiler": [
+      "simple"
+    ],
+    "gpus": [
+      8
+    ],
+    "val_check_interval": [
+      1.0
+    ],
+    "ignore_warnings": [
+      false
+    ],
+    "dropout": [
+      0.1
+    ],
+    "dataset_file_path": [
+      "/Mounts/rbg-storage1/users/janicey/prostate/small_test.json"
+    ],
+    "save_dir": [
+      "/Mounts/rbg-storage1/snapshots/prostate"
+    ],
+    "img_dir": [
+      "/storage/prostate/IRB2019P002719/"
+    ],
+    "cache_path": [
+      "/storage/prostate"
+    ]
+  },
+  "available_gpus": [
+    "0,1,2,3,4,5,6,7"
+  ]
+}
