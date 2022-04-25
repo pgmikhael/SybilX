@@ -23,6 +23,7 @@ from sybilx.serie import Serie
 # data
 import sybilx.datasets.nlst
 import sybilx.datasets.mgh
+import sybilx.datasets.taiwan
 
 # augmentation
 import sybilx.augmentations.rawinput

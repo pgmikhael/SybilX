@@ -59,9 +59,6 @@ def cli_main(args):
         args, get_object(args.dataset, "dataset")(args, "dev"), False
     )
 
-    if "survival" in args.metrics:
-        # compute censoring distribution
-        args.censoring_distribution = get_censoring_dist(train_dataset.dataset)
 
     # print args
     for key, value in sorted(vars(args).items()):
@@ -70,6 +67,7 @@ def cli_main(args):
     # create or load lightning model from checkpoint
     model = loaders.get_lightning_model(args)
 
+    
     if args.logger_name == "comet":
         # log to comet
         trainer.logger.experiment.set_model_graph(model)
@@ -80,6 +78,9 @@ def cli_main(args):
     trainer.callbacks = set_callbacks(trainer, args)
 
     if args.train:
+        if "survival" in args.metrics:
+            # compute censoring distribution
+            args.censoring_distribution = get_censoring_dist(train_dataset.dataset)
         log.info("\nTraining Phase...")
         trainer.fit(model, train_dataset, dev_dataset)
         args.model_path = trainer.checkpoint_callback.best_model_path
