@@ -1,0 +1,27 @@
+{
+	"train_config": "configs/nlst/r3d.json",
+	"log_dir": "/Mounts/rbg-storage1/logs/lung_ct",
+	"eval_args": {
+		"dataset": ["mgh_cohort2"],
+        	"dataset_file_path": [
+			"/Mounts/rbg-storage1/datasets/MGH_Lung_Fintelmann/mgh_lung_cancer_cohort2v2.json" 
+		],
+        	"img_dir": [
+			"/Mounts/rbg-storage1/datasets/MGH_Lung_Fintelmann/screening_pngs"
+		],
+		"fit_to_length": [true],
+		"eval_on_train": [false],
+		"hiddens_dir": [
+			"/Mounts/rbg-storage1/results/lung_ct/mgh-calib"
+		],
+		"snapshot": [
+			"/Mounts/rbg-storage1/logs/lung_ct/36b8fed8790d236fa384e815f632f385.args"
+		],
+		"relax_checkpoint_matching": [true],
+		"save_predictions": [true],
+		"save_hiddens": [true],
+		"replace_batchnorm_with_layernorm": [false]
+	},
+	"available_gpus": [4],
+	"script": "main"
+}
