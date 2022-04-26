@@ -277,3 +277,14 @@ class SybilXrayFinetune(SybilXrayInception):
         output.update(pool_output)
 
         return output
+
+@register_object("sybilxray_finetune_random_attn_arm", "model")
+class SybilXrayFinetuneRandomAttnArm(SybilXrayFinetune):
+    def __init__(self, args):
+        super(SybilXrayFinetuneRandomAttnArm, self).__init__(args)
+        assert not self.args.reset_decoder
+        assert self.args.with_attention
+        finetune_module = get_lightning_model(self.finetune_model_args)
+        finetune_model = finetune_module.model
+        self.pool = AttentionPool2D(num_chan=finetune_model.ENCODER_OUTPUT_DIM)
+
