@@ -112,7 +112,7 @@ class NLST_PLCO_Combined_Dataset(NLST_Survival_Dataset):
                 item["projection_volume_annotations"] = torch.tensor(0, dtype=float)
                 item["projection_annotation_areas"] = torch.tensor(0, dtype=float)
                 item["projection_image_annotations"] = torch.zeros(1, input_dict["input"].shape[1], input_dict["input"].shape[2], dtype=float)
-                item["projection_has_annotation"] = torch.tensor(0)
+                item["projection_has_annotation"] = torch.tensor(0, dtype=bool)
 
         x = input_dict["input"]
 
@@ -194,5 +194,28 @@ class NLST_PLCO_Combined_Dataset_PLCO_eval(NLST_PLCO_Combined_Dataset):
 
         if split_group != 'train':
             dataset = [sample for sample in dataset if sample["origin_dataset"] == 1]
+
+        return dataset
+
+@register_object("nlst_only_annotated+plco", "dataset")
+class NLST_PLCO_Combined_Dataset_Only_Annotated_NLST(NLST_PLCO_Combined_Dataset):
+    """
+    NLST (CTs) and PLCO (X-rays) Combined with only annotated NLST samples.
+    
+    See nlst+plco dataset for notes.
+    """
+
+    def create_dataset(self, split_group):
+        """
+        Gets the dataset from the paths and labels in the json.
+        Arguments:
+            split_group(str): One of ['train'|'dev'|'test'].
+        Returns:
+            The dataset as a dictionary with img paths, label,
+            and additional information regarding exam or participant
+        """
+        dataset = super(NLST_PLCO_Combined_Dataset_Only_Annotated_NLST, self).create_dataset(split_group)
+
+        dataset = [sample for sample in dataset if sample["origin_dataset"] == 1 or sample["series"] in self.annotations_metadata]
 
         return dataset
