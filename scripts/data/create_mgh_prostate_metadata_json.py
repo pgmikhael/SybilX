@@ -25,15 +25,15 @@ parser.add_argument(
 
 def get_files_from_walk(dir, endings = [], file_phrases = []):
 
-    def check_endings(file):
+    def check_endings(f):
         for end in endings:
-            if file.endswidth(end):
+            if f.endswith(end):
                 return True
         return False
     
-    def check_phrases(file):
+    def check_phrases(f):
         for phrase in file_phrases:
-            if phrase in file:
+            if phrase in f:
                 return True
         return False 
 
