@@ -1,0 +1,91 @@
+{
+  "script": "main",
+  "grid_search_space": {
+    "cross_val_seed": [0],
+    "gpus": [1],
+    "batch_size": [32],
+    "accumulate_grad_batches": [1],
+    "precision": [16],
+    "img_size": ["512 512"],
+    "max_followup": [6],
+    "lightning_name": ["base"],
+    "weight_decay": [0.001],
+    "max_epochs": [25],
+    "lr_decay": [0.1],
+    "limit_train_batches": [1.0],
+    "limit_val_batches": [1.0],
+    "lr": [3e-8],
+    "use_annotations": [false],
+    "num_chan": [3],
+    "loss_fns": ["cross_entropy"],
+    "metrics": ["classification"],
+    "num_classes": [2],
+    "monitor": ["val_roc_auc"],
+    "num_workers": [8],
+    "optimizer": ["adam"],
+    "patience": [5],
+    "train": [false],
+    "dev": [true],
+    "test": [false],
+    "class_bal": [true],
+    "train_tnsr_augmentations": ["force_num_chan_2d normalize_2d"],
+    "test_tnsr_augmentations": ["force_num_chan_2d normalize_2d"],
+    "fix_seed_for_multi_image_augmentations": [true],
+    "workspace": ["mariehane"],
+    "project_name": ["xray-cancer"],
+    "num_sanity_val_steps": [0],
+    "use_risk_factors": [true],
+    "assign_splits": [true],
+    "split_type": ["random"],
+    "split_probs": ["0.7 0.15 0.15"],
+    "val_check_interval": [1.0],
+    "ignore_warnings": [false],
+    "dropout": [0.1],
+    "save_predictions": [false],
+    "checkpoint_save_top_k": [3],
+    "save_dir": ["/storage/ludvig/snapshots"],
+    "cache_path": ["/storage/xray_cache"],
+    "finetune_model": ["sybilxray_r50"],
+    "finetune_model_path": ["/storage/ludvig/snapshots/c77e94bdd45473941cca08422032df2c/c77e94bdd45473941cca08422032df2cepoch=9.ckpt"],
+    "from_checkpoint": [false],
+    "with_attention": [true],
+    "hidden_size": [256]
+  },
+  "paired_search_space": {
+    "base_model": [
+        "sybilxray_finetune",
+        "sybilxray_finetune_random_attn_arm"
+    ],
+    "comet_tags": [
+        "projections plco-eval",
+        "projections plco-eval randomize-attn-arm"
+    ],
+    "dataset": [
+        "plco_xray",
+        "plco_xray"
+    ],
+    "dataset_file_path": [
+        "/storage/ludvig/PLCO_XRAY/metadata_2022_04_05_rotated.json",
+        "/storage/ludvig/PLCO_XRAY/metadata_2022_04_05_rotated.json"
+    ],
+    "input_loader_name": [
+        "tif_loader",
+        "tif_loader"
+    ],
+    "img_file_type": [
+        "tif",
+        "tif"
+    ],
+    "train_rawinput_augmentations": [
+        "scale_2d min_max_8bit_scaler histogram_equalize rotate_range/deg=20 random_brightness_contrast/brightness=0.2",
+        "scale_2d min_max_8bit_scaler histogram_equalize rotate_range/deg=20 random_brightness_contrast/brightness=0.2"
+    ],
+    "test_rawinput_augmentations": [
+        "scale_2d min_max_8bit_scaler histogram_equalize",
+        "scale_2d min_max_8bit_scaler histogram_equalize"
+    ]
+  },
+  "available_gpus": [
+    4,7
+  ]
+}
