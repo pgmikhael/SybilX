@@ -129,7 +129,7 @@ class MGH_Prostate(data.Dataset):
     def skip_sample(self, series_dict, pt_metadata):
         series_data = series_dict["series_data"]
 
-        wrong_series = series_data["series_desc"]
+        wrong_series = False #TODO: update
 
         # # check if restricting to specific slice thicknesses
         slice_thickness = series_data["slice_thickness"]
@@ -334,9 +334,8 @@ class MGH_Prostate(data.Dataset):
     def reshape_images(self, images):
         images = [im.unsqueeze(0) for im in images]
         images = torch.cat(images, dim=0)
-        print("Shape:" + images.shape)
         # Convert from (T, C, H, W) to (C, T, H, W)
-        images = images.permute(1, 0, 2, 3)
+        # images = images.permute(1, 0, 2, 3)
         return images
 
     def get_slice_thickness_class(self, thickness):
