@@ -23,7 +23,7 @@ parser.add_argument(
     "--data_dir", type=str, default="/storage/prostate"
 )
 
-def get_files_from_walk(dir, endings = [], file_phrases = []):
+def get_files_from_walk(dir, endings = tuple(), file_phrases = tuple()):
 
     def check_endings(file):
         for end in endings:
@@ -31,9 +31,9 @@ def get_files_from_walk(dir, endings = [], file_phrases = []):
                 return True
         return False
     
-    def check_phrases(file):
+    def check_phrases(root):
         for phrase in file_phrases:
-            if phrase in file:
+            if phrase in root:
                 return True
         return False 
 
@@ -44,7 +44,7 @@ def get_files_from_walk(dir, endings = [], file_phrases = []):
             print("walk iteration ", i)
         if i > 1000:
             break
-        outputs.extend([os.path.join(root, f) for f in files if check_endings(f) and check_phrases(f)])
+        outputs.extend([os.path.join(root, f) for f in files if check_endings(f) and check_phrases(root)])
         i += 1
     return outputs
 
@@ -52,7 +52,7 @@ if __name__ == "__main__":
     print("in name main section of code", flush=True)
     args = parser.parse_args()
 
-    dicoms = get_files_from_walk(args.data_dir, [".dcm"], ["T2", "axial"])
+    dicoms = get_files_from_walk(args.data_dir, (".dcm",), ("T2", "axial"))
     # i = 0
     # for root, _, files in os.walk(args.data_dir):
     #     if i % 1000 == 0:
