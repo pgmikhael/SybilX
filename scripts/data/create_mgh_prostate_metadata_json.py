@@ -26,12 +26,18 @@ parser.add_argument(
 def get_files_from_walk(dir, endings = tuple(), file_phrases = tuple()):
 
     def check_endings(f):
+        if len(endings) == 0:
+            return True
+
         for end in endings:
             if f.endswith(end):
                 return True
         return False
     
     def check_phrases(root):
+        if len(file_phrases) == 0:
+            return True
+            
         for phrase in file_phrases:
             if phrase in root:
                 return True
