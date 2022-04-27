@@ -4,6 +4,7 @@ Create prostate metadata json. Following create_nlst_xray_metadata_json.py
 import json
 import os
 import numpy as np
+import re
 from tqdm import tqdm
 import argparse
 import pandas as pd
@@ -37,9 +38,9 @@ def get_files_from_walk(dir, endings = tuple(), file_phrases = tuple()):
     def check_phrases(root):
         if len(file_phrases) == 0:
             return True
-            
+
         for phrase in file_phrases:
-            if phrase in root:
+            if len(re.findall(phrase, root)) > 0:
                 return True
         return False 
 
@@ -58,7 +59,7 @@ if __name__ == "__main__":
     print("in name main section of code", flush=True)
     args = parser.parse_args()
 
-    dicoms = get_files_from_walk(args.data_dir, (".dcm",), ("T2", "axial"))
+    dicoms = get_files_from_walk(args.data_dir, (".dcm",), (r"T2.*[Aa]xial", r"[aA]xial.*T2", r"Ax"))
     # i = 0
     # for root, _, files in os.walk(args.data_dir):
     #     if i % 1000 == 0:
