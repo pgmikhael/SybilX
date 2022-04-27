@@ -99,9 +99,12 @@ if __name__ == "__main__":
         sop_id = dcm_meta.SOPInstanceUID
         peid = "{}{}".format(pid, exam)
 
-        slice_location = float(dcm_meta.get("SliceLocation", -1))
-        image_position = [float(pos) for pos in dcm_meta.ImagePositionPatient]
-        pixel_spacing = [float(space) for space in dcm_meta.PixelSpacing]
+        try:
+            slice_location = float(dcm_meta.get("SliceLocation", -1))
+            image_position = [float(pos) for pos in dcm_meta.ImagePositionPatient]
+            pixel_spacing = [float(space) for space in dcm_meta.PixelSpacing]
+        except:
+            continue
         
         exam_dict = {
             "exam": exam,
