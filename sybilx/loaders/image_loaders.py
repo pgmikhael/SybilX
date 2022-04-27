@@ -38,7 +38,7 @@ class TIFFLoader(abstract_loader):
         """
         loads as grayscale image
         """
-        return {"input": skimage.io.imread(path, plugin='tifffile')}
+        return {"input": np.astype(skimage.io.imread(path, plugin='tifffile'), np.int)}
 
     @property
     def cached_extension(self):
