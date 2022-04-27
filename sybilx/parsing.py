@@ -685,6 +685,18 @@ def parse_args(args_strings=None):
         default=1,
         help="Number of steps for domain adaptation discriminator per one step of encoding model [default: 5]",
     )
+    parser.add_argument(
+        "--warmup",
+        type=int,
+        default=None,
+        help="",
+    )
+    parser.add_argument(
+        "--warmup_last_epoch",
+        type=int,
+        default=-1,
+        help="",
+    )
 
     # callbacks
     parser.add_argument(
