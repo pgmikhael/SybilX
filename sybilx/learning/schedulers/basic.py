@@ -84,6 +84,7 @@ class WarmupAndPlateauScheduler(optim.lr_scheduler.ReduceLROnPlateau):
             optimizer, patience=args.patience, factor=args.lr_decay, mode="min" if "loss" in args.monitor else "max"
         )
         self.warmup = args.warmup
+        self.warmup_lr = args.lr # max lr to approach
 
     def step(self, metrics, epoch=None):
         current = float(metrics)
@@ -95,9 +96,7 @@ class WarmupAndPlateauScheduler(optim.lr_scheduler.ReduceLROnPlateau):
         
         if epoch <= self.warmup:
             self._warmup_lr(epoch)
-            # TODO: should this skip all the following early-stopping code?
         else:
-
             if self.is_better(current, self.best):
                 self.best = current
                 self.num_bad_epochs = 0
@@ -117,9 +116,7 @@ class WarmupAndPlateauScheduler(optim.lr_scheduler.ReduceLROnPlateau):
 
     def _warmup_lr(self, epoch):
         for i, param_group in enumerate(self.optimizer.param_groups):
-            old_lr = float(param_group['lr'])
             lr_multiplier = float(epoch) / float(max(1.0, self.warmup))
-            new_lr = old_lr * lr_multiplier
-            if old_lr - new_lr > self.eps:
-                param_group['lr'] = new_lr
+            new_lr = self.warmup_lr * lr_multiplier
+            param_group['lr'] = new_lr
 
