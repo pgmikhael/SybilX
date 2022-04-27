@@ -4,6 +4,7 @@ Create prostate metadata json. Following create_nlst_xray_metadata_json.py
 import json
 import os
 import numpy as np
+import re
 from tqdm import tqdm
 import argparse
 import pandas as pd
@@ -23,20 +24,50 @@ parser.add_argument(
     "--data_dir", type=str, default="/storage/prostate"
 )
 
+def get_files_from_walk(dir, endings = tuple(), phrases = tuple()):
+
+    def check_endings(f):
+        if len(endings) == 0:
+            return True
+
+        for end in endings:
+            if f.endswith(end):
+                return True
+        return False
+    
+    def check_phrases(root):
+        if len(phrases) == 0:
+            return True
+
+        for phrase in phrases:
+            if len(re.findall(phrase, root)) > 0:
+                return True
+        return False 
+
+    outputs = []
+    i = 0 # for logging/debugging purposes
+    for root, _, files in os.walk(dir):
+        if i % 1000 == 0:
+            print("walk iteration ", i)
+        if i > 1000:
+            break
+        outputs.extend([os.path.join(root, f) for f in files if check_endings(f) and check_phrases(root)])
+        i += 1
+    return outputs
+
 if __name__ == "__main__":
     print("in name main section of code", flush=True)
     args = parser.parse_args()
 
-    dicoms = []
-    print("parsed args")
-    i = 0
-    for root, _, files in os.walk(args.data_dir):
-        if i % 20 == 0:
-            print("walk iteration ", i)
-        if i > 100:
-            break
-        dicoms.extend([os.path.join(root, f) for f in files if f.endswith(".dcm")])
-        i += 1
+    dicoms = get_files_from_walk(args.data_dir, (".dcm",), (r"T2.*[Aa]x(ial)?", r"[aA]x(ial)?.*T2"))
+    # i = 0
+    # for root, _, files in os.walk(args.data_dir):
+    #     if i % 1000 == 0:
+    #         print("walk iteration ", i)
+    #     if i > 1000:
+    #         break
+    #     dicoms.extend([os.path.join(root, f) for f in files if f.endswith(".dcm")])
+    #     i += 1
 
     json_dataset = []
     pid2idx = {}
@@ -45,9 +76,9 @@ if __name__ == "__main__":
     i = 0
     skipped = 0
     for path in tqdm(dicoms):
-        if i % 20 == 0:
-            print("on dicom ", i)
-        i += 1
+        #if i % 20 == 0:
+        #    print("on dicom ", i)
+        #i += 1
 
         dcm_meta = pydicom.dcmread(path, stop_before_pixels=True)
 
