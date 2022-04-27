@@ -446,3 +446,13 @@ class PLCO_XRay_Dataset(data.Dataset):
         input_dict = self.input_loader.get_image(path, s)
         
         return input_dict
+
+
+@register_object("plco_xray_smokers", "dataset")
+class PLCO_XRay_Smokers_Dataset(PLCO_XRay_Dataset):
+    def skip_sample(self, series_dict, pt_metadata, exam_dict, split_group, split_dict=None):
+        is_smoker = pt_metadata["cig_stat"] == 1
+        if is_smoker:
+            return True
+
+        return super(PLCO_XRay_Smokers_Dataset, self).skip_sample(series_dict, pt_metadata, exam_dict, split_group, split_dict=None)
