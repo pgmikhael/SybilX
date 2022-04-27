@@ -6,7 +6,7 @@
     "batch_size": [32],
     "accumulate_grad_batches": [1],
     "precision": [16],
-    "img_size": ["512 512"],
+    "img_size": ["224 224"],
     "max_followup": [6],
     "lightning_name": ["base"],
     "weight_decay": [0.001],
@@ -48,7 +48,8 @@
     "base_model": ["pretrained_moco"],
     "from_checkpoint": [false],
     "with_attention": [false],
-    "hidden_size": [512]
+    "hidden_size": [512],
+    "freeze_encoder_weights": [true, false]
   },
   "paired_search_space": {
     "comet_tags": [
