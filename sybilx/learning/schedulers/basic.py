@@ -47,3 +47,28 @@ class CosineAnnealingWarmRestarts(optim.lr_scheduler.CosineAnnealingWarmRestarts
             T_0=args.cosine_annealing_period,
             T_mult=args.cosine_annealing_period_scaling,
         )
+
+@register_object("linear_warmup", "scheduler")
+class LinearWarmupScheduler(optim.lr_scheduler.LambdaLR):
+
+    def __init__(self, optimizer, args):
+        """[summary]
+
+        Parameters
+        ----------
+        optimizer : torch.optim.Optimizer
+            [description]
+        warmup : int
+            [description]
+        last_epoch : int, optional
+            [description], by default -1
+        verbose : bool, optional
+            [description], by default False
+        """
+
+        def lr_func(step: int):
+            if step < args.warmup:
+                return float(step) / float(max(1.0, args.warmup))
+            return 1.0
+
+        super().__init__(optimizer, lr_func, last_epoch=args.warmup_last_epoch)
