@@ -256,7 +256,7 @@ class MGH_Prostate(data.Dataset):
     def get_summary_statement(self, dataset, split_group):
         summary = "Contructed MGH Prostate Cancer Risk {} dataset with {} records, {} exams, {} patients, and the following class balance \n {}"
         class_balance = Counter([d["y"] for d in dataset])
-        exams = set([d["exam"] for d in dataset])
+        exams = set([d["accession"] for d in dataset])
         patients = set([d["pid"] for d in dataset])
         statement = summary.format(
             split_group, len(dataset), len(exams), len(patients), class_balance
