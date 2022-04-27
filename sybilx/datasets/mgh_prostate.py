@@ -129,7 +129,7 @@ class MGH_Prostate(data.Dataset):
     def skip_sample(self, series_dict, pt_metadata):
         series_data = series_dict["series_data"]
 
-        wrong_series = False #TODO filter for T2 Axial
+        wrong_series = series_data["series_desc"].
 
         # # check if restricting to specific slice thicknesses
         slice_thickness = series_data["slice_thickness"]
@@ -284,7 +284,7 @@ class MGH_Prostate(data.Dataset):
 
             return item
         except Exception:
-            warnings.warn(LOAD_FAIL_MSG.format(sample["exam"], traceback.print_exc()))
+            warnings.warn(LOAD_FAIL_MSG.format(sample["accession"], traceback.print_exc()))
 
     def get_images(self, paths, sample):
         """
@@ -334,6 +334,7 @@ class MGH_Prostate(data.Dataset):
     def reshape_images(self, images):
         images = [im.unsqueeze(0) for im in images]
         images = torch.cat(images, dim=0)
+        print("Shape:" + images.shape)
         # Convert from (T, C, H, W) to (C, T, H, W)
         images = images.permute(1, 0, 2, 3)
         return images
