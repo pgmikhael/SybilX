@@ -25,9 +25,9 @@ parser.add_argument(
 
 def get_files_from_walk(dir, endings = tuple(), file_phrases = tuple()):
 
-    def check_endings(file):
+    def check_endings(f):
         for end in endings:
-            if file.endswidth(end):
+            if f.endswith(end):
                 return True
         return False
     
