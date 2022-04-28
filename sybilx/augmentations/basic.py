@@ -3,6 +3,7 @@ import torchvision
 from sybilx.augmentations.abstract import Abstract_augmentation
 import albumentations as A
 from albumentations.pytorch import ToTensorV2
+import numpy as np
 
 
 class ToTensor(Abstract_augmentation):
@@ -16,6 +17,10 @@ class ToTensor(Abstract_augmentation):
         self.name = "totensor"
 
     def __call__(self, input_dict, sample=None):
+        # this is to avoid recaching, but can remove
+        if input_dict['input'].dtype == np.uint16:
+            input_dict['input'] = input_dict['input'].astype(np.float64)
+
         input_dict["input"] = torch.from_numpy(input_dict["input"]).float()
         if input_dict.get("mask", None) is not None:
             input_dict["mask"] = torch.from_numpy(input_dict["mask"]).float()
