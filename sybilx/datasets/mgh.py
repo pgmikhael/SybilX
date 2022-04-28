@@ -347,6 +347,11 @@ class MGH_Screening(NLST_Survival_Dataset):
             "cancer_laterality": np.zeros(
                 3, dtype=np.int
             ),  # has to be int, while cancer_location has to be float
+            "age": exam_dict["age at the exam"],
+            "gender": exam_dict["gender"],
+            "race": exam_dict["race"],
+            "pack_years": exam_dict["Packs Years"],
+            "ever_has_cancer": exam_dict["Future_cancer"].lower().strip() == "yes", 
             "num_original_slices": len(series_dict["paths"]),
             "marital_status": exam_dict["marital_status"],
             "religion": exam_dict["religion"],
