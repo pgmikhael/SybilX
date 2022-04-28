@@ -120,6 +120,7 @@ class PLCOm2012(RiskModel):
             "y_seq",
             "y_mask",
             "screen_timepoint",
+            "scr_group_coef"
         ]
 
 class PLCOresults(PLCOm2012):
