@@ -83,8 +83,10 @@ class WarmupAndPlateauScheduler(optim.lr_scheduler.ReduceLROnPlateau):
         super(WarmupAndPlateauScheduler, self).__init__(
             optimizer, patience=args.patience, factor=args.lr_decay, mode="min" if "loss" in args.monitor else "max"
         )
+        assert args.warmup >= 1, "no. of warmup epochs should be at least 1"
         self.warmup = args.warmup
-        self.warmup_lr = args.lr # max lr to approach
+        self.warmup_max_lr = args.lr # max lr to approach
+        self._warmup_lr(epoch=0)
 
     def step(self, metrics, epoch=None):
         current = float(metrics)
@@ -94,7 +96,7 @@ class WarmupAndPlateauScheduler(optim.lr_scheduler.ReduceLROnPlateau):
             warnings.warn(optim.lr_scheduler.EPOCH_DEPRECATION_WARNING, UserWarning)
         self.last_epoch = epoch
         
-        if epoch <= self.warmup:
+        if epoch <= self.warmup - 1:
             self._warmup_lr(epoch)
         else:
             if self.is_better(current, self.best):
@@ -116,7 +118,7 @@ class WarmupAndPlateauScheduler(optim.lr_scheduler.ReduceLROnPlateau):
 
     def _warmup_lr(self, epoch):
         for i, param_group in enumerate(self.optimizer.param_groups):
-            lr_multiplier = float(epoch) / float(max(1.0, self.warmup))
-            new_lr = self.warmup_lr * lr_multiplier
+            lr_multiplier = float(epoch + 1) / float(self.warmup)
+            new_lr = self.warmup_max_lr * lr_multiplier
             param_group['lr'] = new_lr
 
