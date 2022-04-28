@@ -132,7 +132,7 @@ class SybilXrayR50(SybilXrayInception):
         return 2048
 
 @register_object("sybilxray_r50_random", "model")
-class SybilXrayR50(SybilXrayInception):
+class SybilXrayR50Random(SybilXrayInception):
     def get_image_encoder(self):
         encoder = resnet50(pretrained=False)
         return nn.Sequential(*list(encoder.children())[:-2])
