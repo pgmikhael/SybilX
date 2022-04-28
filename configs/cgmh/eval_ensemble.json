@@ -1,0 +1,27 @@
+{
+	"train_config": "configs/joint/full_adversarial.json",
+	"log_dir": "/home/peter/logs",
+	"eval_args": {
+		"dataset": ["cgmh"],
+        	"dataset_file_path": ["/home/peter/ldct_datasetv2.json"
+		],
+        	"img_dir": ["/home/images/ldct_pngs"],
+		"hiddens_dir": ["/home/peter/logs/thick3mm2"],
+		"slice_thickness_filter": [3],
+		"snapshot": [
+			"/home/peter/SybilModels/sybil_snapshots/a8094459073ec05a518d6f543a01069cepoch=4.ckpt",
+			"/home/peter/SybilModels/sybil_snapshots/af6f0c97af717e7dd55583c723b7b651epoch=3.ckpt",
+			"/home/peter/SybilModels/sybil_snapshots/d2f9065de0a828aa79f774c569e8d1acepoch=4.ckpt",
+			"/home/peter/SybilModels/sybil_snapshots/e819945ae4e480f576712e54a29d1938epoch=4.ckpt"
+		],
+		"replace_batchnorm_with_layernorm": [true],
+		"save_predictions": [true],
+		"save_hiddens": [true],
+		"relax_checkpoint_matching": [true],
+		"num_workers": [24],
+		"save_dir": ["/home/peter/logs"],
+		"comet_tags": ["cgmh sybil eval"]
+	},
+	"available_gpus": [0],
+	"script": "main"
+}

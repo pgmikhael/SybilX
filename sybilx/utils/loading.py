@@ -11,6 +11,7 @@ from sybilx.utils.sampler import DistributedWeightedSampler
 from sybilx.utils.augmentations import get_augmentations
 from pytorch_lightning.utilities.cloud_io import load as pl_load
 from sybilx.loaders.image_loaders import OpenCVLoader, DicomLoader
+from pytorch_lightning.utilities.cloud_io import load as pl_load
 
 string_classes = (str, bytes)
 int_classes = int
