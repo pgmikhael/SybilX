@@ -87,9 +87,9 @@ def cli_main(args):
 
     if args.dev:
         log.info("\nValidation Phase...")
-        trainer.validate(
+        trainer.test(
             model, dev_dataset, ckpt_path=args.model_path
-        ) if args.train else trainer.validate(model, dev_dataset)
+        ) if args.train else trainer.test(model, dev_dataset)
 
     # testing
     if args.test:
@@ -107,9 +107,6 @@ def cli_main(args):
             args, get_object(args.dataset, "dataset")(args, "train"), False
         )
         trainer.test(model, train_dataset)
-
-        log.info("\nInference Phase on train set...")
-        trainer.test(model, dev_dataset)
 
     print("Saving args to {}.args".format(args.results_path))
     pickle.dump(vars(args), open("{}.args".format(args.results_path), "wb"))
