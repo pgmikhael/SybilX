@@ -68,7 +68,7 @@
       "sybil"
     ],
     "num_images": [
-      44
+      28
     ],
     "min_num_images": [
       0
@@ -119,7 +119,7 @@
       "prostate"
     ],
     "comet_tags": [
-      "test"
+      "t2"
     ],
     "num_sanity_val_steps": [
       0
@@ -140,7 +140,7 @@
       0.1
     ],
     "dataset_file_path": [
-      "/Mounts/rbg-storage1/users/janicey/prostate/small_test.json"
+      "/Mounts/rbg-storage1/users/janicey/prostate/t2_test.json"
     ],
     "save_dir": [
       "/Mounts/rbg-storage1/snapshots/prostate"

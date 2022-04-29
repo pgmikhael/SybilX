@@ -196,8 +196,8 @@ class MGH_Prostate(data.Dataset):
             "series": series_id,
             "pid": pid,
             "num_original_slices": len(series_dict["paths"]),
-            "pixel_spacing": series_dict["pixel_spacing"]
-            + [series_dict["slice_thickness"]],
+            "pixel_spacing": series_data["pixel_spacing"]
+            + [series_data["slice_thickness"]],
             # "slice_thickness": self.get_slice_thickness_class( TODO: Update slice thickness class based on our images
             #     series_dict["slice_thickness"]
             # ),
@@ -273,7 +273,6 @@ class MGH_Prostate(data.Dataset):
         try:
             item = {}
             input_dict = self.get_images(sample["paths"], sample)
-
             x = input_dict["input"]
 
             item["x"] = x
@@ -332,10 +331,11 @@ class MGH_Prostate(data.Dataset):
         return out_dict
 
     def reshape_images(self, images):
-        images = [im.unsqueeze(0) for im in images]
+        images = [im.unsqueeze(0).unsqueeze(0) for im in images]
         images = torch.cat(images, dim=0)
+        # print(images.shape)
         # Convert from (T, C, H, W) to (C, T, H, W)
-        # images = images.permute(1, 0, 2, 3)
+        images = images.permute(1, 0, 2, 3)
         return images
 
     def get_slice_thickness_class(self, thickness):
