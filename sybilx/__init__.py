@@ -17,8 +17,10 @@ except PackageNotFoundError:  # pragma: no cover
 finally:
     del version, PackageNotFoundError
 
-from sybilx.models.sybil import SybilNet
+from sybilx.models.sybil import SybilNet, ProstateBinaryPredictor
 from sybilx.serie import Serie
+
+# models
 
 # data
 import sybilx.datasets.nlst

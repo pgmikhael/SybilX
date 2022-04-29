@@ -68,7 +68,7 @@
       "sybil"
     ],
     "num_images": [
-      28
+      44
     ],
     "min_num_images": [
       0
@@ -81,6 +81,9 @@
     ],
     "num_chan": [
       1
+    ],
+    "num_classes": [
+      2
     ],
     "loss_fns": [
       "cross_entropy"
