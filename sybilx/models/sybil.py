@@ -67,3 +67,20 @@ class RiskFactorPredictor(SybilNet):
 
     def get_loss_functions(self):
         return ["risk_factor_loss"]
+
+
+@register_object("sybil-binary", "model")
+class ProstateBinaryPredictor(SybilNet):
+    def __init__(self, args):
+        super(ProstateBinaryPredictor, self).__init__(args)
+
+        encoder = torchvision.models.video.r3d_18(pretrained=True)
+        w = encoder._modules['stem'][0].weight[:, 0:args.num_chan]
+        encoder._modules['stem'][0].weight = nn.Parameter(w)
+        self.image_encoder = nn.Sequential(*list(encoder.children())[:-2])
+
+        self.prob_of_failure_layer = nn.Linear(
+            self.hidden_dim, args.num_classes
+        )
+
+
