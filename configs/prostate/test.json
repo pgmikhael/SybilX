@@ -65,7 +65,7 @@
       3e-5
     ],
     "base_model": [
-      "sybil"
+      "sybil_binary"
     ],
     "num_images": [
       44
@@ -92,7 +92,7 @@
       "classification"
     ],
     "monitor": [
-      "val_auc"
+      "val_roc_auc"
     ],
     "num_workers": [
       3
