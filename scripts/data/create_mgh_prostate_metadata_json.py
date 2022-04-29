@@ -23,6 +23,16 @@ parser.add_argument(
 parser.add_argument(
     "--data_dir", type=str, default="/storage/prostate"
 )
+parser.add_argument(
+    "--biop_csv",
+    type=str,
+    default="/Mounts/rbg-storage1/datasets/MGH_Prostate_Salari/reports/biop_output_anon.csv",
+)
+parser.add_argument(
+    "--rad_csv",
+    type=str,
+    default="/Mounts/rbg-storage1/datasets/MGH_Prostate_Salari/reports/rad_output_anon.csv", # TODO: scp to server, add server path
+)
 
 def get_files_from_walk(dir, endings = tuple(), phrases = tuple()):
 
@@ -55,30 +65,35 @@ def get_files_from_walk(dir, endings = tuple(), phrases = tuple()):
         i += 1
     return outputs
 
+def make_reportdata_dict(
+    dataframe,
+    mrn_pid,
+):
+    """Taken from create_nlst_xray_metadat_json.py's make_metadata_dict method."""
+    df = dataframe.loc[(dataframe.MRN == int(mrn_pid))]
+    if df.shape[0] > 0:
+        return df.to_dict("list") # dict where keys are column names, values is column list following row order
+    else:
+        return {}
+
 if __name__ == "__main__":
     print("in name main section of code", flush=True)
     args = parser.parse_args()
 
     dicoms = get_files_from_walk(args.data_dir, (".dcm",), (r"T2.*[Aa]x(ial)?", r"[aA]x(ial)?.*T2"))
-    # i = 0
-    # for root, _, files in os.walk(args.data_dir):
-    #     if i % 1000 == 0:
-    #         print("walk iteration ", i)
-    #     if i > 1000:
-    #         break
-    #     dicoms.extend([os.path.join(root, f) for f in files if f.endswith(".dcm")])
-    #     i += 1
+
+    biop_data = pd.read_csv(args.biop_csv, low_memory=True)
+    biop_data.fillna(0, inplace=True) # na for gleason scores when benign
+
+    rad_data = pd.read_csv(args.rad_csv, low_memory=True)
+    rad_data.replace(to_replace="No Evidence", value=0, in_place=True) # occurs in pirads scores
 
     json_dataset = []
     pid2idx = {}
     peid2idx = {}
     print("collected dicoms, size is: ", len(dicoms))
-    i = 0
     skipped = 0
     for path in tqdm(dicoms):
-        #if i % 20 == 0:
-        #    print("on dicom ", i)
-        #i += 1
 
         dcm_meta = pydicom.dcmread(path, stop_before_pixels=True)
 
@@ -166,6 +181,8 @@ if __name__ == "__main__":
                 "pid": pid,
                 "split": np.random.choice(["train", "dev", "test"], p=SPLIT_PROBS),
                 "birth_date": dcm_meta.PatientBirthDate,
+                "rad_reports": make_reportdata_dict(rad_data, pid),
+                "biop_reports": make_reportdata_dict(biop_data, pid),
             }
             pt_dict["accessions"][0]["image_series"] = {series_id: img_series_dict}
 
