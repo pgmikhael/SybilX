@@ -57,9 +57,9 @@ def get_files_from_walk(dir, endings = tuple(), phrases = tuple()):
     outputs = []
     i = 0 # for logging/debugging purposes
     for root, _, files in os.walk(dir):
-        if i % 1000 == 0:
+        if i % 100 == 0:
             print("walk iteration ", i)
-        if i > 1000:
+        if i > 500:
             break
         outputs.extend([os.path.join(root, f) for f in files if check_endings(f) and check_phrases(root)])
         i += 1
@@ -86,7 +86,7 @@ if __name__ == "__main__":
     biop_data.fillna(0, inplace=True) # na for gleason scores when benign
 
     rad_data = pd.read_csv(args.rad_csv, low_memory=True)
-    rad_data.replace(to_replace="No Evidence", value=0, in_place=True) # occurs in pirads scores
+    rad_data.replace(to_replace="No Evidence", value=0, inplace=True) # occurs in pirads scores
 
     json_dataset = []
     pid2idx = {}
