@@ -2,7 +2,7 @@
   "script": "main",
   "grid_search_space": {
     "batch_size": [
-      24
+      4
     ],
     "accumulate_grad_batches": [
       1
@@ -65,7 +65,7 @@
       3e-5
     ],
     "base_model": [
-      "sybil"
+      "sybil-binary"
     ],
     "num_images": [
       44
@@ -92,7 +92,7 @@
       "classification"
     ],
     "monitor": [
-      "val_auc"
+      "val_roc_auc"
     ],
     "num_workers": [
       3
@@ -121,6 +121,9 @@
     "project_name": [
       "prostate"
     ],
+    "logger_name": [
+      "comet"
+    ],
     "comet_tags": [
       "t2"
     ],
@@ -131,7 +134,7 @@
       "simple"
     ],
     "gpus": [
-      8
+      1
     ],
     "val_check_interval": [
       1.0
@@ -156,6 +159,6 @@
     ]
   },
   "available_gpus": [
-    "0,1,2,3,4,5,6,7"
+    "0"
   ]
 }
