@@ -331,7 +331,7 @@ class MGH_Prostate(data.Dataset):
         return out_dict
 
     def reshape_images(self, images):
-        images = [im.unsqueeze(0).unsqueeze(0) for im in images]
+        images = [im.unsqueeze(0) for im in images]
         images = torch.cat(images, dim=0)
         # print(images.shape)
         # Convert from (T, C, H, W) to (C, T, H, W)
