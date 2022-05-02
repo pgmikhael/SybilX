@@ -108,7 +108,7 @@ class DicomLoader(abstract_loader):
             arr = apply_windowing(dcm, self.window_center, self.window_width)
         except Exception:
             raise Exception(LOADING_ERROR.format("COULD NOT LOAD DICOM."))
-        return {"input": arr}
+        return {"input": arr.astype(np.float32)}
 
     @property
     def cached_extension(self):

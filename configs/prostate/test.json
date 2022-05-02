@@ -40,6 +40,12 @@
     "img_std": [
       87.1849
     ],
+    "train_tnsr_augmentations": [
+      "normalize_2d"
+    ],
+    "test_tnsr_augmentations": [
+      "normalize_2d"
+    ],
     "img_size": [
       "512 512"
     ],
