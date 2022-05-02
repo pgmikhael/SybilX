@@ -1,5 +1,6 @@
 import torch.nn as nn
 import torchvision
+import torch
 from sybilx.models.cumulative_probability_layer import Cumulative_Probability_Layer
 from sybilx.models.pooling_layer import MultiAttentionPool
 from sybilx.datasets.nlst_risk_factors import NLSTRiskFactorVectorizer
@@ -82,5 +83,11 @@ class ProstateBinaryPredictor(SybilNet):
         self.prob_of_failure_layer = nn.Linear(
             self.hidden_dim, args.num_classes
         )
+
+        self.pool = self.max_pool
+
+    def max_pool(x):
+        m = torch.amax(x, dim=(2, 3, 4))
+        return {"hidden": m}
 
 
