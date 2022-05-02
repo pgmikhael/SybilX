@@ -84,10 +84,14 @@ class ProstateBinaryPredictor(SybilNet):
             self.hidden_dim, args.num_classes
         )
 
-        self.pool = self.max_pool
-
-    def max_pool(x):
+    def aggregate_and_classify(self, x):
         m = torch.amax(x, dim=(2, 3, 4))
-        return {"hidden": m}
+        pool_output = {"hidden": m}
+
+        pool_output["hidden"] = self.relu(pool_output["hidden"])
+        pool_output["hidden"] = self.dropout(pool_output["hidden"])
+        pool_output["logit"] = self.prob_of_failure_layer(pool_output["hidden"])
+
+        return pool_output
 
 
