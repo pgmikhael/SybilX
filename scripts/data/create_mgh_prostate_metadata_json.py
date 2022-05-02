@@ -57,10 +57,13 @@ def get_files_from_walk(dir, endings = tuple(), phrases = tuple()):
     outputs = []
     i = 0 # for logging/debugging purposes
     for root, _, files in os.walk(dir):
-        if i % 100 == 0:
-            print("walk iteration ", i)
-        if i > 500:
-            break
+        # if i % 100 == 0:
+        #     print("walk iteration ", i)
+        # if i > 500:
+        #     break
+        if i%10000 == 0: 
+            print("walk iteration: ", i)
+            print("dicoms loaded: ", len(outputs))
         outputs.extend([os.path.join(root, f) for f in files if check_endings(f) and check_phrases(root)])
         i += 1
     return outputs
@@ -80,7 +83,7 @@ if __name__ == "__main__":
     print("in name main section of code", flush=True)
     args = parser.parse_args()
 
-    dicoms = get_files_from_walk(args.data_dir, (".dcm",), (r"T2.*[Aa]x(ial)?", r"[aA]x(ial)?.*T2"))
+    dicoms = get_files_from_walk(args.data_dir, (".dcm",), (r"T2.*[Aa][Xx](ial)?", r"[aA][Xx](ial)?.*T2"))
 
     biop_data = pd.read_csv(args.biop_csv, low_memory=True)
     biop_data.fillna(0, inplace=True) # na for gleason scores when benign
