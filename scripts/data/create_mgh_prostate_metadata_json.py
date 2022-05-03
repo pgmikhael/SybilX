@@ -31,7 +31,7 @@ parser.add_argument(
 parser.add_argument(
     "--rad_csv",
     type=str,
-    default="/Mounts/rbg-storage1/datasets/MGH_Prostate_Salari/reports/rad_output_anon.csv", # TODO: scp to server, add server path
+    default="/Mounts/rbg-storage1/datasets/MGH_Prostate_Salari/reports/rad_output_anon.csv",
 )
 
 def get_files_from_walk(dir, endings = tuple(), phrases = tuple()):

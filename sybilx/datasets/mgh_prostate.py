@@ -20,9 +20,12 @@ from sybilx.datasets.utils import (
     DEVICE_ID,
 )
 from sybilx.utils.registry import register_object
+import pandas as pd
 import pydicom
 import torchio as tio
 
+
+LABELS_PATH = "/Mounts/rbg-storage1/datasets/MGH_Prostate_Salari/reports/output.csv"
 
 MR_ITEM_KEYS = [
     "pid",
@@ -63,6 +66,11 @@ class MGH_Prostate(data.Dataset):
             self.padding_transform = tio.transforms.CropOrPad(
                 target_shape=tuple(args.img_size + [args.num_images]), padding_mode=0
             )
+
+        # load labels metadata csv
+        self.labels_data = pd.read_csv(LABELS_PATH, low_memory=True)
+        self.labels_data.fillna(0, inplace=True)
+        self.labels_data.replace(to_replace="No Evidence", value=0, inplace=True)
 
         self.dataset = self.create_dataset(split_group)
         if len(self.dataset) == 0:
@@ -185,7 +193,7 @@ class MGH_Prostate(data.Dataset):
         #         for path in sorted_img_paths
         #     ]
 
-        y = self.get_label(pt_metadata)
+        y = self.get_label(pt_metadata, exam_dict)
 
         sample = {
             "paths": sorted_img_paths,
@@ -214,9 +222,26 @@ class MGH_Prostate(data.Dataset):
         return sample
 
 
-    def get_label(self, pt_metadata):
+    def get_label(self, pt_metadata, exam_dict):
+        """
+        Args:
+            pt_metadata (dict)
+            exam_dict (dict): The input exam of the patient
+
+        Returns:
+            0 if the closest biopsy in the future has a Gleason score < 7
+            1 if the closest biopsy in the future has a Gleason score >= 7
+        """
+        pid = pt_metadata["pid"]
+        accession_number = exam_dict["accession_number"]
+        df = self.labels_data.loc[(self.labels_data["MRN"] == int(pid)) and (self.labels_data["Accession Number"] == int(accession_number))]
         
-        return np.random.randint(2)
+        # assume df only has one row
+        gleason_score = df[0]["GS"]
+        if gleason_score < 7:
+            return 0
+        else:
+            return 1
 
 
     def get_pixel_spacing(self, dcm_path):
