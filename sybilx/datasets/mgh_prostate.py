@@ -113,7 +113,11 @@ class MGH_Prostate(data.Dataset):
                 mrn_row["accessions"],
                 #mrn_row["pt_metadata"],
             )
-            pt_metadata = None #temporary
+            pt_metadata = {
+                "pid": pid,
+                "split": split,
+                "accessions": exams,
+            }
 
             if not split == split_group:
                 continue
