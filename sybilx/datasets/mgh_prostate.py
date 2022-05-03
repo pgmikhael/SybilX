@@ -113,11 +113,7 @@ class MGH_Prostate(data.Dataset):
                 mrn_row["accessions"],
                 #mrn_row["pt_metadata"],
             )
-            pt_metadata = {
-                "pid": pid,
-                "split": split,
-                "accessions": exams,
-            }
+            pt_metadata = None # temporary / until we find a use for it lol
 
             if not split == split_group:
                 continue
@@ -197,7 +193,7 @@ class MGH_Prostate(data.Dataset):
         #         for path in sorted_img_paths
         #     ]
 
-        y = self.get_label(pt_metadata, exam_dict)
+        y = self.get_label(exam_dict)
 
         sample = {
             "paths": sorted_img_paths,
@@ -226,21 +222,21 @@ class MGH_Prostate(data.Dataset):
         return sample
 
 
-    def get_label(self, pt_metadata, exam_dict):
+    def get_label(self, exam_dict):
         """
         Args:
-            pt_metadata (dict)
+            pid
             exam_dict (dict): The input exam of the patient
 
         Returns:
             0 if the closest biopsy in the future has a Gleason score < 7
             1 if the closest biopsy in the future has a Gleason score >= 7
         """
-        pid = pt_metadata["pid"]
         accession_number = exam_dict["accession_number"]
-        df = self.labels_data.loc[(self.labels_data["MRN"] == int(pid)) and (self.labels_data["Accession Number"] == int(accession_number))]
+        df = self.labels_data.loc[(self.labels_data["Accession Number"] == int(accession_number))]
         
         # assume df only has one row
+        assert df.shape[0] == 1, "There should only be one accession exam associated with the accession number."
         gleason_score = df[0]["GS"]
         if gleason_score < 7:
             return 0
