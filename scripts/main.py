@@ -15,6 +15,7 @@ from sybilx.utils.registry import get_object
 from sybilx.datasets.utils import get_censoring_dist
 import sybilx.utils.loading as loaders
 from sybilx.utils.callbacks import set_callbacks
+from sybilx.utils.dataset_stats import get_dataset_stats
 
 
 def cli_main(args):
@@ -29,6 +30,7 @@ def cli_main(args):
     args.world_size = args.num_nodes * args.num_processes
     args.global_rank = trainer.global_rank
     args.local_rank = trainer.local_rank
+    args.img_mean, args.img_std = get_dataset_stats(args)
 
     if args.logger_name == "comet":
         tb_logger = pl.loggers.CometLogger(
