@@ -35,10 +35,10 @@
       0.1
     ],
     "img_mean": [
-      128.1722
+      9.8143
     ],
     "img_std": [
-      87.1849
+      58.2782
     ],
     "train_tnsr_augmentations": [
       "normalize_2d"
