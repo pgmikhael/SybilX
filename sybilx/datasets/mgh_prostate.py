@@ -119,8 +119,9 @@ class MGH_Prostate(data.Dataset):
                 continue
 
             for exam_dict in exams:
+                # TODO: update pt_metadata here with patient info for each exam
                 for series_id, series_dict in exam_dict["image_series"].items():
-                    if self.skip_sample(series_dict, pt_metadata):
+                    if self.skip_sample(series_dict, pt_metadata, exam_dict):
                         continue
 
                     sample = self.get_volume_dict(
@@ -134,7 +135,7 @@ class MGH_Prostate(data.Dataset):
         return dataset
 
 
-    def skip_sample(self, series_dict, pt_metadata):
+    def skip_sample(self, series_dict, pt_metadata, exam_dict):
         series_data = series_dict["series_data"]
 
         wrong_series = False #TODO: update
@@ -145,7 +146,10 @@ class MGH_Prostate(data.Dataset):
             slice_thickness > self.args.slice_thickness_filter or (slice_thickness < 0)
         )
 
-        # # check if valid label (info is not missing)
+        # # check if valid biopsy reports exist for this patient
+        accession_number = exam_dict["accession_number"]
+        df = self.labels_data.loc[(self.labels_data["Accession Number"] == int(accession_number))]
+        missing_label = (df.shape[0] == 0)
         # screen_timepoint = series_data["study_yr"][0]
         # bad_label = not self.check_label(pt_metadata, screen_timepoint)
 
@@ -161,6 +165,7 @@ class MGH_Prostate(data.Dataset):
         if (
             wrong_series
             or wrong_thickness
+            or missing_label
             # or bad_label
             # or invalid_label
             # or insufficient_slices
