@@ -242,7 +242,7 @@ class MGH_Prostate(data.Dataset):
         
         # assume df only has one row
         assert df.shape[0] == 1, "There should only be one accession exam associated with the accession number."
-        gleason_score = df[0]["GS"]
+        gleason_score = df.iloc[0]["GS"]
         if gleason_score < 7:
             return 0
         else:
