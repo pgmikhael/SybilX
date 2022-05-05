@@ -2,7 +2,7 @@
   "script": "main",
   "grid_search_space": {
     "batch_size": [
-      4
+      3
     ],
     "accumulate_grad_batches": [
       1
@@ -23,22 +23,22 @@
       "base"
     ],
     "weight_decay": [
-      1e-2
+      0
     ],
     "momentum": [
       0.9
     ],
     "max_epochs": [
-      10
+      50
     ],
     "lr_decay": [
       0.1
     ],
     "img_mean": [
-      9.8143
+      371.1124
     ],
     "img_std": [
-      58.2782
+      471.7754
     ],
     "train_tnsr_augmentations": [
       "normalize_2d"
@@ -68,7 +68,7 @@
       1.0
     ],
     "lr": [
-      3e-5
+      3e-4
     ],
     "base_model": [
       "sybil-binary"
@@ -78,6 +78,9 @@
     ],
     "min_num_images": [
       0
+    ],
+    "img_file_type": [
+      "dicom"
     ],
     "image_attention_loss_lambda": [
       1.0
@@ -98,7 +101,7 @@
       "classification"
     ],
     "monitor": [
-      "val_roc_auc"
+      "val_accuracy"
     ],
     "num_workers": [
       3
@@ -131,7 +134,7 @@
       "comet"
     ],
     "comet_tags": [
-      "t2"
+      "t2 normalized"
     ],
     "num_sanity_val_steps": [
       0
@@ -149,7 +152,7 @@
       false
     ],
     "dropout": [
-      0.1
+      0
     ],
     "dataset_file_path": [
       "/Mounts/rbg-storage1/users/janicey/prostate/t2_test.json"
@@ -165,6 +168,6 @@
     ]
   },
   "available_gpus": [
-    "0"
+    "0,1,2,3,4,5,6,7"
   ]
 }
