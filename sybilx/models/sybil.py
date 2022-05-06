@@ -86,6 +86,8 @@ class ProstateBinaryPredictor(SybilNet):
 
     def aggregate_and_classify(self, x):
         m = torch.amax(x, dim=(2, 3, 4))
+        #m = torch.mean(x, dim=(2, 3, 4))
+        
         pool_output = {"hidden": m}
 
         pool_output["hidden"] = self.relu(pool_output["hidden"])
