@@ -1,0 +1,173 @@
+{
+  "script": "main",
+  "grid_search_space": {
+    "batch_size": [
+      3
+    ],
+    "accumulate_grad_batches": [
+      1
+    ],
+    "precision": [
+      16
+    ],
+    "dataset": [
+      "mgh_prostate"
+    ],
+    "max_followup": [
+      6
+    ],
+    "input_loader_name": [
+      "dicom_loader"
+    ],
+    "lightning_name": [
+      "base"
+    ],
+    "weight_decay": [
+      0
+    ],
+    "momentum": [
+      0.9
+    ],
+    "max_epochs": [
+      15
+    ],
+    "lr_decay": [
+      0.1
+    ],
+    "img_mean": [
+      371.1124
+    ],
+    "img_std": [
+      471.7754
+    ],
+    "train_tnsr_augmentations": [
+      "normalize_2d"
+    ],
+    "test_tnsr_augmentations": [
+      "normalize_2d"
+    ],
+    "img_size": [
+      "512 512"
+    ],
+    "slice_thickness_filter": [
+      4
+    ],
+    "resample_pixel_spacing": [
+      true
+    ],
+    "resample_pixel_spacing_prob": [
+      1
+    ],
+    "ct_pixel_spacing": [
+      "1 1 3"
+    ],
+    "limit_train_batches": [
+      1.0
+    ],
+    "limit_val_batches": [
+      1.0
+    ],
+    "lr": [
+      3e-4
+    ],
+    "base_model": [
+      "sybil-binary"
+    ],
+    "num_images": [
+      44
+    ],
+    "min_num_images": [
+      0
+    ],
+    "img_file_type": [
+      "dicom"
+    ],
+    "image_attention_loss_lambda": [
+      1.0
+    ],
+    "volume_attention_loss_lambda": [
+      1.0
+    ],
+    "num_chan": [
+      1
+    ],
+    "num_classes": [
+      2
+    ],
+    "loss_fns": [
+      "cross_entropy"
+    ],
+    "metrics": [
+      "classification"
+    ],
+    "monitor": [
+      "val_accuracy"
+    ],
+    "num_workers": [
+      3
+    ],
+    "optimizer": [
+      "adam"
+    ],
+    "patience": [
+      5
+    ],
+    "train": [
+      true
+    ],
+    "dev": [
+      true
+    ],
+    "test": [
+      true
+    ],
+    "class_bal": [
+      true
+    ],
+    "workspace": [
+      "janicey27"
+    ],
+    "project_name": [
+      "prostate"
+    ],
+    "logger_name": [
+      "comet"
+    ],
+    "comet_tags": [
+      "t2 normalized"
+    ],
+    "num_sanity_val_steps": [
+      0
+    ],
+    "profiler": [
+      "simple"
+    ],
+    "gpus": [
+      1
+    ],
+    "val_check_interval": [
+      1.0
+    ],
+    "ignore_warnings": [
+      false
+    ],
+    "dropout": [
+      0
+    ],
+    "dataset_file_path": [
+      "/Mounts/rbg-storage1/users/janicey/prostate/t1t2.json"
+    ],
+    "save_dir": [
+      "/Mounts/rbg-storage1/snapshots/prostate"
+    ],
+    "img_dir": [
+      "/storage/prostate/IRB2019P002719"
+    ],
+    "cache_path": [
+      "/storage/prostate"
+    ]
+  },
+  "available_gpus": [
+    "0,1,2,3,4,5,6,7"
+  ]
+}
