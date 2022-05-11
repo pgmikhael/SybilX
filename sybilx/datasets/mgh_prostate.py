@@ -1,3 +1,4 @@
+import uu
 import enum
 import os
 from posixpath import split
@@ -23,7 +24,7 @@ from sybilx.utils.registry import register_object
 import pandas as pd
 import pydicom
 import torchio as tio
-
+import datetime
 
 LABELS_PATH = "/Mounts/rbg-storage1/datasets/MGH_Prostate_Salari/reports/output.csv"
 
@@ -151,13 +152,15 @@ class MGH_Prostate(data.Dataset):
         # # check if valid biopsy reports exist for this patient
         accession_number = exam_dict["accession_number"]
         df = self.labels_data.loc[(self.labels_data["Accession Number"] == int(accession_number))]
-        missing_label = (df.shape[0] == 0)
+        bad_label = (df.shape[0] != 1)
         # screen_timepoint = series_data["study_yr"][0]
         # bad_label = not self.check_label(pt_metadata, screen_timepoint)
 
         biopsy_earlier = False
-        if not missing_label:
-            biopsy_earlier = df["MRI Date"] > df["Biopsy Date"]
+        report_gap = False
+        if not bad_label:
+            biopsy_earlier = df.iloc[0]["MRI Date"] > df.iloc[0]["Biopsy Date"]
+            report_gap = abs(df.iloc[0]["Biopsy Date"] - df.iloc[0]["MRI Date"]) > datetime.timedelta(days=60)
         
 
         # # invalid label
@@ -172,9 +175,9 @@ class MGH_Prostate(data.Dataset):
         if (
             wrong_series
             or wrong_thickness
-            or missing_label
-            or biopsy_earlier
-            # or bad_label
+            or bad_label
+            #or biopsy_earlier
+            or report_gap
             # or invalid_label
             # or insufficient_slices
         ):
