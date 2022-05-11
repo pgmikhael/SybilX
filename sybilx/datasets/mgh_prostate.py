@@ -70,6 +70,8 @@ class MGH_Prostate(data.Dataset):
         # load labels metadata csv
         self.labels_data = pd.read_csv(LABELS_PATH, low_memory=True)
         self.labels_data.fillna(0, inplace=True)
+        self.labels_data["MRI Date"] = pd.to_datetime(self.labels_data["MRI Date"])
+        self.labels_data["Biopsy Date"] = pd.to_datetime(self.labels_data["Biopsy Date"])
         self.labels_data.replace(to_replace="No Evidence", value=0, inplace=True)
 
         self.dataset = self.create_dataset(split_group)
@@ -153,6 +155,11 @@ class MGH_Prostate(data.Dataset):
         # screen_timepoint = series_data["study_yr"][0]
         # bad_label = not self.check_label(pt_metadata, screen_timepoint)
 
+        biopsy_earlier = False
+        if not missing_label:
+            biopsy_earlier = df["MRI Date"] > df["Biopsy Date"]
+        
+
         # # invalid label
         # if not bad_label:
         #     y, _, _, time_at_event = self.get_label(pt_metadata, screen_timepoint)
@@ -166,6 +173,7 @@ class MGH_Prostate(data.Dataset):
             wrong_series
             or wrong_thickness
             or missing_label
+            or biopsy_earlier
             # or bad_label
             # or invalid_label
             # or insufficient_slices
