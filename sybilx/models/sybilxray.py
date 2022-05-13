@@ -131,6 +131,16 @@ class SybilXrayR50(SybilXrayInception):
     def ENCODER_OUTPUT_DIM(self):
         return 2048
 
+@register_object("sybilxray_r50_random", "model")
+class SybilXrayR50Random(SybilXrayInception):
+    def get_image_encoder(self):
+        encoder = resnet50(pretrained=False)
+        return nn.Sequential(*list(encoder.children())[:-2])
+
+    @property
+    def ENCODER_OUTPUT_DIM(self):
+        return 2048
+
 @register_object("sybilxray_r152", "model")
 class SybilXrayR152(SybilXrayInception):
     def get_image_encoder(self):
