@@ -300,6 +300,10 @@ def parse_args(args_strings=None):
         "--num_classes", type=int, default=6, help="Number of classes to predict"
     )
 
+    parser.add_argument(
+        "--task", type=str, default="GS", help="Prediction task for prostate cancer"
+    )
+
     # Alternative training/testing schemes
     parser.add_argument(
         "--cross_val_seed",
@@ -397,7 +401,7 @@ def parse_args(args_strings=None):
         "--ct_pixel_spacing",
         type=float,
         nargs=3,
-        default=[1, 1, 1],
+        default=[1, 1, 1], 
         help="Target pixel spacing [x,y,z] in mm when resampling.",
     )
     parser.add_argument(

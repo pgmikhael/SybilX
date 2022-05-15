@@ -253,11 +253,21 @@ class MGH_Prostate(data.Dataset):
         
         # assume df only has one row
         assert df.shape[0] == 1, "There should only be one accession exam associated with the accession number."
-        gleason_score = df.iloc[0]["GS"]
-        if gleason_score < 7:
-            return 0
+
+        if self.args.task == "GS":
+            gleason_score = df.iloc[0]["GS"]
+            if gleason_score < 7:
+                return 0
+            else:
+                return 1
+        elif self.args.task == "diagnosis":
+            diagnosis = df.iloc[0]["Diagnosis"]
+            if diagnosis == "Benign":
+                return 0
+            else:
+                return 1
         else:
-            return 1
+            raise ValueError("Please choose an existing task from [GS, Diagnosis]")
 
 
     def get_pixel_spacing(self, dcm_path):
