@@ -65,7 +65,7 @@
       "0.4 0.4 3"
     ],
     "limit_train_batches": [
-      1
+      1.0
     ],
     "limit_val_batches": [
       1.0
