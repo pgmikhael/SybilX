@@ -4,7 +4,7 @@ import cv2
 import torch
 import os.path
 import pydicom
-import skimage.io
+from skimage import io, exposure
 from pydicom.pixel_data_handlers.util import apply_modality_lut
 import numpy as np
 from sybilx.datasets.utils import get_scaled_annotation_mask, IMG_PAD_TOKEN
@@ -38,7 +38,26 @@ class TIFFLoader(abstract_loader):
         """
         loads as grayscale image
         """
-        return {"input": skimage.io.imread(path, plugin='tifffile').astype(np.float64)}
+        return {"input": io.imread(path, plugin='tifffile').astype(np.float64)}
+
+    @property
+    def cached_extension(self):
+        return ""
+
+@register_object("tif_loader_rescale", "input_loader")
+class TIFFLoader(abstract_loader):
+    def configure_path(self, path, sample):
+        return path
+
+    def load_input(self, path, sample):
+        """
+        loads as grayscale image
+        assumes tifs are actually 12 bit values stored in 16 bit array
+        """
+        im = io.imread(path, plugin='tifffile')
+        image = exposure.rescale_intensity(im, in_range='uint12')
+        return {"input": image.astype(np.float64)}
+        # return {"input": io.imread(path, plugin='tifffile').astype(np.float64)}
 
     @property
     def cached_extension(self):
