@@ -29,7 +29,7 @@
     "precision": [16],
     "max_followup": [12],
     "batch_size": [32],
-    "img_size": ["2500 2000"],
+    "img_size": ["512 512"],
     "weight_decay": [0.0],
     "max_epochs": [10],
     "lr_decay": [0.1],
@@ -54,5 +54,5 @@
     "scheduler": ["reduce_on_plateau"],
     "comet_tags": ["plco simple_sybilx_r50 no_hist_eq"]
   },
-  "available_gpus": [0]
+  "available_gpus": ["0"]
 }
