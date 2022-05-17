@@ -47,7 +47,7 @@ class TIFFLoader(abstract_loader):
 @register_object("tif_loader_rescale", "input_loader")
 class TIFFLoader(abstract_loader):
     def configure_path(self, path, sample):
-        return path
+        return path + "rescale"
 
     def load_input(self, path, sample):
         """
