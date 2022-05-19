@@ -138,7 +138,7 @@ class SimpleSybilXR50AttnGlobal(nn.Module):
 
 
 @register_object("simple_sybilx_r50_attn_local", "model")
-class SimpleSybilXR50AttnLocal(nn.Module):
+class SimpleSybilXR50AttnLocal(SimpleSybilXR50AttnGlobal):
     def __init__(self, args):
         super(SimpleSybilXR50AttnLocal, self).__init__(args)
         self.lin1 = nn.Linear(self.ENCODER_OUTPUT_DIM, args.hidden_size)
@@ -153,7 +153,7 @@ class SimpleSybilXR50AttnLocal(nn.Module):
         # attn
         attn_output = self.attn(encoded_image) # contains 'image_attention_2d' and 'hidden'
         output["hidden"] = self.relu(attn_output["hidden"])
-        output["hidden"] = self.dropout(output["attn_hidden"])
+        output["hidden"] = self.dropout(output["hidden"])
 
         # predict
         output['hidden'] = self.lin1(output["hidden"])
