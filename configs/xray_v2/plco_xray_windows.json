@@ -30,7 +30,7 @@
     "max_followup": [12],
     "batch_size": [32],
     "img_size": ["512 512"],
-    "weight_decay": [0.0],
+    "weight_decay": [0.1],
     "max_epochs": [10],
     "lr_decay": [0.1],
     "lr": [1e-3],
@@ -42,9 +42,7 @@
     "dev": [true],
     "test": [true],
     "class_bal": [true],
-    "train_rawinput_augmentations": ["scale_2d rotate_range/deg=20"],
     "train_tnsr_augmentations": ["force_num_chan_2d normalize_2d"],
-    "test_rawinput_augmentations": ["scale_2d"],
     "test_tnsr_augmentations": ["force_num_chan_2d normalize_2d"],
     "img_mean": [45819.16578367201],
     "img_std": [14211.166097275762],
@@ -53,6 +51,32 @@
     "save_dir": ["/storage/itamar/snapshots"],
     "scheduler": ["reduce_on_plateau"],
     "comet_tags": ["plco simple_sybilx_r50 no_hist_eq"]
+  },
+  "paired_search_space": {
+    "train_rawinput_augmentations": [
+      "scale_2d window/window_center=10000/window_width=5000 rotate_range/deg=20", 
+      "scale_2d window/window_center=20000/window_width=5000 rotate_range/deg=20", 
+      "scale_2d window/window_center=30000/window_width=5000 rotate_range/deg=20", 
+      "scale_2d window/window_center=40000/window_width=5000 rotate_range/deg=20", 
+      "scale_2d window/window_center=50000/window_width=5000 rotate_range/deg=20", 
+      "scale_2d window/window_center=10000/window_width=10000 rotate_range/deg=20", 
+      "scale_2d window/window_center=20000/window_width=10000 rotate_range/deg=20", 
+      "scale_2d window/window_center=30000/window_width=10000 rotate_range/deg=20", 
+      "scale_2d window/window_center=40000/window_width=10000 rotate_range/deg=20", 
+      "scale_2d window/window_center=50000/window_width=10000 rotate_range/deg=20"
+    ],
+    "test_rawinput_augmentations": [
+      "scale_2d window/window_center=10000/window_width=5000",
+      "scale_2d window/window_center=20000/window_width=5000",
+      "scale_2d window/window_center=30000/window_width=5000",
+      "scale_2d window/window_center=40000/window_width=5000",
+      "scale_2d window/window_center=50000/window_width=5000",
+      "scale_2d window/window_center=10000/window_width=10000",
+      "scale_2d window/window_center=20000/window_width=10000",
+      "scale_2d window/window_center=30000/window_width=10000",
+      "scale_2d window/window_center=40000/window_width=10000",
+      "scale_2d window/window_center=50000/window_width=10000"
+    ]
   },
   "available_gpus": [2]
 }
