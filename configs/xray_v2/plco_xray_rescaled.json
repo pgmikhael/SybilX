@@ -52,7 +52,8 @@
     "dataset_file_path": ["/storage/ludvig/PLCO_XRAY/metadata_2022_04_05_rotated.json"],
     "save_dir": ["/storage/itamar/snapshots"],
     "scheduler": ["reduce_on_plateau"],
-    "comet_tags": ["plco simple_sybilx_r50 no_hist_eq"]
+    "comet_tags": ["plco simple_sybilx_r50 momentum wd dropout v2 scaled_loading"],
+    "cache_path": ["/storage/rescaled_xray_cache"]
   },
   "available_gpus": [2]
 }
