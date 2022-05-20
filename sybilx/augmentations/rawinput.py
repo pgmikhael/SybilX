@@ -3,7 +3,7 @@ import albumentations as A
 import cv2
 from sybilx.utils.registry import register_object
 from sybilx.augmentations.abstract import Abstract_augmentation
-
+from sybilx.loaders.image_loaders import apply_windowing
 
 @register_object("scale_2d", "augmentation")
 class Scale_2d(Abstract_augmentation):
@@ -556,3 +556,24 @@ class InvertPixelsRelative(Abstract_augmentation):
         if sample.get('invert_pixels', False):
             input_dict["input"] = input_dict["input"].max() - input_dict["input"]
         return input_dict
+
+
+@register_object("window", "augmentation")
+class Window(Abstract_augmentation):
+    """
+    DICOM Style Windowing
+    """
+
+    def __init__(self, args, kwargs):
+        super(Window, self).__init__()
+        assert len(kwargs.keys()) == 2
+        assert "window_center" in kwargs
+        assert "window_width" in kwargs
+        self.window_center = int(kwargs["window_center"])
+        self.window_width = int(kwargs["window_width"])
+        self.set_cachable()
+
+    def __call__(self, input_dict, sample=None):
+        input_dict["input"] = arr = apply_windowing(input_dict["input"], self.window_center , self.window_width, bit_size=16)
+        return input_dict
+
