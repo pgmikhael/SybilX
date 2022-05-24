@@ -46,11 +46,12 @@
     "test_tnsr_augmentations": ["force_num_chan_2d normalize_2d"],
     "img_mean": [45819.16578367201],
     "img_std": [14211.166097275762],
-    "dropout": [0.0],
+    "dropout": [0.1],
     "dataset_file_path": ["/storage/ludvig/PLCO_XRAY/metadata_2022_04_05_rotated.json"],
     "save_dir": ["/storage/itamar/snapshots"],
     "scheduler": ["reduce_on_plateau"],
-    "comet_tags": ["plco simple_sybilx_r50 no_hist_eq"]
+    "comet_tags": ["plco simple_sybilx_r50 window v2 momentum dropout wd"],
+    "cache_path": ["/storage/rescaled_xray_cache"]
   },
   "paired_search_space": {
     "train_rawinput_augmentations": [
@@ -78,5 +79,5 @@
       "scale_2d window/window_center=50000/window_width=10000"
     ]
   },
-  "available_gpus": [2]
+  "available_gpus": [0,1,2,3,4,6,7]
 }
