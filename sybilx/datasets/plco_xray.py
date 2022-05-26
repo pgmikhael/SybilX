@@ -452,7 +452,7 @@ class PLCO_XRay_Dataset(data.Dataset):
 class PLCO_XRay_Smokers_Dataset(PLCO_XRay_Dataset):
     def skip_sample(self, series_dict, pt_metadata, exam_dict, split_group, split_dict=None):
         is_smoker = pt_metadata["cig_stat"] == 1
-        if is_smoker:
+        if not is_smoker:
             return True
 
         return super(PLCO_XRay_Smokers_Dataset, self).skip_sample(series_dict, pt_metadata, exam_dict, split_group, split_dict=None)
@@ -481,7 +481,7 @@ class PLCO_NLST_Smokers_Dataset(PLCO_XRay_Dataset):
         # At least 30 pack-years of smoking 
         # [Pack-years = packs per day x number of years smoking].
         is_NLST_smoker = (55 <= current_age <= 74) and (pack_years >= 30) and (0 <= years_since_quit_smoking <= 15)
-        if is_NLST_smoker:
+        if not is_NLST_smoker:
             return True
 
         return super(PLCO_NLST_Smokers_Dataset, self).skip_sample(series_dict, pt_metadata, exam_dict, split_group, split_dict=None)
