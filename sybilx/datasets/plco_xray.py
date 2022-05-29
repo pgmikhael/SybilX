@@ -323,7 +323,7 @@ class PLCO_XRay_Dataset(data.Dataset):
         is_not_smoker = pt_metadata["cig_stat"] in (0, 2) #Never/former smoker
         smoking_status_unknown = pt_metadata["cig_stat"] in ('.A', '.F', '.M', -1)
 
-        # years_since_quit_smoking = 0 if is_smoker else current_age - age_quit_smoking
+        years_since_quit_smoking = 0 if is_smoker else current_age - age_quit_smoking
 
         # TODO: ensure education level coding corresponds with NLST coding
         education = (
@@ -345,6 +345,8 @@ class PLCO_XRay_Dataset(data.Dataset):
         cancer_hx = pt_metadata["ph_lung_trial"]
         family_hx = pt_metadata["lung_fh"] in (1, 9) # 1="Yes, Immediate Family Member", 9="Possibly - Relative Or Cancer Type Not Clear"
 
+        is_NLST_smoker = (55 <= current_age <= 74) and (pack_years >= 30 or pack_years == -1) and (years_since_quit_smoking <= 15)
+
         risk_factors = {
             "age": current_age,
             # "race": race,
@@ -357,11 +359,12 @@ class PLCO_XRay_Dataset(data.Dataset):
             # "family_lc_hx": family_hx,
             #"copd": pt_metadata["diagcopd"][0],
             "is_smoker": is_smoker,
+            "is_NLST_smoker": is_NLST_smoker,
             "is_not_smoker": is_not_smoker, # don't judge, this is to be true to CXR-LC paper
             "smoking_status_unknown": smoking_status_unknown,
             # "smoking_intensity": cigarettes_per_day,
-            # "smoking_duration": years_smoking,
-            # "years_since_quit_smoking": years_since_quit_smoking,
+            "smoking_duration": years_smoking,
+            "years_since_quit_smoking": years_since_quit_smoking,
             # "weight": weight,
             # "height": height,
             # "sex": SEX_KEYS.get(pt_metadata["sex"], "UNK"),
@@ -480,7 +483,7 @@ class PLCO_NLST_Smokers_Dataset(PLCO_XRay_Dataset):
         # 55 to 74 years of age
         # At least 30 pack-years of smoking 
         # [Pack-years = packs per day x number of years smoking].
-        is_NLST_smoker = (55 <= current_age <= 74) and (pack_years >= 30) and (0 <= years_since_quit_smoking <= 15)
+        is_NLST_smoker = (55 <= current_age <= 74) and (pack_years >= 30 or pack_years == -1) and (years_since_quit_smoking <= 15)
         if not is_NLST_smoker:
             return True
 
