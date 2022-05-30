@@ -33,13 +33,13 @@
     "dev": [true],
     "test": [true],
     "class_bal": [true],
-    "train_rawinput_augmentations": ["project_ct/method=mean/annotation_method=max-threshold scale_2d rotate_range/deg=20"],
+    "train_rawinput_augmentations": ["project_ct/method=campo/annotation_method=max-threshold scale_2d rotate_range/deg=20"],
     "train_tnsr_augmentations": ["force_num_chan_2d normalize_2d"],
-    "test_rawinput_augmentations": ["project_ct/method=mean/annotation_method=max-threshold scale_2d"],
+    "test_rawinput_augmentations": ["project_ct/method=campo/annotation_method=max-threshold scale_2d"],
     "test_tnsr_augmentations": ["force_num_chan_2d normalize_2d"],
     "fix_seed_for_multi_image_augmentations": [true],
-    "img_mean": [-691.3405],
-    "img_std": [372.76724],
+    "img_mean": [227.13098],
+    "img_std": [35351.633],
     "workspace": ["itamar"],
     "project_name": ["xray-cancer"],
     "num_sanity_val_steps": [0],
@@ -61,7 +61,7 @@
   },
   "paired_search_space" : {
     "base_model": ["simple_sybilx_r50", "simple_sybilx_r50_attn_global", "simple_sybilx_r50_attn_local"],
-    "comet_tags": ["projections simple_sybilx_r50 mean_proj v2", "projections simple_sybilx_r50_attn mean_proj global_attn v2", "projections simple_sybilx_r50_attn mean_proj local_attn v2"]
+    "comet_tags": ["projections simple_sybilx_r50 campo_proj v2", "projections simple_sybilx_r50_attn campo_proj global_attn v2", "projections simple_sybilx_r50_attn campo_proj local_attn v2"]
 
   },
   "available_gpus": [0,1,2]

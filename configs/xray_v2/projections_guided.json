@@ -61,7 +61,7 @@
   },
   "paired_search_space" : {
     "base_model": ["simple_sybilx_r50", "simple_sybilx_r50_attn_global", "simple_sybilx_r50_attn_local"],
-    "comet_tags": ["projections simple_sybilx_r50 mean_proj v2", "projections simple_sybilx_r50_attn mean_proj global_attn v2", "projections simple_sybilx_r50_attn mean_proj local_attn v2"]
+    "comet_tags": ["projections guided_attn simple_sybilx_r50 mean_proj v2", "projections guided_attn simple_sybilx_r50_attn mean_proj global_attn v2", "projections guided_attn simple_sybilx_r50_attn mean_proj local_attn v2"]
 
   },
   "available_gpus": [5,7]
