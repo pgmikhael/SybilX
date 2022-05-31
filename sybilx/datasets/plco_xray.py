@@ -241,7 +241,7 @@ class PLCO_XRay_Dataset(data.Dataset):
             "pid": pid,
             # "study": series_data["studyuid"][0],
             # "device": device,
-            #"institution": pt_metadata["cen"],
+            "institution": pt_metadata["center"],
             #"cancer_laterality": self.get_cancer_side(pt_metadata),
         }
 
@@ -434,6 +434,9 @@ class PLCO_XRay_Dataset(data.Dataset):
             for key in CT_ITEM_KEYS:
                 if key in sample:
                     item[key] = sample[key]
+
+            # testing 
+            item["institution"] = sample["institution"]
 
             return item
         except Exception:
