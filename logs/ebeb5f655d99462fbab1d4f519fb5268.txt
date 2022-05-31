@@ -1,0 +1,239 @@
+Using 16bit native Automatic Mixed Precision (AMP)
+/Mounts/rbg-storage1/users/itamarc/miniconda3/envs/sybilx/lib/python3.8/site-packages/pytorch_lightning/trainer/connectors/callback_connector.py:147: LightningDeprecationWarning: Setting `Trainer(checkpoint_callback=False)` is deprecated in v1.5 and will be removed in v1.7. Please consider using `Trainer(enable_checkpointing=False)`.
+  rank_zero_deprecation(
+GPU available: True, used: True
+TPU available: False, using: 0 TPU cores
+IPU available: False, using: 0 IPUs
+CometLogger will be initialized in online mode
+
+Project main running by author: Itamar Chinn 
+date:05-24-2022 11:59:51, 
+from commit: a278416702e1f8fab0e7349dcf50e4731cade907 -- config and notebook dump
+
+ACCELERATOR -- None
+ACCUMULATE_GRAD_BATCHES -- 1
+ADV_LOSS_LAMBDA -- 1.0
+ADV_LR -- 0.001
+AMP_BACKEND -- native
+AMP_LEVEL -- None
+ANNOTATION_LOSS_LAMBDA -- 1
+ANNOTATION_LOSS_LAMBDA_2D -- 0.03
+ASSIGN_SPLITS -- True
+AUTO_LR_FIND -- False
+AUTO_SCALE_BATCH_SIZE -- False
+AUTO_SELECT_GPUS -- False
+BASE_MODEL -- simple_sybilx_r50
+BATCH_SIZE -- 32
+BENCHMARK -- False
+CACHE_FULL_IMG -- False
+CACHE_PATH -- /storage/xray_cache
+CALLBACK_NAMES -- ['checkpointer', 'lr_monitor']
+CALLBACKS -- None
+CHECK_VAL_EVERY_N_EPOCH -- 1
+CHECKPOINT_CALLBACK -- False
+CHECKPOINT_SAVE_LAST -- False
+CHECKPOINT_SAVE_TOP_K -- 1
+CLASS_BAL -- True
+CLASS_BAL_KEY -- y
+COMET_TAGS -- ['projections', 'simple_sybilx_r50', 'mean_proj', 'v2']
+COSINE_ANNEALING_PERIOD -- 10
+COSINE_ANNEALING_PERIOD_SCALING -- 2
+CROSS_SECTION_FILTER -- None
+CROSS_VAL_SEED -- 0
+DATA_DIR -- Data/
+DATASET -- nlst_ct_projections
+DATASET_FILE_PATH -- /Mounts/rbg-storage1/datasets/NLST/full_nlst_google.json
+DEFAULT_ROOT_DIR -- None
+DETECT_ANOMALY -- False
+DETERMINISTIC -- False
+DEV -- True
+DEVICES -- None
+DISTILL_AUX_LOSS_LAMBDA -- 1.0
+DISTILL_AUX_TEMPERATURE -- 1.0
+DISTILL_NUM_SUBCLASSES -- 3
+DISTILL_STUDENT_LOSS_LAMBDA -- 1.0
+DISTILL_TEMPERATURE -- 1
+DROPOUT -- 0.1
+ENABLE_CHECKPOINTING -- True
+ENABLE_MODEL_SUMMARY -- True
+ENABLE_PROGRESS_BAR -- True
+EVAL_LOSS_FNS -- None
+EXPERIMENT_NAME -- ebeb5f655d99462fbab1d4f519fb5268
+FAST_DEV_RUN -- False
+FC_CLASSIFIER_INPUT_DIM -- 128
+FILTER_DERIVED_IMAGES -- False
+FILTER_POST_PROCESSED_IMAGES -- False
+FINE_TUNE -- False
+FINETUNE_MODEL -- None
+FINETUNE_MODEL_PATH -- None
+FIT_TO_LENGTH -- False
+FIX_MULTI_IMAGE_AUGMENTATION_SEED -- False
+FIX_SEED_FOR_MULTI_IMAGE_AUGMENTATIONS -- True
+FLUSH_LOGS_EVERY_N_STEPS -- None
+FREEZE_ENCODER_WEIGHTS -- False
+FROM_CHECKPOINT -- False
+GET_DATASET_STATS -- False
+GLOBAL_RANK -- 0
+GPUS -- 1
+GRADIENT_CLIP_ALGORITHM -- None
+GRADIENT_CLIP_VAL -- None
+HIDDEN_SIZE -- 256
+HIDDENS_DIR -- hiddens/test_run
+IMAGE_ATTENTION_LOSS_LAMBDA -- 1
+IMAGE_SIDE_ATTENTION_LOSS_LAMBDA -- 1
+IMAGE_SIDE_ATTENTION_LOSS_LAMBDA_2D -- 1
+IMG_DIR -- /storage/NLST/nlst-ct-png
+IMG_FILE_TYPE -- dicom
+IMG_MEAN -- [-691.3405]
+IMG_SIZE -- [512, 512]
+IMG_STD -- [372.76724]
+INPUT_LOADER_NAME -- ct_dicom_loader
+IPUS -- None
+ITRD_ALPHA -- 1
+ITRD_BETA_CORR -- 1
+ITRD_BETA_MI -- 1
+LIGHTNING_NAME -- base
+LIMIT_PREDICT_BATCHES -- 1.0
+LIMIT_TEST_BATCHES -- 1.0
+LIMIT_TRAIN_BATCHES -- 1.0
+LIMIT_VAL_BATCHES -- 1.0
+LOCAL_RANK -- 0
+LOG_EVERY_N_STEPS -- 50
+LOG_GEN_IMAGE -- False
+LOG_GPU_MEMORY -- None
+LOGGER -- True
+LOGGER_NAME -- comet
+LOSS_FNS -- ['cross_entropy']
+LR -- 0.001
+LR_DECAY -- 0.1
+MAX_EPOCHS -- 10
+MAX_FOLLOWUP -- 6
+MAX_IMG_HEIGHT -- None
+MAX_IMG_WIDTH -- None
+MAX_STEPS -- -1
+MAX_TIME -- None
+METRICS -- ['classification']
+MIN_EPOCHS -- None
+MIN_IMG_HEIGHT -- None
+MIN_IMG_WIDTH -- None
+MIN_NUM_IMAGES -- 0
+MIN_STEPS -- None
+MLP_INPUT_DIM -- 512
+MLP_LAYER_CONFIGURATION -- [128, 128]
+MLP_USE_BATCH_NORM -- False
+MLP_USE_LAYER_NORM -- False
+MMD_KERNEL -- guassian_rbf
+MOMENTUM -- 0.9
+MONITOR -- val_roc_auc
+MOVE_METRICS_TO_CPU -- False
+MULTIPLE_TRAINLOADER_MODE -- max_size_cycle
+MULTITASK_KEYS -- []
+MULTITASK_MLP_CONFIGURATION -- [128, 128]
+MULTITASK_MLP_INPUT_DIM -- 512
+NST_LAMBDA -- 1
+NUM_ADV_STEPS -- 1
+NUM_CHAN -- 3
+NUM_CLASSES -- 2
+NUM_EPOCHS_FINE_TUNE -- 1
+NUM_IMAGES -- 200
+NUM_NODES -- 1
+NUM_PROCESSES -- 1
+NUM_SANITY_VAL_STEPS -- 0
+NUM_WORKERS -- 10
+OPTIMIZER -- sgd
+OVERFIT_BATCHES -- 0.0
+PATIENCE -- 5
+PLCO_TEST_STUDY_YRS -- None
+PLCO_TRAIN_STUDY_YRS -- None
+PLCO_USE_ONLY_ONE_IMAGE -- False
+PLCO_USE_ONLY_VISITNUM -- None
+PLUGINS -- None
+PRECISION -- 16
+PREDICT -- False
+PREPARE_DATA_PER_NODE -- None
+PRIMARY_LOSS_LAMBDA -- 1.0
+PROCESS_POSITION -- 0
+PROFILER -- None
+PROGRESS_BAR_REFRESH_RATE -- None
+PROJ_ENCODER_MODEL -- sybilxray_r50
+PROJECT_NAME -- xray-cancer
+REGION_ANNOTATIONS_FILEPATH -- /Mounts/rbg-storage1/datasets/NLST/annotations_122020.json
+RELAX_CHECKPOINT_MATCHING -- False
+RELOAD_DATALOADERS_EVERY_EPOCH -- False
+RELOAD_DATALOADERS_EVERY_N_EPOCHS -- 0
+REPLACE_SAMPLER_DDP -- False
+RESET_DECODER -- False
+RESULTS_PATH -- logs/ebeb5f655d99462fbab1d4f519fb5268
+RESUME_FROM_CHECKPOINT -- None
+RIGHT_ANNOTATION_LOSS_LAMBDA -- None
+RISK_FACTOR_KEYS -- []
+SAVE_ATTENTION_SCORES -- False
+SAVE_DIR -- /Mounts/rbg-storage1/snapshots/lung_xray
+SAVE_HIDDENS -- False
+SAVE_PREDICTIONS -- False
+SCALE_ANNOTATIONS -- False
+SCHEDULER -- reduce_on_plateau
+SLICE_THICKNESS_FILTER -- None
+SNAPSHOT -- None
+SPLIT_PROBS -- [0.7, 0.15, 0.15]
+SPLIT_TYPE -- random
+STEP_INDX -- 1
+STOCHASTIC_WEIGHT_AVG -- False
+STORE_CLASSWISE_METRICS -- False
+STRATEGY -- None
+SWA_ANNEALING_EPOCHS -- 10
+SWA_ANNEALING_STRATEGY -- cos
+SWA_EPOCH -- 0.8
+SWA_LR -- None
+SYNC_BATCHNORM -- False
+TERMINATE_ON_NAN -- None
+TEST -- True
+TEST_PROJECTION_RAWINPUT_AUGMENTATIONS -- []
+TEST_PROJECTION_TNSR_AUGMENTATIONS -- []
+TEST_RAWINPUT_AUGMENTATIONS -- [('project_ct', {'method': 'mean', 'annotation_method': 'max-threshold'}), ('scale_2d', {})]
+TEST_TNSR_AUGMENTATIONS -- [('force_num_chan_2d', {}), ('normalize_2d', {})]
+TPU_CORES -- None
+TRACK_GRAD_NORM -- -1
+TRAIN -- True
+TRAIN_PROJECTION_RAWINPUT_AUGMENTATIONS -- []
+TRAIN_PROJECTION_TNSR_AUGMENTATIONS -- []
+TRAIN_RAWINPUT_AUGMENTATIONS -- [('project_ct', {'method': 'mean', 'annotation_method': 'max-threshold'}), ('scale_2d', {}), ('rotate_range', {'deg': 20.0})]
+TRAIN_TNSR_AUGMENTATIONS -- [('force_num_chan_2d', {}), ('normalize_2d', {})]
+TREAT_AMBIGUOUS_AS_POSITIVE -- False
+TURN_OFF_CHECKPOINTING -- False
+UNIX_USERNAME -- itamarc
+USE_ANNOTATIONS -- True
+USE_FAUX_BINARY -- False
+USE_ONLY_ATTENTION_HIDDENS -- False
+USE_ONLY_THIN_CUTS_FOR_CT -- True
+USE_RISK_FACTORS -- False
+VAL_CHECK_INTERVAL -- 1.0
+VOLUME_ATTENTION_LOSS_LAMBDA -- 1
+WARMUP -- None
+WARMUP_LAST_EPOCH -- -1
+WEIGHT_DECAY -- 0.1
+WEIGHTS_SAVE_PATH -- None
+WEIGHTS_SUMMARY -- top
+WFL_ALPHA -- 0.9
+WFL_GAMMA -- 2
+WITH_ATTENTION -- True
+WORKSPACE -- itamar
+WORLD_SIZE -- 1
+Traceback (most recent call last):
+  File "scripts/main.py", line 116, in <module>
+    cli_main(args)
+  File "scripts/main.py", line 68, in cli_main
+    args, get_object(args.dataset, "dataset")(args, "train")
+  File "/Mounts/rbg-storage1/users/itamarc/SybilX/sybilx/datasets/nlst.py", line 683, in __init__
+    super(NLSTCTProjectionsDataset, self).__init__(args, split_group)
+  File "/Mounts/rbg-storage1/users/itamarc/SybilX/sybilx/datasets/nlst.py", line 85, in __init__
+    self.metadata_json = json.load(open(args.dataset_file_path, "r"))
+  File "/Mounts/rbg-storage1/users/itamarc/miniconda3/envs/sybilx/lib/python3.8/json/__init__.py", line 293, in load
+    return loads(fp.read(),
+  File "/Mounts/rbg-storage1/users/itamarc/miniconda3/envs/sybilx/lib/python3.8/json/__init__.py", line 357, in loads
+    return _default_decoder.decode(s)
+  File "/Mounts/rbg-storage1/users/itamarc/miniconda3/envs/sybilx/lib/python3.8/json/decoder.py", line 337, in decode
+    obj, end = self.raw_decode(s, idx=_w(s, 0).end())
+  File "/Mounts/rbg-storage1/users/itamarc/miniconda3/envs/sybilx/lib/python3.8/json/decoder.py", line 353, in raw_decode
+    obj, end = self.scan_once(s, idx)
+KeyboardInterrupt
