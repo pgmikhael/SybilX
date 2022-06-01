@@ -408,6 +408,38 @@ class DicomLoader(abstract_loader):
         return ""
 
 
+@register_object("dicom_xray_loader_v2", "input_loader")
+class DicomXrayLoaderV2(abstract_loader):
+    def __init__(self, cache_path, augmentations, args):
+        super(DicomXrayLoader, self).__init__(cache_path, augmentations, args)
+
+    def configure_path(self, path, sample):
+        return path
+
+    def load_input(self, path, sample):
+        try:
+            dcm = pydicom.dcmread(path)
+            bits = dcm.BitsStored if hasattr(dcm, 'BitsStored') else 16
+            
+            im = apply_modality_lut(dcm.pixel_array, dcm)
+            assert im.dtype == np.uint16
+
+            im = exposure.rescale_intensity(im, in_range=f"uint{bits}")
+            if hasattr(dcm, 'PhotometricInterpretation') and dcm.PhotometricInterpretation == 'MONOCHROME1':
+                im = 65536 - im
+            if self.args.apply_equalize:
+                im = exposure.equalize_hist(im)
+            return {"input": im}
+                
+        except Exception:
+            raise Exception(LOADING_ERROR.format("COULD NOT LOAD DICOM."))
+
+    @property
+    def cached_extension(self):
+        return ""
+
+
+
 def apply_windowing(image, center, width, bit_size=16):
     """Windowing function to transform image pixels for presentation.
     Must be run after a DICOM modality LUT is applied to the image.
