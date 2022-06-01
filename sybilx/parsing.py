@@ -254,6 +254,7 @@ def parse_args(args_strings=None):
     parser.add_argument('--scale_annotations', action='store_true', default = False, help = 'whether to normalize the annotations per slice')
     parser.add_argument('--get_dataset_stats', action='store_true', default = False, help = 'whether to get mean, std of training set')
     parser.add_argument('--apply_equalize', action='store_true', default = False, help = 'Use histogram equalize in Dicom loader V2')
+    parser.add_argument('--apply_adaptive_equalize', action='store_true', default = False, help = 'Use adaptive histogram equalize in Dicom loader V2')
 
     parser.add_argument(
         "--img_mean",
