@@ -411,7 +411,7 @@ class DicomLoader(abstract_loader):
 @register_object("dicom_xray_loader_v2", "input_loader")
 class DicomXrayLoaderV2(abstract_loader):
     def __init__(self, cache_path, augmentations, args):
-        super(DicomXrayLoader, self).__init__(cache_path, augmentations, args)
+        super(DicomXrayLoaderV2, self).__init__(cache_path, augmentations, args)
 
     def configure_path(self, path, sample):
         return path
