@@ -64,6 +64,7 @@ import sybilx.learning.losses.basic
 import sybilx.learning.losses.guided_attention
 import sybilx.learning.losses.weighted_focal_loss
 import sybilx.learning.losses.distillation
+import sybilx.learning.losses.risk_factors_loss
 
 # metrics
 import sybilx.learning.metrics.basic
