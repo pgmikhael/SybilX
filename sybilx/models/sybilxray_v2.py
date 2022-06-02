@@ -7,6 +7,7 @@ from torchvision.models import resnet50
 from sybilx.models.cumulative_probability_layer import Cumulative_Probability_Layer
 from sybilx.utils.loading import get_lightning_model
 from sybilx.utils.registry import register_object, get_object
+from sybilx.datasets.nlst_risk_factors import NLSTRiskFactorVectorizer
 
 
 class AttentionPool2D(nn.Module):
@@ -161,3 +162,28 @@ class SimpleSybilXR50AttnLocal(SimpleSybilXR50AttnGlobal):
         output["logit"] = self.fc(output["hidden"])
 
         return output
+
+
+@register_object("simple_sybilx_r50_risk_factors", "model")
+class XRayRiskFactorPredictor(SimpleSybilXR50):
+    def __init__(self, args):
+        super(XRayRiskFactorPredictor, self).__init__(args)
+
+        self.length_risk_factor_vector = NLSTRiskFactorVectorizer(args).vector_length
+        for key in args.risk_factor_keys:
+            num_key_features = args.risk_factor_key_to_num_class[key]
+            key_fc = nn.Linear(self.ENCODER_OUTPUT_DIM, num_key_features)
+            self.add_module("{}_fc".format(key), key_fc)
+
+    def forward(self, x, batch):
+        output = {}
+        encoded_image = self.image_encoder(x)
+        hidden = self.avg_pool(encoded_image).squeeze(2).squeeze(2)
+
+        for indx, key in enumerate(self.args.risk_factor_keys):
+            output["{}_logit".format(key)] = self._modules["{}_fc".format(key)](hidden)
+
+        return output
+
+    def get_loss_functions(self):
+        return ["risk_factor_loss"]

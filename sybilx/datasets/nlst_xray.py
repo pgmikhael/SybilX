@@ -105,6 +105,8 @@ class NLST_XRay_Dataset(data.Dataset):
             The dataset as a dictionary with img paths, label,
             and additional information regarding exam or participant
         """
+        self.risk_factor_vectorizer = NLSTRiskFactorVectorizer(self.args)
+        
         if self.args.assign_splits:
             np.random.seed(self.args.cross_val_seed)
             self.assign_splits(self.metadata_json)
@@ -457,3 +459,15 @@ class NLST_XRay_Test_Dataset(NLST_XRay_Dataset):
             return True
         else:
             return False
+
+
+@register_object("nlst_xray_risk_factors", "dataset")
+class NLST_XRay_Risk_Factor_Task(NLST_XRay_Dataset):
+    """
+    Dataset for risk factor-based risk model
+    """
+
+    def get_risk_factors(self, pt_metadata, screen_timepoint, return_dict=False):
+        return self.risk_factor_vectorizer.get_risk_factors_for_sample(
+            pt_metadata, screen_timepoint
+        )
