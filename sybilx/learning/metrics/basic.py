@@ -248,7 +248,7 @@ class Survival_Classification(BaseClassification):
         return stats_dict
 
 
-@RegisterMetric("multi_task_multi_class_classification")
+@register_object("multi_task_multi_class_classification", "metric")
 class Multi_Task_Multi_Class_Classification(BaseClassification):
     def __call__(self, logging_dict, args):
         stats_dict = OrderedDict()
