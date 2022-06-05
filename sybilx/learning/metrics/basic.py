@@ -253,7 +253,7 @@ class Multi_Task_Multi_Class_Classification(BaseClassification):
     def __call__(self, logging_dict, args):
         stats_dict = OrderedDict()
 
-        prob_keys = [ k[:-5] for k in logging_dict.keys() if k.endswith('probs') ]
+        prob_keys = [ k[:-6] for k in logging_dict.keys() if k.endswith('_probs') ]
         for key in prob_keys: 
             golds = logging_dict['{}_golds'.format(key)]
             probs = logging_dict['{}_probs'.format(key)]
