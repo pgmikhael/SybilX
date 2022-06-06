@@ -22,8 +22,7 @@ parser.add_argument('--split_probs', type = int, nargs = 3, default = DEFAULT_SP
 
 if __name__ == "__main__":
     args = parser.parse_args()
-
-    tifs = list(path for path in args.tif_dirs[0].glob('*.tif'))
+    tifs = list(path for tif_dir in args.tif_dirs for path in tif_dir.glob('*.tif'))
 
     print("Loading", args.link_csv)
     filename_to_id_map_df = pd.read_csv(args.link_csv)
@@ -41,14 +40,9 @@ if __name__ == "__main__":
     for path in loadingbar:
         loadingbar.set_description(f"Processing {path}")
         filename = path.name
-        try:
-            pid = filename_to_id_map[filename]['plco_id']
-            years_from_baseline = filename_to_id_map[filename]['assoc_visit_syr']
-            visit_num = filename_to_id_map[filename]['assoc_visit_visnum']
-        except:
-            pid = filename_to_id_map[filename.replace(".tif", "")]['plco_id']
-            years_from_baseline = filename_to_id_map[filename.replace(".tif", "")]['assoc_visit_syr']
-            visit_num = filename_to_id_map[filename.replace(".tif", "")]['assoc_visit_visnum']
+        pid = filename_to_id_map[filename.replace(".tif", "")]['plco_id']
+        years_from_baseline = filename_to_id_map[filename.replace(".tif", "")]['study_yr']
+        # visit_num = filename_to_id_map[filename.replace(".tif", "")]['assoc_visit_visnum']
         # couldn't find: date, series_id, sop_id
 
         exam = '{}_T{}'.format(visit_num, years_from_baseline)
@@ -56,7 +50,7 @@ if __name__ == "__main__":
 
         exam_dict = {
             "exam": exam,
-            "visit_num": visit_num,
+            # "visit_num": visit_num,
             "study_yr": years_from_baseline,
             #"accession_number": accession_number
             #"date": date
