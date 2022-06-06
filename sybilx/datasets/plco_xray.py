@@ -108,7 +108,7 @@ class PLCO_XRay_Dataset(data.Dataset):
             The dataset as a dictionary with img paths, label,
             and additional information regarding exam or participant
         """
-        # self.risk_factor_vectorizer = NLSTRiskFactorVectorizer(self.args)
+        self.risk_factor_vectorizer = PLCORiskFactorVectorizer(self.args)
 
         if self.args.split_type == 'cxr_lc':
             CXR_LC_IMAGE_SPLITS = pickle.load(open(CXR_LC_IMAGE_SPLITS_FILENAME, "rb"))
@@ -491,3 +491,19 @@ class PLCO_NLST_Smokers_Dataset(PLCO_XRay_Dataset):
             return True
 
         return super(PLCO_NLST_Smokers_Dataset, self).skip_sample(series_dict, pt_metadata, exam_dict, split_group, split_dict=None)
+
+
+
+
+
+
+@register_object("plco_risk_factors", "dataset")
+class PLCO_Risk_Factor_Task(PLCO_XRay_Dataset):
+    """
+    Dataset for risk factor-based risk model
+    """
+
+    def get_risk_factors(self, pt_metadata, screen_timepoint, return_dict=False):
+        return self.risk_factor_vectorizer.get_risk_factors_for_sample(
+            pt_metadata, screen_timepoint
+        )
