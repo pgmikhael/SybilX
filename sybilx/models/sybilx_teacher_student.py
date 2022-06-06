@@ -4,6 +4,8 @@ from sybilx.models.cumulative_probability_layer import Cumulative_Probability_La
 from sybilx.utils.registry import register_object, get_object
 import copy
 
+
+# Note, this was never used, it is the CellImager style projection + CT Teacher
 @register_object("sybilx_teacher", "model")
 class SybilXTeacher(nn.Module):
     def __init__(self, args):
