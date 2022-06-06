@@ -6,7 +6,7 @@
     "num_classes": [2],
     "metrics": ["classification"],
     "monitor": ["val_roc_auc"],
-    "input_loader_name": ["dicom_xray_loader"],
+    "input_loader_name": ["dicom_xray_loader_v2"],
     "img_file_type": ["dicom"],
     "accumulate_grad_batches": [1],
     "workspace": ["itamar"],
@@ -33,7 +33,7 @@
     "img_size": ["512 512"],
     "max_epochs": [10],
     "lr_decay": [0.1],
-    "lr": [1e-3],
+    "lr": [1e-3, 1e-4],
     "use_annotations": [false],
     "optimizer": ["sgd"],
     "momentum": [0.9],
@@ -41,23 +41,22 @@
     "dev": [true],
     "test": [true],
     "class_bal": [true],
-    "train_rawinput_augmentations": ["invert_pixels_relative/all_images=0 scale_2d rotate_range/deg=20"],
-    "train_tnsr_augmentations": ["force_num_chan_2d normalize_2d"],
-    "test_rawinput_augmentations": ["invert_pixels_relative/all_images=0 scale_2d"],
-    "test_tnsr_augmentations": ["force_num_chan_2d normalize_2d"],
-    "img_mean": [3142.2715],
-    "img_std": [881.07434],
+    "train_rawinput_augmentations": ["scale_2d rotate_range/deg=20"],
+    "train_tnsr_augmentations": ["force_num_chan_2d"],
+    "test_rawinput_augmentations": ["scale_2d"],
+    "test_tnsr_augmentations": ["force_num_chan_2d"],
     "dataset_file_path": ["/Mounts/rbg-storage1/datasets/ACRIN_XRAY/metadata_2022_04_10.json"],
     "img_dir": ["/Mounts/rbg-storage1/datasets/ACRIN_XRAY/NLST/"],
     "save_dir": ["/storage/itamar/snapshots"],
-    "cache_path": ["/storage/xray_cache"],
     "scheduler": ["reduce_on_plateau"],
     "dropout": [0, 0.1],
-    "weight_decay": [0, 0.1]
+    "weight_decay": [0, 0.1],
+    "apply_equalize": [false],
+    "apply_adaptive_equalize": [true]
     },
     "paired_search_space": {
       "base_model": ["simple_sybilx_r50", "simple_sybilx_r50_attn_global", "simple_sybilx_r50_attn_local"],
-    "comet_tags": ["nlst_xray simple_sybilx_r50 v2", "nlst_xray simple_sybilx_r50_attn global_attn v2", "nlst_xray simple_sybilx_r50_attn local_attn v2"]
+    "comet_tags": ["nlst_xray loader_v2 adaptive_hist_eq simple_sybilx_r50 v2", "nlst_xray loader_v2 adaptive_hist_eq simple_sybilx_r50_attn global_attn v2", "nlst_xray loader_v2 adaptive_hist_eq simple_sybilx_r50_attn local_attn v2"]
     },
-  "available_gpus": [0,1,2,3,4,6,7]
+  "available_gpus": [0,1,2,3]
 }
