@@ -22,7 +22,6 @@ parser.add_argument('--split_probs', type = int, nargs = 3, default = DEFAULT_SP
 
 if __name__ == "__main__":
     args = parser.parse_args()
-
     tifs = list(path for tif_dir in args.tif_dirs for path in tif_dir.glob('*.tif'))
 
     print("Loading", args.link_csv)
