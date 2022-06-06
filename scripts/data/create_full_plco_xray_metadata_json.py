@@ -42,7 +42,7 @@ if __name__ == "__main__":
         filename = path.name
         pid = filename_to_id_map[filename.replace(".tif", "")]['plco_id']
         years_from_baseline = filename_to_id_map[filename.replace(".tif", "")]['study_yr']
-        # visit_num = filename_to_id_map[filename.replace(".tif", "")]['assoc_visit_visnum']
+        visit_num = 0 # filename_to_id_map[filename.replace(".tif", "")]['assoc_visit_visnum']
         # couldn't find: date, series_id, sop_id
 
         exam = '{}_T{}'.format(visit_num, years_from_baseline)
