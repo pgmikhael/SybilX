@@ -258,12 +258,12 @@ class Multi_Task_Multi_Class_Classification(BaseClassification):
             golds = logging_dict['{}_golds'.format(key)]
             probs = logging_dict['{}_probs'.format(key)]
             preds = preds = torch.argmax(probs, dim=-1).view(-1)
+            num_classes = probs.shape[1] if len(probs.shape) > 1 else 2
 
             stats_dict[f"{key}_accuracy"] = accuracy(golds, preds)
             stats_dict[f"{key}_confusion_matrix"] = confusion_matrix(
                 preds, golds, num_classes
             )
-            num_classes = probs.shape[1] if len(probs.shape) > 1 else 2
             if num_classes == 2:
                 if len(probs.shape) == 1:
                     stats_dict[f"{key}_precision"], stats_dict[f"{key}_recall"] = precision_recall(
@@ -353,7 +353,7 @@ class Multi_Task_Multi_Class_Classification(BaseClassification):
                             )
 
         if len(prob_keys) > 1:
-            stats_dict['mean_accuracy'] = np.mean([stats_dict['{}_accuracy'.format(key)] for key in prob_keys ])
-            stats_dict['mean_roc_auc'] = np.mean([stats_dict['{}_roc_auc'.format(key)] for key in prob_keys ])
+            stats_dict['mean_accuracy'] = torch.mean(torch.tensor([stats_dict['{}_accuracy'.format(key)] for key in prob_keys ]))
+            stats_dict['mean_roc_auc'] = torch.mean(torch.tensor([stats_dict['{}_roc_auc'.format(key)] for key in prob_keys ]))
 
         return stats_dict
