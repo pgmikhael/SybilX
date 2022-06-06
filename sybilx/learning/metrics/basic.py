@@ -353,7 +353,13 @@ class Multi_Task_Multi_Class_Classification(BaseClassification):
                             )
 
         if len(prob_keys) > 1:
-            stats_dict['mean_accuracy'] = np.mean([stats_dict['{}_accuracy'.format(key)] for key in prob_keys ])
-            stats_dict['mean_roc_auc'] = np.mean([stats_dict['{}_roc_auc'.format(key)] for key in prob_keys ])
+            try:
+                stats_dict['mean_accuracy'] = np.mean([stats_dict['{}_accuracy'.format(key)] for key in prob_keys ])
+            except:
+                pass
+            try:
+                stats_dict['mean_roc_auc'] = np.mean([stats_dict['{}_roc_auc'.format(key)] for key in prob_keys ])
+            except:
+                pass
 
         return stats_dict
