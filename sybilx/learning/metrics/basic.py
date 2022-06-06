@@ -353,13 +353,7 @@ class Multi_Task_Multi_Class_Classification(BaseClassification):
                             )
 
         if len(prob_keys) > 1:
-            try:
-                stats_dict['mean_accuracy'] = torch.mean(torch.tensor([stats_dict['{}_accuracy'.format(key)] for key in prob_keys ]))
-            except:
-                pass
-            try:
-                stats_dict['mean_roc_auc'] = torch.mean(torch.tensor([stats_dict['{}_roc_auc'.format(key)] for key in prob_keys ]))
-            except:
-                pass
+            stats_dict['mean_accuracy'] = torch.mean(torch.tensor([stats_dict['{}_accuracy'.format(key)] for key in prob_keys if '{}_accuracy'.format(key) in stats_dict]))
+            stats_dict['mean_roc_auc'] = torch.mean(torch.tensor([stats_dict['{}_roc_auc'.format(key)] for key in prob_keys if '{}_roc_auc'.format(key) in stats_dict]))
 
         return stats_dict
