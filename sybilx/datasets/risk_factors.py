@@ -322,13 +322,13 @@ class PLCORiskFactorVectorizer():
                 return (['<={}'.format(l), '{}<='.format(u)])
                 #return self.one_hot_feature_names(risk_factor_key, cutoffs)
 
-            age_at_randomization = pt_metadata["age"]
-            days_since_randomization = pt_metadata["xry_days{}".format(screen_timepoint)]
+            age_at_randomization = patient_factors["age"]
+            days_since_randomization = patient_factors["xry_days{}".format(screen_timepoint)]
             current_age = age_at_randomization + days_since_randomization // 365
 
-            age_quit_smoking = pt_metadata["ssmokea_f"]
+            age_quit_smoking = patient_factors["ssmokea_f"]
 
-            is_smoker = pt_metadata["cig_stat"] == 1
+            is_smoker = patient_factors["cig_stat"] == 1
 
             years_since_quit_smoking = 0 if is_smoker else current_age - age_quit_smoking
             binary_risk_factor = torch.zeros(2)
