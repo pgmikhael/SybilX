@@ -4,7 +4,7 @@ Create X-Ray dataset
 import json
 import argparse
 from pathlib import Path
-
+import os
 import cv2
 import skimage.io
 import numpy as np
@@ -42,7 +42,7 @@ def clf_consensus(img, args):
 
         consensus_svm = SVC()
         consensus_svm.fit(X_train, y_train)
-
+        
     img = cv2.resize(img, (5,5))
     return consensus_svm.predict((mean_img - img).reshape((1, -1))).item()
 
@@ -89,23 +89,34 @@ if __name__ == "__main__":
         #    rotation = 0
         
         new_filename = str(path.absolute()).replace(args.replace_pattern[0], args.replace_pattern[1])
+        if not os.path.exists(new_filename):
+            img = skimage.io.imread(str(path), plugin='tifffile')
+            if img is None:
+                print(f"'None' image, path: {path}")
 
-        img = skimage.io.imread(str(path), plugin='tifffile')
+            if args.rotate_method == 'consensus':
+                try:
+                    is_rotated = clf_consensus(img, args)
+                except:
+                    print(f"Consensus failed. Image path: {path}")
+                    is_rotated = False
+            elif args.rotate_method == 'quadrant':
+                is_rotated = clf_simple(img)
+            else:
+                assert args.rotate_method == 'cxrlc'
+                assert False, "TODO"
 
-        if args.rotate_method == 'consensus':
-            is_rotated = clf_consensus(img, args)
-        elif args.rotate_method == 'quadrant':
-            is_rotated = clf_simple(img)
-        else:
-            assert args.rotate_method == 'cxrlc'
-            assert False, "TODO"
+            if is_rotated and img is not None:
+                try:
+                    img = cv2.rotate(img, cv2.ROTATE_90_CLOCKWISE)
+                except Exception as e:
+                    print(f"Could not rotate image due to '{e}', path: {path}") 
 
-        if is_rotated:
-            img = cv2.rotate(img, cv2.ROTATE_90_CLOCKWISE)
-
-        par_dir = Path(new_filename).parent
-        if not par_dir.exists():
-            par_dir.mkdir(parents=True)
-
-        cv2.imwrite(new_filename, img)
+            par_dir = Path(new_filename).parent
+            if not par_dir.exists():
+                par_dir.mkdir(parents=True)
+            try:
+                cv2.imwrite(new_filename, img)
+            except:
+                print(f"Image save failed, image path: {path}")
 
