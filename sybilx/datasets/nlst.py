@@ -868,8 +868,8 @@ class NLSTTeacher(NLST_Survival_Dataset):
         assert self.projection_args.test_projection_rawinput_augmentations
         assert self.projection_args.test_projection_tnsr_augmentations
         
-        self.projection_args.img_mean = [127.2311, 127.2311, 127.2311]
-        self.projection_args.img_std = [74.1043, 74.1043, 74.1043]
+        self.projection_args.img_mean = [-691.3405]
+        self.projection_args.img_std = [ 372.76724]
 
         self.projection_args.train_rawinput_augmentations = parse_augmentations(self.projection_args.train_projection_rawinput_augmentations)
         self.projection_args.train_tnsr_augmentations = parse_augmentations(self.projection_args.train_projection_tnsr_augmentations)
