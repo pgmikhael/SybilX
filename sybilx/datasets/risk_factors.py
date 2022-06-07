@@ -2,7 +2,7 @@ import numpy as np
 import pdb
 import copy
 import torch
-
+from sybilx.utils.registry import register_object
 
 MISSING_VALUE = {-1, '.F', '.M' '.N', '.A'}
 HASNT_HAPPENED_VALUE = -5
@@ -375,7 +375,7 @@ class PLCORiskFactorVectorizer():
         return binary_risk_factor
 
     def transform_race(self, patient_factors, screen_timepoint, just_return_feature_names=False):
-        values = range(1, 7)
+        values = range(1, 8)
         race_vector = torch.zeros(len(values))
         if just_return_feature_names:
             return [PLCO_RACE_ID_KEYS[i] for i in values]

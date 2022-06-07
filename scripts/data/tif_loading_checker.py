@@ -18,7 +18,7 @@ if __name__ == "__main__":
     for path in args.tifs_dirs:
         tifs.extend(path.glob('*.tif'))
 
-    loadingbar = tqdm(tifs)
+    loadingbar = tqdm(tifs[26743:])
     for path in loadingbar:
         loadingbar.set_description(f"Processing {path}")
         filename = path.name

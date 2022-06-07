@@ -97,7 +97,8 @@ if __name__ == "__main__":
             if args.rotate_method == 'consensus':
                 try:
                     is_rotated = clf_consensus(img, args)
-                except:
+                except Exception as e:
+                    print(e)
                     print(f"Consensus failed. Image path: {path}")
                     is_rotated = False
             elif args.rotate_method == 'quadrant':

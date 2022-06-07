@@ -64,5 +64,5 @@
     "comet_tags": ["projections simple_sybilx_r50 campo_proj v2", "projections simple_sybilx_r50_attn campo_proj global_attn v2", "projections simple_sybilx_r50_attn campo_proj local_attn v2"]
 
   },
-  "available_gpus": [0,1,2]
+  "available_gpus": [3,4,5]
 }

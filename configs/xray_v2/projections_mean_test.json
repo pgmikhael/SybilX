@@ -56,11 +56,12 @@
     "split_probs": ["0.7 0.15 0.15"],
     "scale_annotations": [false],
     "max_epochs": ["10"],
+    "cache_path": ["/storage/xray_cache"],
     "fit_to_length": [false],
-    "base_model": ["simple_sybilx_r50_attn_global"],
-    "comet_tags": ["projections simple_sybilx_r50_attn global_attn mean_proj v2 test"],
+    "base_model": ["simple_sybilx_r50"],
+    "comet_tags": ["projections simple_sybilx_r50 mean_proj v2 test"],
     "from_checkpoint": [true],
-    "snapshot": ["/Mounts/rbg-storage1/snapshots/lung_xray/d32a10908af87a9e5c62210a280bff05/d32a10908af87a9e5c62210a280bff05epoch=0.ckpt"]
+    "snapshot": ["/Mounts/rbg-storage1/snapshots/lung_xray/8839489c8b89d6324b801ed0128bc09f/8839489c8b89d6324b801ed0128bc09fepoch=0.ckpt"]
   },
-  "available_gpus": [1]
+  "available_gpus": [3]
 }
