@@ -378,7 +378,7 @@ class PLCORiskFactorVectorizer():
         race_vector = torch.zeros(len(values))
         if just_return_feature_names:
             return [PLCO_RACE_ID_KEYS[i] for i in values]
-        race = int(patient_factors['race'])
+        race = int(patient_factors['race7'])
         if race in PLCO_RACE_ID_KEYS:
             race_vector[race - 1] = 1
         return race_vector
