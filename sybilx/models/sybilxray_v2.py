@@ -169,7 +169,7 @@ class XRayRiskFactorPredictor(SimpleSybilXR50):
     def __init__(self, args):
         super(XRayRiskFactorPredictor, self).__init__(args)
 
-        self.length_risk_factor_vector = NLSTRiskFactorVectorizer(args).vector_length
+        self.length_risk_factor_vector = get_object(args.vectorizer, "vectorizer")(args).vector_length
         for key in args.risk_factor_keys:
             num_key_features = args.risk_factor_key_to_num_class[key]
             key_fc = nn.Linear(self.ENCODER_OUTPUT_DIM, num_key_features)
