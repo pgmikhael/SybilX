@@ -420,16 +420,22 @@ class DicomXrayLoaderV2(abstract_loader):
         try:
             dcm = pydicom.dcmread(path)
             bits = dcm.BitsStored if hasattr(dcm, 'BitsStored') else 16
+            if bits % 2 != 0:
+                bits += 1
             
-            im = apply_modality_lut(dcm.pixel_array, dcm)
-            assert im.dtype == np.uint16
-
-            im = exposure.rescale_intensity(im, in_range=f"uint{bits}")
+            if ((hasattr(dcm, 'RescaleSlope') and dcm.RescaleSlope is not None) and (hasattr(dcm, 'RescaleIntercept') and dcm.RescaleIntercept is not None)) or (hasattr(dcm, 'ModalityLUTSequence') and dcm.ModalityLUTSequence is not None):
+                im = apply_modality_lut(dcm.pixel_array, dcm)
+            else:
+                im = copy.deepcopy(dcm.pixel_array)
+            im = exposure.rescale_intensity(im, in_range=f"uint{bits}", out_range=f"uint16")
+            im = im.astype(np.uint16)
             if hasattr(dcm, 'PhotometricInterpretation') and dcm.PhotometricInterpretation == 'MONOCHROME1':
                 im = 65536 - im
             if self.args.apply_equalize:
                 im = exposure.equalize_hist(im)
-            return {"input": im}
+            elif self.args.apply_adaptive_equalize:
+                im = exposure.equalize_adapthist(im)
+            return {"input": im.astype(np.float64)}
                 
         except Exception:
             raise Exception(LOADING_ERROR.format("COULD NOT LOAD DICOM."))
