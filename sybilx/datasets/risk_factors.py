@@ -26,7 +26,7 @@ PLCO_RACE_ID_KEYS = {
     2: "Black, Non-Hispanic",
     3: "Hispanic",
     4: "Asian",
-    6: "Pacific Islander",
+    5: "Pacific Islander",
     6: "American Indian",
     7: "Missing",
 }
@@ -359,7 +359,7 @@ class PLCORiskFactorVectorizer():
         if just_return_feature_names:
             return ['male', 'female']
         binary_risk_factor = torch.zeros(2)
-        risk_factor = int(patient_factors['gender'][0])
+        risk_factor = int(patient_factors['sex'][0])
         if risk_factor in [0,1]:
             binary_risk_factor[risk_factor] = 1
         return binary_risk_factor

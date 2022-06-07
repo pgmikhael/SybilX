@@ -1,7 +1,7 @@
 {
   "script": "main",
   "grid_search_space": {
-    "dataset": ["plco_xray_risk_factors"],
+    "dataset": ["plco_risk_factors"],
     "loss_fns": ["risk_factor_loss"],
     "num_classes": [2],
     "metrics": ["multi_task_multi_class_classification"],
