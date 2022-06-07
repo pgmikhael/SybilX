@@ -2,7 +2,7 @@ import numpy as np
 import pdb
 import copy
 import torch
-
+from sybilx.utils.registry import register_object
 
 MISSING_VALUE = {-1, '.F', '.M' '.N', '.A'}
 HASNT_HAPPENED_VALUE = -5
