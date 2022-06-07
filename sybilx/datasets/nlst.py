@@ -277,9 +277,6 @@ class NLST_Survival_Dataset(data.Dataset):
                 for path in sorted_img_paths
             ]
 
-        # Use localstorage (rosetta10) for all images
-        sorted_img_paths = [path.replace("/Mounts/rbg-storage1/datasets/", "/storage/") for path in sorted_img_paths]
-
         y, y_seq, y_mask, time_at_event = self.get_label(pt_metadata, screen_timepoint)
 
         exam_int = int(
@@ -688,7 +685,9 @@ class NLSTCTProjectionsDataset(NLST_Survival_Dataset):
             sample = self.get_ct_annotations(sample)
         try:
             item = {}
-            input_dict = self.input_loader.get_image(sample["paths"], sample)
+            # Use localstorage (rosetta10) for all images
+            sorted_img_paths = [path.replace("/Mounts/rbg-storage1/datasets/", "/storage/") for path in sample["paths"]]
+            input_dict = self.input_loader.get_image(sorted_img_paths, sample)
 
             x = input_dict["input"]
 
