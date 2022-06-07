@@ -2,7 +2,7 @@ import torch.nn as nn
 import torchvision
 from sybilx.models.cumulative_probability_layer import Cumulative_Probability_Layer
 from sybilx.models.pooling_layer import MultiAttentionPool
-from sybilx.datasets.risk_factors import NLSTRiskFactorVectorizer
+from sybilx.datasets.nlst_risk_factors import NLSTRiskFactorVectorizer
 from sybilx.utils.registry import register_object
 
 
