@@ -20,7 +20,7 @@ from sybilx.datasets.utils import (
     LOAD_FAIL_MSG,
 )
 from sybilx.utils.registry import register_object
-#from sybilx.datasets.nlst_risk_factors import NLSTRiskFactorVectorizer
+#from sybilx.datasets.risk_factors import NLSTRiskFactorVectorizer
 
 CXR_LC_PATIENT_SPLITS_FILENAME = ("/Mounts/rbg-storage1/datasets/PLCO_XRAY/patient2split_cxr_lc.pkl")
 CXR_LC_IMAGE_SPLITS_FILENAME = ("/Mounts/rbg-storage1/datasets/PLCO_XRAY/image2split_cxr_lc.pkl")

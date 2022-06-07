@@ -19,7 +19,7 @@ from sybilx.datasets.utils import (
     LOAD_FAIL_MSG,
 )
 from sybilx.utils.registry import register_object
-from sybilx.datasets.nlst_risk_factors import NLSTRiskFactorVectorizer
+from sybilx.datasets.risk_factors import NLSTRiskFactorVectorizer
 
 
 CT_ITEM_KEYS = [

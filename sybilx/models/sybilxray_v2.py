@@ -7,7 +7,7 @@ from torchvision.models import resnet50
 from sybilx.models.cumulative_probability_layer import Cumulative_Probability_Layer
 from sybilx.utils.loading import get_lightning_model
 from sybilx.utils.registry import register_object, get_object
-from sybilx.datasets.nlst_risk_factors import NLSTRiskFactorVectorizer
+from sybilx.datasets.risk_factors import NLSTRiskFactorVectorizer
 
 
 class AttentionPool2D(nn.Module):

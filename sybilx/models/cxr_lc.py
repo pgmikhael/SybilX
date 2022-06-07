@@ -5,7 +5,7 @@ import pretrainedmodels
 from sybilx.models.cumulative_probability_layer import Cumulative_Probability_Layer
 from sybilx.models.pooling_layer import MultiAttentionPool
 from sybilx.models.sybilxray import AttentionPool2D
-from sybilx.datasets.nlst_risk_factors import NLSTRiskFactorVectorizer
+from sybilx.datasets.risk_factors import NLSTRiskFactorVectorizer
 from sybilx.utils.registry import register_object
 
 
