@@ -42,7 +42,7 @@ RACE_ID_KEYS = {
     2: "Black, Non-Hispanic",
     3: "Hispanic",
     4: "Asian",
-    6: "Pacific Islander",
+    5: "Pacific Islander",
     6: "American Indian",
     7: "Missing",
 }
@@ -491,11 +491,6 @@ class PLCO_NLST_Smokers_Dataset(PLCO_XRay_Dataset):
             return True
 
         return super(PLCO_NLST_Smokers_Dataset, self).skip_sample(series_dict, pt_metadata, exam_dict, split_group, split_dict=None)
-
-
-
-
-
 
 @register_object("plco_risk_factors", "dataset")
 class PLCO_Risk_Factor_Task(PLCO_XRay_Dataset):

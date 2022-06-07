@@ -260,8 +260,8 @@ class PLCORiskFactorVectorizer():
         if just_return_feature_names:
             return self.one_hot_feature_names('cigpd_f', [0, 1, 2, 3, 4, 5, 6, 7])
         # "cigpd_f" divided into 8 intervals
-        cigpd_f = int(patient_factors['cigpd_f'][0])
-        if patient_factors['cigpd_f'][0] in MISSING_VALUE:
+        cigpd_f = int(patient_factors['cigpd_f'])
+        if patient_factors['cigpd_f'] in MISSING_VALUE:
             return torch.zeros(8)
         else:
             one_hot_vector = torch.zeros(8)
@@ -272,8 +272,8 @@ class PLCORiskFactorVectorizer():
         def transform_age_risk_factor(patient_factors, screen_timepoint, just_return_feature_names=False):
             if just_return_feature_names:
                 return self.one_hot_feature_names(risk_factor_key, cutoffs)
-            age_at_randomization = patient_factors['age'][0]
-            days_since_randomization = patient_factors['xry_days{}'.format(screen_timepoint)][0]
+            age_at_randomization = patient_factors['age']
+            days_since_randomization = patient_factors['xry_days{}'.format(screen_timepoint)]
             exam_age = age_at_randomization + days_since_randomization//365
             return self.one_hot_vectorizor(exam_age, cutoffs)
         return transform_age_risk_factor
@@ -283,9 +283,9 @@ class PLCORiskFactorVectorizer():
             return (['no_family_history', 'has_family_history'])
 
         binary_risk_factor = torch.zeros(2)
-        if patient_factors['fh_cancer'][0] in MISSING_VALUE:
+        if patient_factors['fh_cancer'] in MISSING_VALUE:
             return binary_risk_factor
-        risk_factor = int(patient_factors['fh_cancer'][0])
+        risk_factor = int(patient_factors['fh_cancer'])
         binary_risk_factor[risk_factor] = 1
         return binary_risk_factor
 
@@ -296,11 +296,11 @@ class PLCORiskFactorVectorizer():
                 return (['<={}'.format(l), '{}<='.format(u)])
 
             binary_risk_factor = torch.zeros(2)
-            if patient_factors[risk_factor_key][0] in MISSING_VALUE:
+            if patient_factors[risk_factor_key] in MISSING_VALUE:
                 return binary_risk_factor
-            if int(patient_factors[risk_factor_key][0]) <= l:
+            if int(patient_factors[risk_factor_key]) <= l:
                 binary_risk_factor[0] = 1
-            elif int(patient_factors[risk_factor_key][0]) >= u:
+            elif int(patient_factors[risk_factor_key]) >= u:
                 binary_risk_factor[1] = 1
             return binary_risk_factor
 
@@ -310,7 +310,7 @@ class PLCORiskFactorVectorizer():
         def transform_exam_one_hot_risk_factor(patient_factors, screen_timepoint, just_return_feature_names=False):
             if just_return_feature_names:
                 return self.one_hot_feature_names(risk_factor_key, cutoffs)
-            risk_factor = int(patient_factors[risk_factor_key][0])
+            risk_factor = int(patient_factors[risk_factor_key])
             return self.one_hot_vectorizor(risk_factor, cutoffs)
 
         return transform_exam_one_hot_risk_factor
@@ -348,7 +348,7 @@ class PLCORiskFactorVectorizer():
             if just_return_feature_names:
                 return ['no_{}'.format(risk_factor_key), 'has_{}'.format(risk_factor_key)]
             binary_risk_factor = torch.zeros(2)
-            risk_factor = int(patient_factors[risk_factor_key][0])
+            risk_factor = int(patient_factors[risk_factor_key])
             if not risk_factor in MISSING_VALUE:
                 binary_risk_factor[risk_factor] = 1
             return binary_risk_factor
@@ -359,7 +359,7 @@ class PLCORiskFactorVectorizer():
         if just_return_feature_names:
             return ['male', 'female']
         binary_risk_factor = torch.zeros(2)
-        risk_factor = int(patient_factors['sex'][0])
+        risk_factor = int(patient_factors['sex'])
         if risk_factor in [0,1]:
             binary_risk_factor[risk_factor] = 1
         return binary_risk_factor
@@ -368,7 +368,7 @@ class PLCORiskFactorVectorizer():
         if just_return_feature_names:
             return ['is_not_smoker', 'is_smoker']
         binary_risk_factor = torch.zeros(2)
-        risk_factor = int(patient_factors['cig_stat'][0])
+        risk_factor = int(patient_factors['cig_stat'])
         if risk_factor in [0,1]:
             binary_risk_factor[risk_factor] = 1
         return binary_risk_factor
@@ -378,7 +378,7 @@ class PLCORiskFactorVectorizer():
         race_vector = torch.zeros(len(values))
         if just_return_feature_names:
             return [PLCO_RACE_ID_KEYS[i] for i in values]
-        race = int(patient_factors['race'][0])
+        race = int(patient_factors['race'])
         if race in PLCO_RACE_ID_KEYS:
             race_vector[race - 1] = 1
         return race_vector
