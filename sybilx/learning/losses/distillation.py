@@ -41,12 +41,13 @@ def get_knowledge_distillation_loss(model_output, batch, model, args):
         ce_loss, _, prob_dict = get_corn_survival_loss(model_output, batch, model, args)
         p_dict['censors'] = prob_dict['censors']
     else:
-        # if not using survival setup then need to binarize teacher output
-        # select last value which corresponds to 6 yr risk
-        soft_teacher_out = soft_teacher_out[:, -1].unsqueeze(-1) 
-        complement = 1 - soft_teacher_out
-        # index 0 is prob of no cancer, index 1 is prob of 6 year cancer
-        soft_teacher_out = torch.cat([complement, soft_teacher_out], dim=1) # B, 2
+        if soft_teacher_out.shape[0] > 2: # this indicates that sybil is using the survival loss
+            # if not using survival setup then need to binarize teacher output
+            # select last value which corresponds to 6 yr risk
+            soft_teacher_out = soft_teacher_out[:, -1].unsqueeze(-1) 
+            complement = 1 - soft_teacher_out
+            # index 0 is prob of no cancer, index 1 is prob of 6 year cancer
+            soft_teacher_out = torch.cat([complement, soft_teacher_out], dim=1) # B, 2
 
         ce_loss, _, prob_dict = get_cross_entropy_loss(model_output, batch, model, args)
     
