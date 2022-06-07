@@ -91,7 +91,7 @@ if __name__ == "__main__":
         new_filename = str(path.absolute()).replace(args.replace_pattern[0], args.replace_pattern[1])
         if not os.path.exists(new_filename):
             img = skimage.io.imread(str(path), plugin='tifffile')
-            if img is None:
+            if not img.shape[0] > 0 :
                 print(f"'None' image, path: {path}")
 
             if args.rotate_method == 'consensus':
@@ -116,7 +116,10 @@ if __name__ == "__main__":
             if not par_dir.exists():
                 par_dir.mkdir(parents=True)
             try:
-                cv2.imwrite(new_filename, img)
+                if img.shape[0] > 0:
+                    cv2.imwrite(new_filename, img)
+                else:
+                    raise Exception("Image is empty")
             except:
                 print(f"Image save failed, image path: {path}")
 
