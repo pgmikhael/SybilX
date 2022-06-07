@@ -2,7 +2,7 @@ import torch.nn as nn
 import torchvision
 from sybilx.models.cumulative_probability_layer import Cumulative_Probability_Layer
 from sybilx.models.pooling_layer import MultiAttentionPool
-from sybilx.datasets.nlst_risk_factors import NLSTRiskFactorVectorizer
+from sybilx.datasets.risk_factors import NLSTRiskFactorVectorizer
 from sybilx.utils.registry import register_object
 
 
@@ -21,9 +21,7 @@ class SybilNet(nn.Module):
         self.relu = nn.ReLU(inplace=False)
         self.dropout = nn.Dropout(p=args.dropout)
 
-        self.prob_of_failure_layer = Cumulative_Probability_Layer(
-            self.hidden_dim, args, max_followup=args.max_followup
-        )
+        self.prob_of_failure_layer = nn.Linear(self.hidden_dim, args.num_classes) # Cumulative_Probability_Layer(self.hidden_dim, args, max_followup=args.max_followup)
 
     def forward(self, x, batch = None):
         output = {}
