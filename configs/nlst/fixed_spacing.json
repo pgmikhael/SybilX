@@ -95,13 +95,13 @@
       3
     ],
     "loss_fns": [
-      "survival guided_attention"
+      "cross_entropy guided_attention"
     ],
     "metrics": [
-      "survival"
+      "classification"
     ],
     "monitor": [
-      "val_c_index"
+      "val_roc_auc"
     ],
     "num_workers": [
       3
@@ -140,13 +140,13 @@
       true
     ],
     "workspace": [
-      "pgmikhael"
+      "itamar"
     ],
     "project_name": [
-      "nlst-cancer"
+      "xray-cancer"
     ],
     "comet_tags": [
-      "sybil spacing nlst ensemble saved"
+      "sybil v2"
     ],
     "num_sanity_val_steps": [
       0
@@ -156,7 +156,7 @@
       "simple"
     ],
     "gpus": [
-      8
+      4
     ],
     "val_check_interval": [
       1.0
@@ -178,9 +178,10 @@
     ],
     "cache_path": [
       "/storage/nlst_cache"
-    ]
+    ],
+    "num_classes": [2]
   },
   "available_gpus": [
-    "0,1,2,3,4,5,6,7"
+    "0,1,2,3"
   ]
 }
