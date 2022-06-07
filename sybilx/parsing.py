@@ -300,6 +300,8 @@ def parse_args(args_strings=None):
         "--num_classes", type=int, default=6, help="Number of classes to predict"
     )
 
+    parser.add_argument('--vectorizer', default="plco_risk_factor_vectorizer", choices=["plco_risk_factor_vectorizer", "nlst_risk_factor_vectorizer"], help="Type of vectorizer to use"),
+
     parser.add_argument('--filter_derived_images', action='store_true', default = False, help="filters out derived imgs")
     parser.add_argument('--filter_post_processed_images', action='store_true', default = False, help="filters out post processed imgs")
 

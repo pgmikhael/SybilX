@@ -34,6 +34,7 @@ PLCO_RACE_ID_KEYS = {
 TREAT_MISSING_AS_NEGATIVE = False
 NEGATIVE_99 = -99
 
+@register_object("nlst_risk_factor_vectorizer", "vectorizer")
 class NLSTRiskFactorVectorizer():
     def __init__(self, args):
         # cutoffs: exclude population min and max
@@ -201,7 +202,7 @@ class NLSTRiskFactorVectorizer():
         return risk_factor_vector
 
 
-########################################## TODO for PLCO ##########################################
+@register_object("plco_risk_factor_vectorizer", "vectorizer")
 class PLCORiskFactorVectorizer():
     def __init__(self, args):
         # cutoffs: exclude population min and max

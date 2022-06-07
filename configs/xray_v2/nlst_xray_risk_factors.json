@@ -58,7 +58,8 @@
     "scheduler": ["reduce_on_plateau"],
     "dropout": [0.1],
     "weight_decay": [0.1],
-    "comet_tags": ["nlst_xray_risk_factors simple_sybilx_r50_risk_factors v2"]
+    "comet_tags": ["nlst_xray_risk_factors simple_sybilx_r50_risk_factors v2"],
+    "vectorizer": ["nlst_risk_factor_vectorizer"]
     },
   "available_gpus": [0,1,2,3,4,6,7]
 }
