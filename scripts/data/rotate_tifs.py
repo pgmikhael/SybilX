@@ -12,27 +12,22 @@ import pandas as pd
 from tqdm import tqdm
 from sklearn.svm import SVC
 
-DEFAULT_SPLIT_PROBS = [0.7, 0.15, 0.15]
-
 parser = argparse.ArgumentParser()
 parser.add_argument('--tifs_dirs', type = Path, nargs='*', default="")
 parser.add_argument('--rotate_method', type = str, choices=['consensus', 'quadrant','cxrlc'], default='consensus')
-parser.add_argument('--rotations_csv', type = Path, required=False)
 parser.add_argument('--replace_pattern', type = str, nargs=2)
-parser.add_argument('--error_json_path', type = Path, default = None)
-parser.add_argument('--split_probs', type = int, nargs = 3, default = DEFAULT_SPLIT_PROBS)
 
 mean_img = None
 consensus_svm = None
 def clf_consensus(img, args):
     global mean_img, consensus_svm
     if mean_img is None:
-        df = pd.read_csv("rotations_ludvig.csv")
+        df = pd.read_csv("/Mounts/rbg-storage1/datasets/PLCO_XRAY/rotations_ludvig.csv")
         annotated_filenames = df.filename.tolist()
         annotations = df.y.tolist()
         tifs = []
         for path in args.tifs_dirs:
-            tifs.extend(path.glob('**/*.tif'))
+            tifs.extend(path.glob('*.tif'))
         annotated_paths = [path for path in tifs if path.name in annotated_filenames]
         up_images = [skimage.io.imread(str(annotated_paths[i]), plugin='tifffile') for i in range(len(annotated_paths)) if annotations[i] == 0]
         up_images = [cv2.resize(img, (5,5)) for img in up_images]
@@ -77,7 +72,7 @@ if __name__ == "__main__":
 
     tifs = []
     for path in args.tifs_dirs:
-        tifs.extend(path.glob('**/*.tif'))
+        tifs.extend(path.glob('*.tif'))
 
     #print("Loading", args.rotated_csv)
     #rotated_filenames = pd.read_csv(args.rotated_csv).iloc[:,0]
