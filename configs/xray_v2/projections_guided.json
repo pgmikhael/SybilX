@@ -57,11 +57,9 @@
     "split_probs": ["0.7 0.15 0.15"],
     "scale_annotations": [false],
     "max_epochs": ["10"],
-    "fit_to_length": [false]
+    "fit_to_length": [false],
+    "base_model": ["simple_sybilx_r50_attn_local"],
+    "comet_tags": ["projections guided_attn simple_sybilx_r50_attn mean_proj local_attn v2"]
   },
-  "paired_search_space" : {
-    "base_model": ["simple_sybilx_r50", "simple_sybilx_r50_attn_global", "simple_sybilx_r50_attn_local"],
-    "comet_tags": ["projections guided_attn simple_sybilx_r50 mean_proj v2", "projections guided_attn simple_sybilx_r50_attn mean_proj global_attn v2", "projections guided_attn simple_sybilx_r50_attn mean_proj local_attn v2"]
-  },
-  "available_gpus": [6,7]
+  "available_gpus": [1,2,3]
 }
