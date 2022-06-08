@@ -77,14 +77,14 @@ def apply_augmentations_and_cache(
 
 
 class cache:
-    def __init__(self, path, extension=CACHED_FILES_EXT):
+    def __init__(self, path, extension=CACHED_FILES_EXT, cache_extension=".npz"):
         if not os.path.exists(path):
             os.makedirs(path)
 
         self.cache_dir = path
         self.files_extension = extension
-        if ".npz" != extension:
-            self.files_extension += ".npz"
+        if cache_extension != extension:
+            self.files_extension += cache_extension
 
     def _file_dir(self, attr_key, par_dir):
         return os.path.join(self.cache_dir, attr_key, par_dir)
@@ -137,7 +137,7 @@ class abstract_loader:
         self.args = args
         if cache_path is not None:
             self.use_cache = True
-            self.cache = cache(cache_path, self.cached_extension)
+            self.cache = cache(cache_path, self.cached_extension, cache_extension=args.cache_extension)
             self.split_augmentations = split_augmentations_by_cache(augmentations)
         else:
             self.use_cache = False

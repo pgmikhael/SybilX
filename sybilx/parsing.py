@@ -255,7 +255,12 @@ def parse_args(args_strings=None):
     parser.add_argument('--get_dataset_stats', action='store_true', default = False, help = 'whether to get mean, std of training set')
     parser.add_argument('--apply_equalize', action='store_true', default = False, help = 'Use histogram equalize in Dicom loader V2')
     parser.add_argument('--apply_adaptive_equalize', action='store_true', default = False, help = 'Use adaptive histogram equalize in Dicom loader V2')
-
+    parser.add_argument(
+            "--cache_extension",
+            type=str,
+            default=".npz",
+            help="extension used in the cache to save images",
+        )
     parser.add_argument(
         "--img_mean",
         type=float,
