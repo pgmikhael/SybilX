@@ -55,7 +55,7 @@
   },
     "paired_search_space": {
     	"base_model": ["simple_sybilx_r50_attn_global", "simple_sybilx_r50_attn_local"],
-    	"comet_tags": ["plco smokers simple_sybilx_r50_attn global_attn	v2", "plco smokers simple_sybilx_r50_attn local_attn v2"]
+    	"comet_tags": ["plco smokers simple_sybilx_r50_attn global_attn v2", "plco smokers simple_sybilx_r50_attn local_attn v2"]
     }, 
   "available_gpus": [0,1,2,3,4,5,6,7]
 }
