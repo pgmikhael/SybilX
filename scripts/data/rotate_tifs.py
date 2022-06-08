@@ -90,7 +90,11 @@ if __name__ == "__main__":
         
         new_filename = str(path.absolute()).replace(args.replace_pattern[0], args.replace_pattern[1])
         if not os.path.exists(new_filename):
-            img = skimage.io.imread(str(path), plugin='tifffile')
+            try:
+                img = skimage.io.imread(str(path), plugin='tifffile')
+            except Exception as e:
+                print(f"Failed to load image with exception: {e}")
+            
             if not img.shape[0] > 0 :
                 print(f"'None' image, path: {path}")
 
