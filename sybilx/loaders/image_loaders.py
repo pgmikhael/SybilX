@@ -117,12 +117,13 @@ class FullCTDicomLoader(abstract_loader):
                         break
                 # shape = (self.args.img_size[0], self.args.img_size[1])
                 x = torch.zeros(*shape)
-
+                annotation_mask_args = copy.deepcopy(self.args)
+                annotation_mask_args.img_size = x.shape
                 if self.args.use_annotations:
                     mask = (
                         get_scaled_annotation_mask(sample["annotations"][e], 
-                        self.args, 
-                        scale_annotation=self.args.scale_annotations)
+                        annotation_mask_args, 
+                        scale_annotation=annotation_mask_args.scale_annotations)
                         if self.args.use_annotations
                         else None
                         )
