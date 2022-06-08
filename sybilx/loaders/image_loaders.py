@@ -107,9 +107,15 @@ class FullCTDicomLoader(abstract_loader):
             sample["seed"] = np.random.randint(0, 2**32 - 1)
         
         input_dicts = []
+        
         for e, path in enumerate(sample["paths"]):
             if path == self.pad_token:
-                shape = (self.args.img_size[0], self.args.img_size[1])
+                # slow solution, but it works for now
+                for path in sample['paths']:
+                    if path != self.pad_token:
+                        shape = pydicom.dcmread(path.replace('nlst-ct-png', "nlst-ct")).pixel_array.shape
+                        break
+                # shape = (self.args.img_size[0], self.args.img_size[1])
                 x = torch.zeros(*shape)
 
                 if self.args.use_annotations:
