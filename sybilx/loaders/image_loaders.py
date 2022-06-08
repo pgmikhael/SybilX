@@ -127,7 +127,8 @@ class FullCTDicomLoader(abstract_loader):
 
     def reshape_images(self, images):
         # if isinstance(images[0], np.ndarray):
-        images = [np.expand_dims(im, axis=0) if isinstance(im, np.ndarray) else np.expand_dims(im.numpy(), axis=0) for im in images]
+        # images = [np.expand_dims(im, axis=0) if isinstance(im, np.ndarray) else np.expand_dims(im.numpy(), axis=0) for im in images]
+        images = [np.expand_dims(im, axis=0) if isinstance(im, np.ndarray) else (np.expand_dims(im.numpy(), axis=0) if len(im.shape) <= 2 else im.numpy()) for im in images]
         images = np.concatenate(images, axis=0)
         # elif torch.is_tensor(images[0]):
         #     images = [im.unsqueeze(0) if torch.is_tensor(im) else torch.tensor(im).unsqueeze(0) for im in images]
