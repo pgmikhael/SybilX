@@ -56,14 +56,21 @@
     "from_checkpoint": [true]
   },
   "paired_search_space": {
-      "base_model": ["simple_sybilx_r50", "simple_sybilx_r50_attn_local", "simple_sybilx_r50_attn_global", "simple_sybilx_r50_attn_global"],
-      "comet_tags": ["plco simple_sybilx_r50 finetune v2", "plco simple_sybilx_r50_attn local_attn finetune v2", "plco simple_sybilx_r50_attn global_attn finetune v2", "plco simple_sybilx_r50_attn global_attn finetune guided_attn v2"],
+      "base_model": ["simple_sybilx_r50", "simple_sybilx_r50_attn_local", "simple_sybilx_r50_attn_local", "simple_sybilx_r50_attn_global", "simple_sybilx_r50_attn_global"],
+      "comet_tags": [
+        "plco simple_sybilx_r50 finetune v2", 
+        "plco simple_sybilx_r50_attn local_attn finetune v2",
+        "plco smokers simple_sybilx_r50_attn local_attn finetune guided_attn v2",
+        "plco simple_sybilx_r50_attn global_attn finetune v2", 
+        "plco simple_sybilx_r50_attn global_attn finetune guided_attn v2"
+      ],
       "snapshot": [
         "/Mounts/rbg-storage1/snapshots/lung_xray/8839489c8b89d6324b801ed0128bc09f/8839489c8b89d6324b801ed0128bc09fepoch=0.ckpt",
         "/Mounts/rbg-storage1/snapshots/lung_xray/a2b70fc70c6c7259f816967fb0fedff3/a2b70fc70c6c7259f816967fb0fedff3epoch=0.ckpt",
+        "/Mounts/rbg-storage1/snapshots/lung_xray/eb50062eaebd8cc79ae63d99ad9bccea/eb50062eaebd8cc79ae63d99ad9bcceaepoch=0.ckpt",
         "/Mounts/rbg-storage1/snapshots/lung_xray/d32a10908af87a9e5c62210a280bff05/d32a10908af87a9e5c62210a280bff05epoch=0.ckpt",
         "/Mounts/rbg-storage1/snapshots/lung_xray/940bde420ba348b2530f5d177b184fc6/940bde420ba348b2530f5d177b184fc6epoch=0.ckpt"
       ]
     },
-  "available_gpus": [4,5,6,7]
+  "available_gpus": [0]
 }
