@@ -125,6 +125,7 @@ class FullCTDicomLoader(abstract_loader):
                 else:
                     input_dicts.append({"input": x, "mask": None})
             else:
+                path = path.replace('nlst-ct-png', "nlst-ct") # this way never load a png by mistake
                 dcm = pydicom.dcmread(path)
                 try:
                     x = apply_modality_lut(dcm.pixel_array, dcm)
