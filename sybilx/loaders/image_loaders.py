@@ -113,7 +113,7 @@ class FullCTDicomLoader(abstract_loader):
                 # slow solution, but it works for now
                 for path in sample['paths']:
                     if path != self.pad_token:
-                        shape = pydicom.dcmread(path.replace('nlst-ct-png', "nlst-ct")).pixel_array.shape
+                        shape = pydicom.dcmread(path.replace('nlst-ct-png', "nlst-ct").replace(".png", "")).pixel_array.shape
                         break
                 # shape = (self.args.img_size[0], self.args.img_size[1])
                 x = torch.zeros(*shape)
