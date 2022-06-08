@@ -78,7 +78,7 @@ class FullCTDicomLoader(abstract_loader):
         input_dicts = []
         for e, path in enumerate(sample["paths"]):
             if path == self.pad_token:
-                shape = (self.args.num_chan, self.args.img_size[0], self.args.img_size[1])
+                shape = (self.args.img_size[0], self.args.img_size[1])
                 x = torch.zeros(*shape)
 
                 if self.args.use_annotations:
@@ -126,12 +126,12 @@ class FullCTDicomLoader(abstract_loader):
         return out_dict
 
     def reshape_images(self, images):
-        if isinstance(images[0], np.ndarray):
-            images = [np.expand_dims(im, axis=0) if isinstance(im, np.ndarray) else np.expand_dims(im.numpy(), axis=0) for im in images]
-            images = np.concatenate(images, axis=0)
-        elif torch.is_tensor(images[0]):
-            images = [im.unsqueeze(0) if torch.is_tensor(im) else torch.tensor(im).unsqueeze(0) for im in images]
-            images = torch.cat(images, dim=0)
+        # if isinstance(images[0], np.ndarray):
+        images = [np.expand_dims(im, axis=0) if isinstance(im, np.ndarray) else np.expand_dims(im.numpy(), axis=0) for im in images]
+        images = np.concatenate(images, axis=0)
+        # elif torch.is_tensor(images[0]):
+        #     images = [im.unsqueeze(0) if torch.is_tensor(im) else torch.tensor(im).unsqueeze(0) for im in images]
+        #     images = torch.cat(images, dim=0)
         return images
 
     @property
