@@ -84,8 +84,8 @@ class FullCTDicomLoader(abstract_loader):
                 if self.args.use_annotations:
                     mask = (
                         get_scaled_annotation_mask(sample["annotations"][e], 
-                        annotation_mask_args, 
-                        scale_annotation=annotation_mask_args.scale_annotations)
+                        self.args, 
+                        scale_annotation=self.args.scale_annotations)
                         if self.args.use_annotations
                         else None
                         )
