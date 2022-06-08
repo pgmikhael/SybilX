@@ -48,7 +48,7 @@
     "checkpoint_save_top_k": [1],
     "save_dir": ["/storage/itamar/snapshots"],
     "cache_path": ["/storage/xray_cache"],
-    "base_model": ["simple_sybilx_r50"],
+    "base_model": ["sybilxray_r50"],
     "snapshot": ["/storage/itamar/snapshots/e0d5c116d9617a4a05d33caf0e442ad9/e0d5c116d9617a4a05d33caf0e442ad9epoch=2.ckpt"],
     "scheduler": ["warmup_and_reduce_on_plateau"],
     "warmup": [5],
@@ -58,8 +58,8 @@
   },
   "paired_search_space": {
     "comet_tags": [
-        "mimic+chexpert multi_class finetune plco v2",
-        "mimic+chexpert multi_class finetune nlst_xray v2"
+        "mimic+chexpert multi_class global_attn finetune plco v2",
+        "mimic+chexpert multi_class global_attn finetune nlst_xray v2"
     ],
     "dataset": [
         "plco_xray",
