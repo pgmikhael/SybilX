@@ -74,7 +74,7 @@ class SybilXStudent(nn.Module):
     def forward(self, x, batch = None):
         output = {}
         with torch.no_grad():
-            ct_encoded = self.ct_encoder(x)
+            ct_encoded = self.ct_encoder.model(x)
             output['teacher_hidden'] = ct_encoded['hidden']
             output['teacher_logit'] = ct_encoded['logit']
 

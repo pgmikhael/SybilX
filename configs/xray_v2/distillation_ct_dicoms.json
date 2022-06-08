@@ -3,7 +3,7 @@
   "grid_search_space": {
     "gpus": [1],
     "precision": [16],
-    "batch_size": [32],
+    "batch_size": [3],
     "accumulate_grad_batches": [1],
     "dataset": ["nlst_teacher"],
     "max_followup": [6],
