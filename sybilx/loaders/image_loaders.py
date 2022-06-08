@@ -77,28 +77,39 @@ class FullCTDicomLoader(abstract_loader):
         
         input_dicts = []
         for e, path in enumerate(sample["paths"]):
-            dcm = pydicom.dcmread(path)
-            try:
-                x = apply_modality_lut(dcm.pixel_array, dcm)
-            except:
-                raise Exception("Could not apply modality lut")
+            if path == self.pad_token:
+                shape = (self.args.num_chan, self.args.img_size[0], self.args.img_size[1])
+                x = torch.zeros(*shape)
 
-            # if hasattr(dcm, 'PhotometricInterpretation') and not 'MONOCHROME2' in dcm.PhotometricInterpretation:
-            #     sample['invert_pixels'] = True
-            # else:
-            #     sample['invert_pixels'] = False
+                if self.args.use_annotations:
+                    mask = get_scaled_annotation_mask(sample["annotations"], self.args)
+                    mask = torch.from_numpy(mask * 0).unsqueeze(0)
+                    input_dicts.append({"input": x, "mask": mask})
+                else:
+                    input_dicts.append({"input": x, "mask": None})
+            else:
+                dcm = pydicom.dcmread(path)
+                try:
+                    x = apply_modality_lut(dcm.pixel_array, dcm)
+                except:
+                    raise Exception("Could not apply modality lut")
+
+                # if hasattr(dcm, 'PhotometricInterpretation') and not 'MONOCHROME2' in dcm.PhotometricInterpretation:
+                #     sample['invert_pixels'] = True
+                # else:
+                #     sample['invert_pixels'] = False
+                    
+                # TODO: this is a way to make the mask be the same size as the img
+                annotation_mask_args = copy.deepcopy(self.args)
+                annotation_mask_args.img_size = x.shape
+
+                mask = (
+                    get_scaled_annotation_mask(sample["annotations"][e], annotation_mask_args, scale_annotation=annotation_mask_args.scale_annotations)
+                    if self.args.use_annotations
+                    else None
+                )
                 
-            # TODO: this is a way to make the mask be the same size as the img
-            annotation_mask_args = copy.deepcopy(self.args)
-            annotation_mask_args.img_size = x.shape
-
-            mask = (
-                get_scaled_annotation_mask(sample["annotations"][e], annotation_mask_args, scale_annotation=annotation_mask_args.scale_annotations)
-                if self.args.use_annotations
-                else None
-            )
-            
-            input_dicts.append({"input": x, "mask": mask})
+                input_dicts.append({"input": x, "mask": mask})
 
         images = [i["input"] for i in input_dicts]
         masks = [i["mask"] for i in input_dicts]
@@ -404,7 +415,7 @@ class DicomLoader(abstract_loader):
                 mask = torch.from_numpy(mask * 0).unsqueeze(0)
                 return {"input": arr, "mask": mask}
             else:
-                return {"input": arr}
+                    return {"input": arr}
         else:
             try:
                 dcm = pydicom.dcmread(path)
