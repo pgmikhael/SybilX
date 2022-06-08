@@ -158,7 +158,10 @@ class PLCO_XRay_Dataset(data.Dataset):
     def skip_sample(self, series_dict, pt_metadata, exam_dict, split_group, split_dict=None):
         # check if valid label (info is not missing)
         study_yr = exam_dict["study_yr"] # series_data["study_yr"][0]
-        visit_num = exam_dict["visit_num"] # series_data["study_yr"][0]
+        try:
+            visit_num = exam_dict["visit_num"] # series_data["study_yr"][0]
+        except:
+            visit_num = 0
         days_since_rand = pt_metadata["xry_days{}".format(study_yr)]
         screen_timepoint = days_since_rand // 365
         followup_days = pt_metadata["lung_exitdays"]
