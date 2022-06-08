@@ -881,8 +881,6 @@ class NLSTTeacher(NLST_Survival_Dataset):
 
     def __getitem__(self, index):
         sample = self.dataset[index]
-        if self.args.use_annotations:
-            sample = self.get_ct_annotations(sample)
         try:
             item = {}
             
@@ -895,6 +893,10 @@ class NLSTTeacher(NLST_Survival_Dataset):
             sample["slice_locations"] = fit_to_length(
                 sample["slice_locations"], self.args.num_images, "<PAD>"
             )
+
+            if self.args.use_annotations:
+                sample = self.get_ct_annotations(sample)
+
             # same as old method, must use loader that loads 1 slice at a time
             ct_dict = self.get_images(sample["paths"], sample) 
             x = ct_dict["input"]
