@@ -27,7 +27,10 @@ def get_knowledge_distillation_loss(model_output, batch, model, args):
     l_dict, p_dict = OrderedDict(), OrderedDict()
     
     y_pred_student = model_output['logit']
-    y_pred_teacher = batch['teacher_logit']
+    
+    # below should be batch if loading saved hiddens and model_output if using model
+    # y_pred_teacher = batch['teacher_logit'] # this is if loading hiddens
+    y_pred_teacher = model_output['teacher_logit']
 
     soft_teacher_out = torch.sigmoid(y_pred_teacher / args.distill_temperature) # TODO: check that need to divide by temp here
     # NOTE!!! Teacher network must be trained with same temperature
@@ -41,7 +44,7 @@ def get_knowledge_distillation_loss(model_output, batch, model, args):
         ce_loss, _, prob_dict = get_corn_survival_loss(model_output, batch, model, args)
         p_dict['censors'] = prob_dict['censors']
     else:
-        if soft_teacher_out.shape[0] > 2: # this indicates that sybil is using the survival loss
+        if soft_teacher_out.shape[0] > 2: # this indicates that sybil is using the survival task but want a binary task
             # if not using survival setup then need to binarize teacher output
             # select last value which corresponds to 6 yr risk
             soft_teacher_out = soft_teacher_out[:, -1].unsqueeze(-1) 
@@ -74,8 +77,10 @@ def get_mse_knowledge_distillation_loss(model_output, batch, model, args):
     l_dict, p_dict = OrderedDict(), OrderedDict()
     
     y_pred_student = model_output['hidden']
-    # below should be batch not model_ouput if loading saved hiddens
-    y_pred_teacher = batch['teacher_hidden']
+
+    # below should be batch if loading saved hiddens and model_output if using model
+    # y_pred_teacher = batch['teacher_hidden'] # this is if loading hiddens
+    y_pred_teacher = model_output['teacher_hidden']
 
     if "survival" in args.loss_fns:
         ce_loss, _, prob_dict = get_survival_loss(model_output, batch, model, args)
