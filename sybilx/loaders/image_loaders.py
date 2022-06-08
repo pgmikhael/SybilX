@@ -396,26 +396,28 @@ class DicomLoader(abstract_loader):
 
     def load_input(self, path, sample):
         if path == self.pad_token:
-            mask = (
-            get_scaled_annotation_mask(sample["annotations"], self.args)
-            if self.args.use_annotations
-            else None
-        )
             shape = (self.args.num_chan, self.args.img_size[0], self.args.img_size[1])
             arr = torch.zeros(*shape)
-            mask = (
-                torch.from_numpy(mask * 0).unsqueeze(0)
-                if self.args.use_annotations
-                else None
-            )
+
+            if self.args.use_annotations:
+                mask = get_scaled_annotation_mask(sample["annotations"], self.args)
+                mask = torch.from_numpy(mask * 0).unsqueeze(0)
+                return {"input": arr, "mask": mask}
+            else:
+                return {"input": arr}
         else:
             try:
                 dcm = pydicom.dcmread(path)
                 dcm = apply_modality_lut(dcm.pixel_array, dcm)
                 arr = apply_windowing(dcm, self.window_center, self.window_width)
+                if self.args.use_annotations:
+                    mask = get_scaled_annotation_mask(sample["annotations"], self.args, scale_annotation=self.args.scale_annotations)
+                    return {"input": arr, "mask": mask}
+                else:
+                    return {"input": arr}
             except Exception:
                 raise Exception(LOADING_ERROR.format("COULD NOT LOAD DICOM."))
-        return {"input": arr}
+
 
     @property
     def cached_extension(self):
