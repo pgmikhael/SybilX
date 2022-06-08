@@ -197,7 +197,7 @@ class abstract_loader:
             if self.cache.exists(input_path, base_key):
                 try:
                     cached_arrays = self.cache.get(input_path, base_key)
-                    if self.cached_extension == '.npy' or isinstance(cached_arrays, np.ndarray):
+                    if self.args.cached_extension == '.npy' or isinstance(cached_arrays, np.ndarray):
                         input_dict["input"] = cached_arrays
                         input_dict["mask"] = get_scaled_annotation_mask(sample["annotations"], self.args, scale_annotation=self.args.scale_annotations)
                     else:
