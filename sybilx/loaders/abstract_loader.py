@@ -197,12 +197,16 @@ class abstract_loader:
             if self.cache.exists(input_path, base_key):
                 try:
                     cached_arrays = self.cache.get(input_path, base_key)
-                    input_dict["input"] = cached_arrays["image"]
-                    if "mask" in cached_arrays:
-                        input_dict["mask"] = cached_arrays["mask"]
-                    elif self.args.use_annotations:
-                        # if masks are correctly cached this should not be necessary
+                    if self.cached_extension == '.npy' or isinstance(cached_arrays, np.ndarray):
+                        input_dict["input"] = cached_arrays
                         input_dict["mask"] = get_scaled_annotation_mask(sample["annotations"], self.args, scale_annotation=self.args.scale_annotations)
+                    else:
+                        input_dict["input"] = cached_arrays["image"]
+                        if "mask" in cached_arrays:
+                            input_dict["mask"] = cached_arrays["mask"]
+                        elif self.args.use_annotations:
+                            # if masks are correctly cached this should not be necessary
+                            input_dict["mask"] = get_scaled_annotation_mask(sample["annotations"], self.args, scale_annotation=self.args.scale_annotations)
                     if self.apply_augmentations:
                         input_dict = apply_augmentations_and_cache(
                             input_dict,
