@@ -83,6 +83,7 @@ class cache:
 
         self.cache_dir = path
         self.files_extension = extension
+        self.cache_extension = cache_extension
         if cache_extension != extension:
             self.files_extension += cache_extension
 
@@ -113,10 +114,15 @@ class cache:
         file_dir = self._file_dir(attr_key, par_dir)
         if not os.path.exists(file_dir):
             os.makedirs(file_dir)
-        if mask is None:
-            np.savez(self._file_path(attr_key, par_dir, hashed_key), image=image)
+        if self.cache_extension == '.npz':
+            if mask is None:
+                np.savez(self._file_path(attr_key, par_dir, hashed_key), image=image)
+            else:
+                np.savez(self._file_path(attr_key, par_dir, hashed_key), image=image, mask=mask)
+        elif self.cache_extension == '.npy':
+            np.save(self._file_path(attr_key, par_dir, hashed_key), image)
         else:
-            np.savez(self._file_path(attr_key, par_dir, hashed_key), image=image, mask=mask)
+            raise Exception("Unsupported cache extension, can't add file to cache")
 
     def rem(self, image_path, attr_key):
         hashed_key = md5(image_path)
