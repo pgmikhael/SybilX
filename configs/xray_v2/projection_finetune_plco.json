@@ -60,7 +60,7 @@
       "comet_tags": [
         "plco simple_sybilx_r50 finetune v2", 
         "plco simple_sybilx_r50_attn local_attn finetune v2",
-        "plco smokers simple_sybilx_r50_attn local_attn finetune guided_attn v2",
+        "plco simple_sybilx_r50_attn local_attn finetune guided_attn v2",
         "plco simple_sybilx_r50_attn global_attn finetune v2", 
         "plco simple_sybilx_r50_attn global_attn finetune guided_attn v2"
       ],
