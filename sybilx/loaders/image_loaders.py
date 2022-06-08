@@ -82,7 +82,13 @@ class FullCTDicomLoader(abstract_loader):
                 x = torch.zeros(*shape)
 
                 if self.args.use_annotations:
-                    mask = get_scaled_annotation_mask(sample["annotations"], self.args)
+                    mask = (
+                        get_scaled_annotation_mask(sample["annotations"][e], 
+                        annotation_mask_args, 
+                        scale_annotation=annotation_mask_args.scale_annotations)
+                        if self.args.use_annotations
+                        else None
+                        )
                     mask = torch.from_numpy(mask * 0).unsqueeze(0)
                     input_dicts.append({"input": x, "mask": mask})
                 else:
