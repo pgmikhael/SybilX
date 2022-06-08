@@ -916,7 +916,8 @@ class NLSTTeacher(NLST_Survival_Dataset):
             ########################################################
             ################# LOAD PROJECTION ######################
             ########################################################
-            projection_dict = self.projection_loader.get_image(sample["paths"], sample)
+            dicom_paths = [path.replace('nlst-ct-png', "nlst-ct") for path in sample["paths"]]
+            projection_dict = self.projection_loader.get_image(dicom_paths, sample)
             item['projection'] = projection_dict["input"]
 
             if self.args.use_annotations:
