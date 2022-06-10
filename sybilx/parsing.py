@@ -207,6 +207,7 @@ def parse_args(args_strings=None):
         default=False,
         help="Whether or not to run model on dev set",
     )
+    parser.add_argument('--scale_annotations', action='store_true', default = False, help = 'whether to normalize the annotations per slice')
     parser.add_argument(
         "--predict",
         action="store_true",
