@@ -77,6 +77,20 @@ class SimpleSybilXR50(nn.Module):
         return output
 
 
+@register_object("simple_sybilx_inception", "model")
+class SimpleSybilXInception(SimpleSybilXR50Random):
+    def get_image_encoder(self):
+        encoder = pretrainedmodels.__dict__['inceptionv4'](num_classes=1000, pretrained='imagenet')
+        return nn.Sequential(*list(encoder.children())[:-2])
+    
+    @property
+    def ENCODER_OUTPUT_DIM(self):
+        """Size of input to cumulative prob. layer. 
+        Must match no. of channels in image encoder hidden output.
+        """
+        return 1536
+    
+
 @register_object("simple_sybilx_random", "model")
 class SimpleSybilXR50Random(SimpleSybilXR50):
     def __init__(self, args):
