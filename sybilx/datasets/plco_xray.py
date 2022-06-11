@@ -495,6 +495,36 @@ class PLCO_NLST_Smokers_Dataset(PLCO_XRay_Dataset):
 
         return super(PLCO_NLST_Smokers_Dataset, self).skip_sample(series_dict, pt_metadata, exam_dict, split_group, split_dict=None)
 
+
+@register_object("plco_non_nlst_smokers", "dataset")
+class PLCO_NLST_Smokers_Dataset(PLCO_XRay_Dataset):
+    """
+    Filters smokers using the same criteria as NLST
+    """
+    def skip_sample(self, series_dict, pt_metadata, exam_dict, split_group, split_dict=None):
+        screen_timepoint = exam_dict["study_yr"]  
+        age_at_randomization = pt_metadata["age"]
+        days_since_randomization = pt_metadata["xry_days{}".format(screen_timepoint)]
+        current_age = age_at_randomization + days_since_randomization // 365
+
+        age_quit_smoking = pt_metadata["ssmokea_f"]
+        pack_years = pt_metadata["pack_years"] if pt_metadata["pack_years"] not in ('.F','.M') else -1
+
+        is_smoker = pt_metadata["cig_stat"] == 1
+        years_since_quit_smoking = 0 if is_smoker else current_age - age_quit_smoking
+
+        # NLST Critera
+        # Current or former cigarette smokers within the past 15 years
+        # 55 to 74 years of age
+        # At least 30 pack-years of smoking 
+        # [Pack-years = packs per day x number of years smoking].
+        is_NLST_smoker = (55 <= current_age <= 74) and (pack_years >= 30 or pack_years == -1) and (years_since_quit_smoking <= 15)
+        if is_NLST_smoker: # if is an NLST smoker, skip
+            return True
+
+        return super(PLCO_NLST_Smokers_Dataset, self).skip_sample(series_dict, pt_metadata, exam_dict, split_group, split_dict=None)
+
+
 @register_object("plco_risk_factors", "dataset")
 class PLCO_Risk_Factor_Task(PLCO_XRay_Dataset):
     """
