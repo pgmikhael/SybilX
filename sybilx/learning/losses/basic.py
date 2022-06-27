@@ -116,3 +116,45 @@ def device_discriminator_loss(model_output, batch, model, args):
         loss = -loss
 
     return loss, logging_dict, predictions
+
+@register_object("risk_factor_loss", "loss")
+def get_risk_factor_loss(model_output, batch, model, args):
+    total_loss, logging_dict, predictions = 0, OrderedDict(), OrderedDict()
+    for idx, key in enumerate(args.risk_factor_keys):
+        logit = model_output["{}_logit".format(key)]
+        gold_rf = batch["risk_factors"][idx]
+        is_rf_known = (torch.sum(gold_rf, dim=-1) > 0).unsqueeze(-1).float()
+
+        gold = torch.argmax(gold_rf, dim=-1).contiguous().view(-1)
+
+        loss = (
+                F.cross_entropy(logit, gold, reduction="none") * is_rf_known
+                    ).sum() / max(1, is_rf_known.sum())
+        total_loss += loss
+        logging_dict["{}_loss".format(key)] = loss.detach()
+
+        probs = F.softmax(logit, dim=-1).detach()
+        predictions["{}_probs".format(key)] = probs.detach()
+        predictions["{}_golds".format(key)] = gold.detach()
+        predictions["{}_risk_factor".format(key)] = batch["risk_factors"][idx]
+        preds = torch.argmax(probs, dim=-1).view(-1)
+
+    return total_loss * args.primary_loss_lambda, logging_dict, predictions
+
+@register_object("survivalv2", "loss")
+def get_survival_lossv2(model_output, batch, model, args):
+    logging_dict, predictions = OrderedDict(), OrderedDict()
+    y_seq, y_mask = batch["y_seq"], batch["y_mask"]
+    loss = 0
+    for logitname in ["logit", "risk_factor_logit"]: #img_logit
+        logit = model_output["logit"]
+        subloss = F.binary_cross_entropy_with_logits(
+        logit, y_seq.float(), weight=y_mask.float(), reduction="sum"
+        ) / torch.sum(y_mask.float())
+        loss += subloss
+        logging_dict["survival_{}loss".format(logitname.split("logit")[0]) ] = loss.detach()
+    predictions["probs"] = torch.sigmoid(logit).detach()
+    predictions["golds"] = batch["y"]
+    predictions["censors"] = batch["time_at_event"]
+    predictions["survival_loss"] = loss.detach()
+    return loss, logging_dict, predictions
