@@ -300,6 +300,12 @@ def parse_args(args_strings=None):
         "--num_classes", type=int, default=6, help="Number of classes to predict"
     )
 
+    parser.add_argument(
+        "--from_hiddens",
+        action="store_true",
+        default=False,
+        help="Whether to run model over precomputed hiddens",
+    )
     # Alternative training/testing schemes
     parser.add_argument(
         "--cross_val_seed",
@@ -378,6 +384,19 @@ def parse_args(args_strings=None):
         default=[],
         help="List of risk factors to include in risk factor vector.",
     )
+    parser.add_argument(
+        "--use_pred_risk_factors",
+        action="store_true",
+        default=False,
+        help="Whether to use the predicted risk factors in the model",
+    )
+    parser.add_argument(
+        "--use_available_risk_factors",
+        action="store_true",
+        default=False,
+        help="Whether to use the available risk factors in the model",
+    )
+
 
     # handling CT slices
 
@@ -435,7 +454,26 @@ def parse_args(args_strings=None):
         default=False,
         help="Wether to use image series with thinnest cuts only.",
     )
+    # smoking related cancers
 
+    parser.add_argument(
+        "--include_only_lung",
+        action="store_true",
+        default=False,
+        help="Whether to only consider lung cancers.",
+    )  #
+    parser.add_argument(
+        "--include_lung_cancers",
+        action="store_true",
+        default=False,
+        help="Whether to include lung cancers in smoking related cases.",
+    )  #
+    parser.add_argument(
+        "--include_secondary_cancers",
+        action="store_true",
+        default=False,
+        help="Whether to consider cancers that occur after non smoking related cancers.",
+    )  #
     # region annotations
     parser.add_argument(
         "--use_annotations",

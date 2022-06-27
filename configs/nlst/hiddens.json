@@ -1,0 +1,31 @@
+{
+	"train_config": "configs/nlst/fixed_spacing.json",
+	"log_dir": "/Mounts/rbg-storage1/logs/lung_ct",
+	"eval_args": {
+		"dataset": ["nlst"],
+        	"dataset_file_path": [
+			"/Mounts/rbg-storage1/datasets/NLST/full_nlst_google.json"
+		],
+        	"img_dir": [
+			"/Mounts/rbg-storage1/datasets/NLST/nlst-ct-png"
+		],
+		"hiddens_dir": [
+			"/Mounts/rbg-storage1/results/lung_ct/distillation/28a7cd44f5bcd3e6cc760b65c7e0d54depoch=10"
+		],
+		"snapshot": [
+			"/Mounts/rbg-storage1/snapshots/lung_ct/28a7cd44f5bcd3e6cc760b65c7e0d54d/28a7cd44f5bcd3e6cc760b65c7e0d54depoch=10.ckpt"
+		],
+		"save_predictions": [false],
+		"save_hiddens": [false],
+		"eval_on_train": [true],
+		"comet_tags": ["nlst hidden"],
+		"dev": [true],
+		"gpus": [1],
+		"batch_size": [24],
+		"from_hiddens": [true],
+		"eval_loss_fns": ["survival"],
+		"input_loader_name": ["hidden_loader"]
+	},
+	"available_gpus": [4],
+	"script": "main"
+}

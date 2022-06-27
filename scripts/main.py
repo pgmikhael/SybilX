@@ -83,7 +83,10 @@ def cli_main(args):
             args.censoring_distribution = get_censoring_dist(train_dataset.dataset)
         log.info("\nTraining Phase...")
         trainer.fit(model, train_dataset, dev_dataset)
-        args.model_path = trainer.checkpoint_callback.best_model_path
+        if any("checkpoint" in m for m in args.callback_names):
+            args.model_path = trainer.checkpoint_callback.best_model_path
+        else:
+            args.model_path = None
 
     if args.dev:
         log.info("\nValidation Phase...")

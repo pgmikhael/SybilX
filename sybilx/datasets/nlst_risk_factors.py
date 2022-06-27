@@ -98,8 +98,6 @@ class NLSTRiskFactorVectorizer():
         binary_risk_factor[risk_factor] = 1
         return binary_risk_factor
 
-        return binary_family_history
-
 
     def transform_smoking_tails(self,  risk_factor_key, cutoffs):
         def transform_smoking_risk_factors(patient_factors, screen_timepoint, just_return_feature_names=False):

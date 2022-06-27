@@ -11,7 +11,7 @@
       16
     ],
     "dataset": [
-      "nlst"
+      "nlst_risk_factors"
     ],
     "max_followup": [
       6
@@ -29,7 +29,7 @@
       0.9
     ],
     "max_epochs": [
-      10
+      15
     ],
     "lr_decay": [
       0.1
@@ -65,7 +65,7 @@
       3e-5
     ],
     "base_model": [
-      "sybil"
+      "full_sybilv2"
     ],
     "use_only_thin_cuts_for_ct": [
       true
@@ -95,8 +95,11 @@
       3
     ],
     "loss_fns": [
-      "survival guided_attention"
+      "survival guided_attention risk_factor_loss"
     ],
+    "use_pred_risk_factors": [true],
+    "use_risk_factors": [true],
+    "risk_factor_keys": ["gender age race weight height binary_family_history copd is_smoker smoking_duration smoking_intensity years_since_quit_smoking"],
     "metrics": [
       "survival"
     ],
@@ -146,14 +149,23 @@
       "nlst-cancer"
     ],
     "comet_tags": [
-      "sybil spacing nlst ensemble saved"
+      "sybil spacing riskfactors"
+    ],
+    "callback_names": ["lr_monitor swa checkpointer"],
+    "swa_epoch": [
+      0.8
+    ],
+    "swa_lr": [
+      1e-4
+    ],
+    "swa_annealing_epochs": [
+      1
+    ],
+    "swa_annealing_strategy": [
+      "cos"
     ],
     "num_sanity_val_steps": [
       0
-    ],
-    "logger_name": ["comet"],
-    "profiler": [
-      "simple"
     ],
     "gpus": [
       8

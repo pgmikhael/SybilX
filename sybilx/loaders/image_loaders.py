@@ -4,12 +4,29 @@ import os
 import cv2
 import torch
 import pydicom
+import pickle
 from pydicom.pixel_data_handlers.util import apply_modality_lut
 import numpy as np
 from sybilx.datasets.utils import get_scaled_annotation_mask, IMG_PAD_TOKEN
 
 LOADING_ERROR = "LOADING ERROR! {}"
 
+
+@register_object("hidden_loader", "input_loader")
+class HiddenLoader(abstract_loader):
+    def configure_path(self, path, sample):
+        return os.path.join(self.args.hiddens_dir, "sample_{}.predictions".format(sample['exam']))
+
+    def load_input(self, path, sample):
+        """
+        loads as grayscale image
+        """
+        hiddens = pickle.load(open(path, 'rb'))
+        return {"input": hiddens['hidden']}
+
+    @property
+    def cached_extension(self):
+        return ".p"
 
 @register_object("cv_loader", "input_loader")
 class OpenCVLoader(abstract_loader):

@@ -1,0 +1,16 @@
+{
+	"train_config": "configs/nlst/with_risk_factor.json",
+	"log_dir": "/Mounts/rbg-storage1/logs/lung_ct",
+	"eval_args": {
+		"hiddens_dir": [
+			"/Mounts/rbg-storage1/results/lung_ct/nlst"
+		],
+		"snapshot": [
+			"/Mounts/rbg-storage1/logs/lung_ct/db05a9cdb017aa1aaea19105865c94da.args"
+		],
+		"save_predictions": [false],
+		"save_hiddens": [false]
+	},
+	"available_gpus": [3],
+	"script": "main"
+}

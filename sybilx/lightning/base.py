@@ -28,12 +28,12 @@ class Base(pl.LightningModule):
         self.loss_fns["val"] = (
             self.loss_fns["train"]
             if self.args.eval_loss_fns is None
-            else [get_object(l, "loss") for l in self.args.val_loss_fns]
+            else [get_object(l, "loss") for l in self.args.eval_loss_fns]
         )
         self.loss_fns["test"] = (
             self.loss_fns["train"]
             if self.args.eval_loss_fns is None
-            else [get_object(l, "loss") for l in self.args.test_loss_fns]
+            else [get_object(l, "loss") for l in self.args.eval_loss_fns]
         )
         self.metrics = [get_object(m, "metric")(self.args) for m in self.args.metrics]
         self.metric_keys = list(
