@@ -248,7 +248,7 @@ class MGH_Screening(NLST_Survival_Dataset):
             and additional information regarding exam or participant
         """
         assert not self.args.train, "Cohort 2 should not be used for training"
-
+        self.exclusion = {'empty': [], 'unknown_future': [], 'neg_days': [], 'thickness': [], 'pixel_spacing': [], 'localizer': []}
         dataset = []
 
         for mrn_row in tqdm(self.metadata_json):
@@ -257,31 +257,35 @@ class MGH_Screening(NLST_Survival_Dataset):
             for exam_dict in exams:
 
                 for series_id, series_dict in exam_dict["image_series"].items():
-                    if self.skip_sample(series_dict, exam_dict, mrn_row):
+                    if self.skip_sample(series_id, series_dict, exam_dict, mrn_row):
                         continue
 
                     sample = self.get_volume_dict(
                         series_id, series_dict, exam_dict, mrn_row
                     )
                     if len(sample) == 0:
+                        self.exclusion['empty'].append(series_id)
                         continue
 
                     dataset.append(sample)
 
         return dataset
 
-    def skip_sample(self, series_dict, exam_dict, mrn_row):
+    def skip_sample(self, series_id, series_dict, exam_dict, mrn_row):
         # unknown cancer status
         if exam_dict["Future_cancer"] == "unkown":
+            self.exclusion['unknown_future'].append(series_id)
             return True
 
         if (exam_dict["days_before_cancer_dx"] < 0) or (
             exam_dict["days_to_last_follow_up"] < 0
         ):
+            self.exclusion['neg_days'].append(series_id)
             return True
 
         # check if screen is localizer screen or not enough images
         if self.is_localizer(series_dict["series_data"]):
+            self.exclusion['localizer'].append(series_id)
             return True
 
         slice_thickness = series_dict["SliceThickness"]
@@ -291,9 +295,11 @@ class MGH_Screening(NLST_Survival_Dataset):
             or (slice_thickness > self.args.slice_thickness_filter)
             or (slice_thickness < 0)
         ):
+            self.exclusion['thickness'].append(series_id)
             return True
 
         if series_dict["PixelSpacing"] is None:
+            self.exclusion['pixel_spacing'].append(series_id)
             return True
 
         if len(series_dict["paths"]) < self.args.min_num_images:
@@ -343,6 +349,7 @@ class MGH_Screening(NLST_Survival_Dataset):
             "bridge_uid": bridge_uid,
             "device": device,
             "lung_rads": exam_dict["LR Score"],
+            "indication": exam_dict["indication"],
             "cancer_location": np.zeros(14),  # mgh has no annotations
             "cancer_laterality": np.zeros(
                 3, dtype=np.int

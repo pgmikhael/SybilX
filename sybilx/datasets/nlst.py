@@ -65,7 +65,8 @@ EDUCAT_LEVEL = {
     6: 5,  # Bachelors = College Grad
     7: 6,  # Graduate School = Postrad/Prof
 }
-DEVICE_TO_NAME = {1: "GE MEDICAL SYSTEMS", 2: "Philips", 3: "SIEMENS", 4: "TOSHIBA"}
+DEVICE_TO_NAME = {1: "GE MEDICAL SYSTEMS", 2: "Philips", 3: "SIEMENS", 4: "TOSHIBA",
+        "GE MEDICAL SYSTEMS":"GE MEDICAL SYSTEMS", "Philips":"Philips","SIEMENS":"SIEMENS", "TOSHIBA":"TOSHIBA"}
 
 
 @register_object("nlst", "dataset")
@@ -107,7 +108,8 @@ class NLST_Survival_Dataset(data.Dataset):
             self.annotations_metadata = json.load(
                 open(self.args.region_annotations_filepath, "r")
             )
-
+        
+        self.risk_factor_vectorizer = NLSTRiskFactorVectorizer(args)
         self.dataset = self.create_dataset(split_group)
         if len(self.dataset) == 0:
             return
@@ -134,9 +136,10 @@ class NLST_Survival_Dataset(data.Dataset):
             The dataset as a dictionary with img paths, label,
             and additional information regarding exam or participant
         """
+        # self.exclusion = {'test_not_found': 0, 'empty': 0, 'localizer': 0, 'not_thinnest': 0, 'thickness': 0, 'bad_label': 0, 'invalid_label': 0, 'num_slices': 0}
+        self.exclusion = {'test_not_found': [], 'empty': [], 'localizer': [], 'not_thinnest': [], 'thickness': [], 'bad_label': [], 'invalid_label': [], 'num_slices': []}
         self.corrupted_paths = self.CORRUPTED_PATHS["paths"]
         self.corrupted_series = self.CORRUPTED_PATHS["series"]
-        # self.risk_factor_vectorizer = NLSTRiskFactorVectorizer(self.args)
 
         if self.args.assign_splits:
             np.random.seed(self.args.cross_val_seed)
@@ -165,7 +168,7 @@ class NLST_Survival_Dataset(data.Dataset):
 
                 elif split == "test" and self.args.assign_splits:
                     thinnest_series_id = self.get_thinnest_cut(exam_dict)
-
+                
                 elif split == "test":
                     google_series = list(self.GOOGLE_SPLITS[pid]["exams"])
                     nlst_series = list(exam_dict["image_series"].keys())
@@ -177,21 +180,25 @@ class NLST_Survival_Dataset(data.Dataset):
                         if self.args.assign_splits:
                             thinnest_series_id = self.get_thinnest_cut(exam_dict)
                         else:
+                            self.exclusion['test_not_found'].extend(list(exam_dict['image_series'].keys())) 
                             continue
-
+                
                 for series_id, series_dict in exam_dict["image_series"].items():
-                    if self.skip_sample(series_dict, pt_metadata):
+                    
+                    if self.skip_sample(series_id, series_dict, pt_metadata):
                         continue
-
+                    
                     if self.args.use_only_thin_cuts_for_ct and (
                         not series_id == thinnest_series_id
                     ):
+                        self.exclusion['not_thinnest'].append(series_id)
                         continue
 
                     sample = self.get_volume_dict(
                         series_id, series_dict, exam_dict, pt_metadata, pid, split
                     )
                     if len(sample) == 0:
+                        self.exclusion['empty'].append(series_id)
                         continue
 
                     dataset.append(sample)
@@ -223,7 +230,7 @@ class NLST_Survival_Dataset(data.Dataset):
             thinnest_series_id = thinnest_series_id[0]
         return thinnest_series_id
 
-    def skip_sample(self, series_dict, pt_metadata):
+    def skip_sample(self, series_id, series_dict, pt_metadata):
         series_data = series_dict["series_data"]
         # check if screen is localizer screen or not enough images
         is_localizer = self.is_localizer(series_data)
@@ -246,6 +253,17 @@ class NLST_Survival_Dataset(data.Dataset):
             invalid_label = False
 
         insufficient_slices = len(series_dict["paths"]) < self.args.min_num_images
+        
+        if is_localizer:
+            self.exclusion['localizer'].append(series_id) # +=1 
+        elif wrong_thickness:
+            self.exclusion['thickness'].append(series_id) # +=1 
+        elif bad_label:
+            self.exclusion['bad_label'].append(series_id) # +=1 
+        elif invalid_label:
+            self.exclusion['invalid_label'].append(series_id) # +=1 
+        elif insufficient_slices:
+            self.exclusion['num_slices'].append(series_id) # +=1 
 
         if (
             is_localizer
@@ -286,6 +304,8 @@ class NLST_Survival_Dataset(data.Dataset):
                 + path[path.find("nlst-ct-png") + len("nlst-ct-png") :]
                 for path in sorted_img_paths
             ]
+        if sorted_img_paths[0].endswith(".dcm.png"):
+            sorted_img_paths = [ p.replace(".dcm.png", ".png") for p in sorted_img_paths]
         if self.args.img_file_type == "dicom":
             sorted_img_paths = [
                 path.replace("nlst-ct-png", "nlst-ct").replace(".png", "")
@@ -571,21 +591,25 @@ class NLST_Survival_Dataset(data.Dataset):
             sample = self.get_ct_annotations(sample)
         try:
             item = {}
-            input_dict = self.get_images(sample["paths"], sample)
+            if self.args.from_hiddens:
+                path = self.input_loader.configure_path("", sample)
+                x = self.input_loader.load_input(path, sample)['input']
+            else:
+                input_dict = self.get_images(sample["paths"], sample)
 
-            x = input_dict["input"]
+                x = input_dict["input"]
 
-            if self.args.use_annotations:
-                mask = torch.abs(input_dict["mask"])
-                mask_area = mask.sum(dim=(-1, -2))
-                item["volume_annotations"] = mask_area[0] / max(1, mask_area.sum())
-                item["annotation_areas"] = mask_area[0] / (
-                    mask.shape[-2] * mask.shape[-1]
-                )
-                mask_area = mask_area.unsqueeze(-1).unsqueeze(-1)
-                mask_area[mask_area == 0] = 1
-                item["image_annotations"] = mask / mask_area
-                item["has_annotation"] = item["volume_annotations"].sum() > 0
+                if self.args.use_annotations:
+                    mask = torch.abs(input_dict["mask"])
+                    mask_area = mask.sum(dim=(-1, -2))
+                    item["volume_annotations"] = mask_area[0] / max(1, mask_area.sum())
+                    item["annotation_areas"] = mask_area[0] / (
+                        mask.shape[-2] * mask.shape[-1]
+                    )
+                    mask_area = mask_area.unsqueeze(-1).unsqueeze(-1)
+                    mask_area[mask_area == 0] = 1
+                    item["image_annotations"] = mask / mask_area
+                    item["has_annotation"] = item["volume_annotations"].sum() > 0
 
             if self.args.use_risk_factors:
                 item["risk_factors"] = sample["risk_factors"]
@@ -782,4 +806,90 @@ class NLST_Risk_Factor_Task(NLST_Survival_Dataset):
             pt_metadata, screen_timepoint
         )
 
+@register_object("nlst_smoking_related_cancers", "dataset")
+class NLST_Smoking_Related_Cancers(NLST_Survival_Dataset):
+    
+    def get_label(self, pt_metadata, screen_timepoint):
+        icds = [
+                    pt_metadata[f"confirmed_icd_topog{ind}"][0] for ind in range(1,5) 
+                        if pt_metadata[f"confirmed_candxdays{ind}"][0] != -1]
+        days_to_icds = [
+                    pt_metadata[f"confirmed_candxdays{ind}"][0] for ind in range(1,5) 
+                        if pt_metadata[f"confirmed_candxdays{ind}"][0] != -1]
 
+        days_to_confirmed_cancer_since_rand = -1
+        if len(days_to_icds) > 0:
+            icds_sorted_by_days = [(x,y) for y, x in sorted(zip(days_to_icds, icds))]
+            if self.args.include_secondary_cancers:
+                # reverse order so last cancer found in list is the first smoking related cancer in days the ever occurs
+                # this includes the first smoking related cancer, even if not the first any cancer
+                icds_reverse_sorted_by_days = sorted(icds_sorted_by_days, key=lambda x: x[-1], reverse = True)
+                for code, days in icds_reverse_sorted_by_days:
+                    if self.is_smoking_rel_cancers(code, self.args.include_lung_cancers, self.args.include_only_lung):
+                        days_to_confirmed_cancer_since_rand = days
+            elif self.is_smoking_rel_cancers(icds_sorted_by_days[0][0], self.args.include_lung_cancers, self.args.include_only_lung):
+                # only include if first cancer diagnosed is smoking related
+                days_to_confirmed_cancer_since_rand = icds_sorted_by_days[0][-1]
+
+        days_since_rand = pt_metadata["scr_days{}".format(screen_timepoint)][0]
+        days_to_cancer = days_to_confirmed_cancer_since_rand - days_since_rand
+        years_to_cancer = (
+                int(days_to_cancer // 365) if days_to_confirmed_cancer_since_rand > -1 else 100
+                )
+
+        days_to_last_followup = int(pt_metadata["fup_days"][0] - days_since_rand)
+        years_to_last_followup = days_to_last_followup // 365
+        y = (years_to_cancer >= 0) and (years_to_cancer < self.args.max_followup)
+        y_seq = np.zeros(self.args.max_followup)
+        
+        if y: # if there is cancer, lung or other
+            time_at_event = years_to_cancer
+            y_seq[years_to_cancer:] = 1
+        else: # if no cancer
+            time_at_event = min(years_to_last_followup, self.args.max_followup - 1)
+        
+        y_mask = np.array(
+                    [1] * (time_at_event + 1)
+                    + [0] * (self.args.max_followup - (time_at_event + 1))
+                    )
+        assert len(y_mask) == self.args.max_followup
+        return y, y_seq.astype("float64"), y_mask.astype("float64"), time_at_event
+
+    def is_smoking_rel_cancers(self, cancer_icd, include_lung, include_only_lung):
+        lung_and_bronchus_rel_cancers = {'C34.0', 'C34.1', 'C34.2', 'C34.3', 'C34.8', 'C34.9'}
+        bladder_rel_cancers = {'C67.0', 'C67.1', 'C67.2', 'C67.3', 'C67.4', 'C67.5', 'C67.6', 'C67.7', 'C67.8'}
+        ureter_rel_cancers = {'C66.1', 'C66.2'}
+        renal_pelvis_rel_cancers = {'C65.1', 'C65.2'}
+        head_neck_rel_cancers = {'C00-C14'}
+        sinuses_rel_cancers = {'C30.0', 'C31.0', 'C31.1', 'C31.2', 'C31.3', 'C31.8', 'C31.9'}
+        oesophagus_rel_cancers = {'C15.3', 'C15.4', 'C15.5', 'C15.8', 'C15.9'}
+        larynx_rel_cancers = {'C32.0', 'C32.1', 'C32.3', 'C32.3', 'C32.8', 'C32.9'}
+        pancreas_rel_cancers = {'C25.0', 'C25.1', 'C25.2', 'C25.3', 'C25.4', 'C25.7', 'C25.8'}
+        stomach_rel_cancers = {'C16.0', 'C16.1', 'C16.2', 'C16.3', 'C16.4', 'C16.8'}
+        liver_rel_cancers = {'C22.0', 'C22.1', 'C22.2', 'C22.3', 'C22.4', 'C22.7', 'C22.8', 'C22.9'}
+        cervix_rel_cancers = {'C53.0', 'C53.1', 'C53.8', 'C53.9'}
+        myeloid_leukemia_rel_cancers = {'C92.0', 'C92.1', 'C92.2', 'C92.3', 'C92.4', 'C92.5', 'C92.6', 'C92.A', 'C92.Z', 'C92.9'}
+        if include_only_lung:
+            smoking_rel_cancers = lung_and_bronchus_rel_cancers
+        else:
+            smoking_rel_cancers = (
+                    bladder_rel_cancers |
+                    ureter_rel_cancers |
+                    renal_pelvis_rel_cancers |
+                    head_neck_rel_cancers |
+                    sinuses_rel_cancers |
+                    oesophagus_rel_cancers |
+                    larynx_rel_cancers |
+                    pancreas_rel_cancers |
+                    stomach_rel_cancers |
+                    liver_rel_cancers |
+                    cervix_rel_cancers |
+                    myeloid_leukemia_rel_cancers
+                    )
+
+            if include_lung:
+                smoking_rel_cancers = smoking_rel_cancers | lung_and_bronchus_rel_cancers
+        
+        if cancer_icd in smoking_rel_cancers:
+            return True
+        return False
