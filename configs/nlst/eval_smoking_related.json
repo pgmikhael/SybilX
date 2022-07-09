@@ -1,6 +1,18 @@
 {
   "script": "main",
+  "paired_search_space": {
+    "include_only_lung": [true, false, false],
+    "include_lung_cancers": [true, false, true],
+    "snapshot": [
+		"/Mounts/rbg-storage1/logs/lung_ct/bad012ea3cf094d533c9b9360058de9c.args",
+		"/Mounts/rbg-storage1/logs/lung_ct/3c3a03acf2709a93286f27813ee4b328.args",
+		"/Mounts/rbg-storage1/logs/lung_ct/edea04a093038c9ec3965795f2358ec3.args"
+	]
+  },
   "grid_search_space": {
+    "loss_fns": [
+	    "survival"
+    ],
     "batch_size": [
       3
     ],
@@ -11,8 +23,9 @@
       16
     ],
     "dataset": [
-      "nlst_risk_factors"
+      "nlst_smoking_related_cancers"
     ],
+    "include_secondary_cancers": [true],
     "max_followup": [
       6
     ],
@@ -29,7 +42,7 @@
       0.9
     ],
     "max_epochs": [
-      15
+      5
     ],
     "lr_decay": [
       0.1
@@ -55,17 +68,12 @@
     "resample_pixel_spacing_prob": [
       1
     ],
-    "limit_train_batches": [
-      0.5
-    ],
-    "limit_val_batches": [
-      1.0
-    ],
+    "val_check_interval": [0.5],
     "lr": [
       3e-5
     ],
     "base_model": [
-      "full_sybil"
+      "sybil"
     ],
     "use_only_thin_cuts_for_ct": [
       true
@@ -94,13 +102,6 @@
     "num_chan": [
       3
     ],
-    "loss_fns": [
-      "survival"
-    ],
-    "use_available_risk_factors": [false],
-    "use_pred_risk_factors": [false],
-    "use_risk_factors": [true],
-    "risk_factor_keys": ["gender age race weight height binary_family_history copd is_smoker smoking_duration smoking_intensity years_since_quit_smoking"],
     "metrics": [
       "survival"
     ],
@@ -117,13 +118,13 @@
       5
     ],
     "train": [
-      true
+      false
     ],
     "dev": [
       false
     ],
     "test": [
-      false
+      true
     ],
     "class_bal": [
       true
@@ -150,26 +151,13 @@
       "nlst-cancer"
     ],
     "comet_tags": [
-      "sybil spacing riskfactors"
-    ],
-    "callback_names": ["lr_monitor swa checkpointer"],
-    "swa_epoch": [
-      0.8
-    ],
-    "swa_lr": [
-      1e-4
-    ],
-    "swa_annealing_epochs": [
-      1
-    ],
-    "swa_annealing_strategy": [
-      "cos"
+      "eval smoking-related"
     ],
     "num_sanity_val_steps": [
       0
     ],
     "gpus": [
-      8
+      1
     ],
     "val_check_interval": [
       1.0
@@ -180,8 +168,12 @@
     "dropout": [
       0.1
     ],
+    "logger_name": ["comet"],
+    "assign_splits": [true],
+    "split_type": ["random"],
+    "split_probs": ["0.7 0.15 0.15"],
     "dataset_file_path": [
-      "/Mounts/rbg-storage1/datasets/NLST/full_nlst_google.json"
+      "/Mounts/rbg-storage1/datasets/NLST/nlst_15K_all_cancers.json"
     ],
     "save_dir": [
       "/Mounts/rbg-storage1/snapshots/lung_ct"
@@ -191,9 +183,14 @@
     ],
     "cache_path": [
       "/storage/nlst_cache"
-    ]
+    ],
+    "hiddens_dir": [
+	    "/Mounts/rbg-storage1/results/lung_ct/nlst"
+    ],
+    "save_predictions": [true],
+    "from_checkpoint": [true]
   },
   "available_gpus": [
-    "0,1,2,3,4,5,6,7"
+    1,2,3,4,5,6,7
   ]
 }

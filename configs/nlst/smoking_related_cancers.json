@@ -146,7 +146,7 @@
       "nlst-cancer"
     ],
     "comet_tags": [
-      "smoking-related"
+      "smoking-related exclude-lung"
     ],
     "num_sanity_val_steps": [
       0

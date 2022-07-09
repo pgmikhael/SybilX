@@ -893,3 +893,12 @@ class NLST_Smoking_Related_Cancers(NLST_Survival_Dataset):
         if cancer_icd in smoking_rel_cancers:
             return True
         return False
+    
+    def skip_sample(self, series_id, series_dict, pt_metadata):
+        if not self.args.include_lung_cancers:
+            series_data = series_dict["series_data"]
+            screen_timepoint = series_data["study_yr"][0]
+            y, _, _, _ = self.get_label(pt_metadata, screen_timepoint)
+            if y:
+                return True
+        return super().skip_sample(series_id, series_dict, pt_metadata)
