@@ -8,6 +8,7 @@ import pandas as pd
 import time
 from collections import defaultdict
 from ast import literal_eval
+import pydicom 
 
 SPLIT_PROBS = [0.8, 0.2]
 
@@ -19,7 +20,7 @@ parser.add_argument(
     default="/Mounts/rbg-storage1/datasets/NLST/full_nlst.json",
 )
 parser.add_argument(
-    "--source_json_path",
+    "--source_path",
     type=str,
     default="/Mounts/rbg-storage1/datasets/NLST/nlst_metadata_022020.json",
 )
@@ -43,7 +44,18 @@ parser.add_argument(
     type=str,
     default="/Mounts/rbg-storage1/datasets/NLST/Shetty_et_al(Google)/TEST_41591_2019_447_MOESM5_ESM.xlsx",
 )
+parser.add_argument(
+        "--source_type",
+        type=str,
+        choices=["paths", "json"],
+        default=False,
+        )
 
+def get_dicom_metadata(dicom_path):
+    dicom_data = pydicom.dcmread(dicom_path, stop_before_pixels=True)
+    dicom_keys = dicom_data.dir()
+    dicom_metadata = {key: str(dicom_data.get(key)) for key in dicom_keys}
+    return dicom_metadata
 
 if __name__ == "__main__":
     args = parser.parse_args()
@@ -53,7 +65,10 @@ if __name__ == "__main__":
     test_google_pids = [str(p) for p in test_google_data["patient_id"]]
 
     # Source json, output of OncoData ..
-    source_json = json.load(open(args.source_json_path, "r"))
+    if args.source_type == "json":
+        source_json = json.load(open(args.source_path, "r"))
+    elif args.source_type == "paths":
+        source_json = pickle.load(open(args.source_path, 'rb'))
 
     # Dataset json, create new or update existing
     if os.path.exists(args.output_json_path):
@@ -101,7 +116,8 @@ if __name__ == "__main__":
     processed_dict = defaultdict(list)
 
     # accession, pid, scanner, year, slicelocations
-    for row_dict in tqdm(source_json):
+    for path in tqdm(source_json):
+        row_dict =  {"dicom_metadata": get_dicom_metadata(path), "dicom_path": path}
         dcm_keys = list(row_dict["dicom_metadata"].keys())
         if (
             ("PatientID" not in dcm_keys)
@@ -200,14 +216,15 @@ if __name__ == "__main__":
             "slice_number": [slicenumber],
             "pixel_spacing": pixel_spacing,
             "slice_thickness": slice_thickness,
-            "img_position": img_posn,
-            "series_data": make_metadata_dict(
-                image_data,
-                pid,
-                timepoint,
-                series_id,
-                use_timepoint_and_studyinstance=True,
-            ),
+            "img_position": [img_posn],
+            "series_data": {
+                "reconthickness":[slice_thickness], 
+                "study_yr": [timepoint], 
+                "manufacturer":[row_dict["dicom_metadata"]["Manufacturer"]],
+                "studyuid":[row_dict["dicom_metadata"]["StudyInstanceUID"]],
+                "imagetype": [list(map(str, eval(row_dict["dicom_metadata"]["ImageType"])))],
+                "imageclass": [-1]
+                }
         }
 
         if pid in pid_list:
@@ -233,6 +250,9 @@ if __name__ == "__main__":
                     json_dataset[pt_idx]["accessions"][exam_idx]["image_series"][
                         series_id
                     ]["slice_number"].append(slicenumber)
+                    json_dataset[pt_idx]["accessions"][exam_idx]["image_series"][
+                        series_id
+                    ]["img_position"].append(img_posn)
             else:
                 exam_dict["image_series"] = {series_id: img_series_dict}
                 json_dataset[pt_idx]["accessions"].append(exam_dict)
@@ -240,13 +260,13 @@ if __name__ == "__main__":
         else:
             exam_dict["image_series"] = {series_id: img_series_dict}
             if pid in test_google_pids:
-                split_group = "test"
+                in_google = True
             else:
-                split_group = np.random.choice(["train", "dev"], p=SPLIT_PROBS)
+                in_google = False
             pt_dict = {
                 "accessions": [exam_dict],
                 "pid": pid,
-                "split": split_group,
+                "in_google": in_google,
                 "pt_metadata": make_metadata_dict(meta_data, pid, timepoint, series_id),
             }
 
